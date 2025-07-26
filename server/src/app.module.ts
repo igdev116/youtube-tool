@@ -8,6 +8,8 @@ import { AuthModule } from './auth/auth.module';
 import { YoutubeChannelModule } from './modules/youtube-channel/youtube-channel.module';
 import { TelegramModule } from './telegram/telegram.module';
 import { CronModule } from './modules/cron/cron.module';
+import { QueueModule } from './modules/queue/queue.module';
+import { SimpleTestQueueModule } from './modules/simple-test-queue/simple-test-queue.module';
 
 @Module({
   imports: [
@@ -20,6 +22,8 @@ import { CronModule } from './modules/cron/cron.module';
     YoutubeChannelModule,
     TelegramModule,
     CronModule,
+    QueueModule,
+    SimpleTestQueueModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -56,21 +56,11 @@ const AddTelegramPage = () => {
   };
 
   return (
-    <div
-      style={{
-        maxWidth: 600,
-        margin: '40px auto',
-        background: '#fff',
-        padding: 32,
-        borderRadius: 8,
-        boxShadow: '0 2px 8px #f0f1f2',
-      }}>
-      <Title level={2} style={{ textAlign: 'center', marginBottom: 24 }}>
+    <div className='max-w-2xl mx-auto mt-10 bg-white p-8 rounded-lg shadow-lg'>
+      <Title level={2} className='text-center mb-6'>
         Cập nhật group Telegram
       </Title>
-      <form
-        onSubmit={handleUpdateGroup}
-        style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+      <form onSubmit={handleUpdateGroup} className='flex gap-3 justify-center'>
         <Input
           placeholder='ID group Telegram'
           value={
@@ -83,7 +73,7 @@ const AddTelegramPage = () => {
               e.target.value.replace('https://web.telegram.org/k/#', '')
             )
           }
-          style={{ height: 40, minWidth: 320 }}
+          className='h-10 min-w-80'
           disabled={
             updateGroupMutation.isPending ||
             (!isEditing && !!profile?.telegramGroupId)
@@ -92,7 +82,7 @@ const AddTelegramPage = () => {
         <Button
           type='primary'
           htmlType='submit'
-          style={{ height: 40 }}
+          className='h-10'
           loading={updateGroupMutation.isPending}
           disabled={updateGroupMutation.isPending}>
           {profile?.telegramGroupId && !isEditing ? 'Chỉnh sửa' : 'Cập nhật'}

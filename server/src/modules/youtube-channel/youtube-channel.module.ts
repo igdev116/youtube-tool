@@ -5,6 +5,7 @@ import { YoutubeChannelService } from './youtube-channel.service';
 import { YoutubeChannelController } from './youtube-channel.controller';
 import { UserModule } from '../../user/user.module';
 import { TelegramModule } from '../../telegram/telegram.module';
+import { QueueModule } from '../queue/queue.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { TelegramModule } from '../../telegram/telegram.module';
     ]),
     UserModule,
     TelegramModule,
+    QueueModule,
   ],
   providers: [YoutubeChannelService],
   exports: [YoutubeChannelService],

@@ -35,25 +35,48 @@ export async function extractChannelIdFromUrl(
  */
 export const extractFirstVideoIdFromYt = async (
   url: string,
+  type: 'video' | 'short' = 'short',
 ): Promise<{ id: string; thumbnail: string; title: string } | null> => {
-  const data = await getYtInitialDataFromUrl(url);
+  const data = await getYtInitialDataFromUrl(
+    type === 'video' ? url : url + '/shorts',
+  );
 
   try {
-    const firstVideo =
-      data.contents.twoColumnBrowseResultsRenderer.tabs[0].tabRenderer.content
-        .sectionListRenderer.contents[1].itemSectionRenderer.contents[0]
-        .shelfRenderer.content.horizontalListRenderer.items[0]
-        .gridVideoRenderer;
+    if (type === 'video') {
+      const firstVideo =
+        data.contents.twoColumnBrowseResultsRenderer.tabs[0].tabRenderer.content
+          .sectionListRenderer.contents[1].itemSectionRenderer.contents[0]
+          .shelfRenderer.content.horizontalListRenderer.items[0]
+          .gridVideoRenderer;
 
-    return {
-      id: firstVideo.videoId,
-      thumbnail:
-        firstVideo.thumbnail.thumbnails[
-          firstVideo.thumbnail.thumbnails.length - 1
-        ].url,
-      title: firstVideo.title.simpleText,
-    };
-  } catch {
+      return {
+        id: firstVideo.videoId,
+        thumbnail:
+          firstVideo.thumbnail.thumbnails[
+            firstVideo.thumbnail.thumbnails.length - 1
+          ].url,
+        title: firstVideo.title.simpleText,
+      };
+    } else {
+      const firstVideo = data.contents.twoColumnBrowseResultsRenderer.tabs.find(
+        (tab: any) => tab.tabRenderer.title === 'Shorts',
+      ).tabRenderer.content.richGridRenderer.contents[0].richItemRenderer
+        .content.shortsLockupViewModel.onTap.innertubeCommand.reelWatchEndpoint;
+
+      return {
+        id: firstVideo.videoId,
+        thumbnail:
+          firstVideo.thumbnail.thumbnails[
+            firstVideo.thumbnail.thumbnails.length - 1
+          ].url,
+        title: data.contents.twoColumnBrowseResultsRenderer.tabs.find(
+          (tab: any) => tab.tabRenderer.title === 'Shorts',
+        ).tabRenderer.content.richGridRenderer.contents[0].richItemRenderer
+          .content.shortsLockupViewModel.overlayMetadata.primaryText.content,
+      };
+    }
+  } catch (error) {
+    console.log('error :', url, error.message);
     return null;
   }
 };

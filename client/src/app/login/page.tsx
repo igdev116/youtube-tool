@@ -32,16 +32,8 @@ const LoginPage = () => {
   };
 
   return (
-    <div
-      style={{
-        maxWidth: 400,
-        margin: '80px auto',
-        padding: 24,
-        boxShadow: '0 2px 8px #f0f1f2',
-        borderRadius: 8,
-        background: '#fff',
-      }}>
-      <h2 style={{ textAlign: 'center', marginBottom: 24 }}>Đăng nhập</h2>
+    <div className='max-w-md mx-auto mt-20 p-6 shadow-lg rounded-lg bg-white'>
+      <h2 className='text-center mb-6'>Đăng nhập</h2>
       <Form
         name='login_form'
         initialValues={{ remember: true }}
@@ -54,7 +46,7 @@ const LoginPage = () => {
           <Input
             prefix={<UserOutlined />}
             placeholder='Tài khoản'
-            style={{ height: 40 }}
+            className='h-10'
           />
         </Form.Item>
         <Form.Item
@@ -64,7 +56,7 @@ const LoginPage = () => {
           <Input.Password
             prefix={<LockOutlined />}
             placeholder='Mật khẩu'
-            style={{ height: 40 }}
+            className='h-10'
           />
         </Form.Item>
         <Form.Item>
@@ -72,16 +64,16 @@ const LoginPage = () => {
             type='primary'
             htmlType='submit'
             block
-            style={{ height: 40 }}
+            className='h-10'
             loading={loginMutation.isPending}
             disabled={loginMutation.isPending}>
             Đăng nhập
           </Button>
         </Form.Item>
       </Form>
-      <div style={{ textAlign: 'center', marginTop: 16 }}>
+      <div className='text-center mt-4'>
         <span>Bạn chưa có tài khoản? </span>
-        <Link href='/register' style={{ color: '#1677ff' }}>
+        <Link href='/register' className='text-blue-500'>
           Đăng ký ngay
         </Link>
       </div>

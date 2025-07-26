@@ -12,7 +12,7 @@ import { extractFirstVideoIdFromYt } from './youtube-channel.utils';
 import { UserService } from '../../user/user.service';
 import { TelegramBotService } from '../../telegram/telegram-bot.service';
 import pLimit from 'p-limit';
-import { sleep } from '../../utils/sleep.util';
+import { TelegramQueueService } from '../queue/telegram-queue.service';
 
 @Injectable()
 export class YoutubeChannelService {
@@ -21,6 +21,7 @@ export class YoutubeChannelService {
     private readonly channelModel: Model<YoutubeChannelDocument>,
     private readonly userService: UserService,
     private readonly telegramBotService: TelegramBotService,
+    private readonly telegramQueueService: TelegramQueueService,
   ) {}
 
   /**
@@ -83,7 +84,7 @@ export class YoutubeChannelService {
    * Kiểm tra ngay 1 kênh có video mới không, trả về thông tin video mới nếu có
    */
   async testCheckNewVideo() {
-    await this.notifyAllChannelsNewVideo();
+    return await this.notifyAllChannelsNewVideo();
   }
 
   async notifyAllChannelsNewVideo() {
@@ -91,39 +92,47 @@ export class YoutubeChannelService {
       .find({ isActive: true })
       .populate('user')
       .exec();
+
     const limit = pLimit(5);
     const tasks = activeChannels.map((channel) =>
       limit(async () => {
         try {
           const url = `https://www.youtube.com/${channel.channelId}`;
           const latestVideo = await extractFirstVideoIdFromYt(url);
+
           if (latestVideo) {
             let telegramGroupId: string | undefined;
             const user = channel.user;
+
             if (user && typeof user === 'object' && 'telegramGroupId' in user) {
               telegramGroupId = user.telegramGroupId;
             }
+
             channel.lastVideoId = latestVideo.id;
             await channel.save();
+
+            console.log('channel :', channel.channelId);
+
             if (telegramGroupId) {
-              console.log('telegramGroupId :', telegramGroupId);
-              await this.telegramBotService.sendNewVideoToGroup(
-                telegramGroupId,
-                {
+              // Push job vào queue ngay lập tức khi phát hiện video mới
+              await this.telegramQueueService.addTelegramMessageJob({
+                groupId: telegramGroupId,
+                video: {
                   title: latestVideo.title || '',
                   url: `https://www.youtube.com/watch?v=${latestVideo.id}`,
                   thumbnail: latestVideo.thumbnail,
                   channelId: channel.channelId,
                 },
-              );
-              await sleep(1100);
+              });
             }
           }
-        } catch {
+        } catch (error) {
+          console.log('error :', error);
           // Có thể log lỗi hoặc xử lý retry nếu cần
         }
       }),
     );
+    console.log('tasks :', tasks.length);
     await Promise.all(tasks);
   }
 }

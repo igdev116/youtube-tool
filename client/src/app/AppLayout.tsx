@@ -23,13 +23,8 @@ const menuItems = [
     label: 'Trang chủ',
   },
   {
-    key: '/add-channel',
-    icon: <PlusCircleOutlined />,
-    label: 'Thêm kênh',
-  },
-  {
     key: '/add-telegram',
-    icon: <PlusCircleOutlined style={{ color: '#229ED9' }} />, // hoặc chọn icon khác nếu muốn
+    icon: <PlusCircleOutlined style={{ color: '#229ED9' }} />,
     label: 'Cập nhật Telegram',
   },
 ];
@@ -50,42 +45,28 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <body className={font.className}>
         <Providers>
           <ProfileProvider>
-            <Layout style={{ minHeight: '100vh' }}>
+            <Layout className='min-h-screen'>
               <Sider
                 width={220}
-                style={{
-                  background: '#fff',
-                  boxShadow: '2px 0 8px #f0f1f2',
-                  position: 'fixed',
-                  left: 0,
-                  top: 0,
-                  height: '100vh',
-                  zIndex: 100,
-                }}>
-                <div
-                  style={{
-                    height: 64,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontWeight: 700,
-                    fontSize: 22,
-                    letterSpacing: 1,
-                    color: '#1677ff',
-                  }}>
+                className='bg-white shadow-lg'
+                collapsible
+                trigger={null}
+                breakpoint='lg'
+                collapsedWidth={0}>
+                <div className='h-16 flex items-center justify-center font-bold text-2xl tracking-wide text-blue-500'>
                   RoomBees
                 </div>
                 <Menu
                   mode='inline'
                   selectedKeys={[pathname]}
-                  style={{ borderRight: 0, fontSize: 16 }}
+                  className='border-r-0 text-base'
                   items={menuItems}
                   onClick={({ key }) => router.push(key)}
                 />
               </Sider>
-              <Layout style={{ marginLeft: 220 }}>
-                <Content style={{ minHeight: '100vh', background: '#f5f6fa' }}>
-                  <div style={{ padding: '32px 0' }}>{children}</div>
+              <Layout>
+                <Content className='min-h-screen bg-gray-50'>
+                  <div className='pb-8'>{children}</div>
                 </Content>
               </Layout>
             </Layout>
