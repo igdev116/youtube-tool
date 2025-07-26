@@ -54,17 +54,20 @@ export class YoutubeChannelController {
   @Get('list')
   async getUserChannels(
     @Req() req: Request,
+    @Query('page') page: string,
     @Query('limit') limit: string,
-    @Query('cursor') cursor?: string,
+    @Query('keyword') keyword?: string,
   ): Promise<BaseResponse<any>> {
     const user = req.user as JwtUser;
     const userId = user.sub;
+    const pageNum = Number(page) || 1;
     const pageSize = Number(limit) || 10;
     const pagingResult =
       await this.channelService.getUserChannelsWithPagination(
         userId,
+        pageNum,
         pageSize,
-        cursor,
+        keyword,
       );
     return {
       success: true,

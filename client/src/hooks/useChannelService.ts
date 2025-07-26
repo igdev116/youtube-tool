@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { channelService } from '../services/channelService';
-import type { PagingParams } from '../types/common';
+import type { GetChannelParams } from '../types/channel';
 
 export function useChannelService() {
   const queryClient = useQueryClient();
@@ -11,20 +11,31 @@ export function useChannelService() {
 
   const deleteChannelMutation = useMutation({
     mutationFn: channelService.deleteChannel,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['channels'] });
-    },
   });
 
-  const useQueryGetListChannels = (params: PagingParams) =>
+  const useQueryGetListChannels = (params: GetChannelParams) =>
     useQuery({
       queryKey: ['channels', params],
       queryFn: () => channelService.getChannels(params),
     });
 
+  const invalidateChannels = () => {
+    queryClient.invalidateQueries({ queryKey: ['channels'] });
+  };
+
+  const deleteMultipleChannels = async (channelIds: string[]) => {
+    const deletePromises = channelIds.map((id) =>
+      channelService.deleteChannel(id)
+    );
+    await Promise.all(deletePromises);
+    invalidateChannels();
+  };
+
   return {
     addChannelsMutation,
     deleteChannelMutation,
     useQueryGetListChannels,
+    invalidateChannels,
+    deleteMultipleChannels,
   };
 }

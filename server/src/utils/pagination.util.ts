@@ -1,5 +1,5 @@
 import { Types, Model, Document, FilterQuery } from 'mongoose';
-import { PagingResponse } from '../types/common.type';
+import { PagingResponse, PagingResponseV2 } from '../types/common.type';
 
 export async function paginateWithCursor<T extends Document>(
   model: Model<T>,
@@ -31,6 +31,34 @@ export async function paginateWithCursor<T extends Document>(
       content,
       paging: {
         cursor: nextCursor,
+        hasMore,
+        total,
+      },
+    },
+    message: '',
+  };
+}
+
+export async function paginateWithPage<T extends Document>(
+  model: Model<T>,
+  query: FilterQuery<T>,
+  page: number,
+  limit: number,
+  sort: Record<string, 1 | -1> = { _id: 1 },
+): Promise<PagingResponseV2<T>> {
+  const skip = (page - 1) * limit;
+  const docs = await model
+    .find(query)
+    .sort(sort)
+    .skip(skip)
+    .limit(limit)
+    .exec();
+  const total = await model.countDocuments(query);
+  const hasMore = page * limit < total;
+  return {
+    result: {
+      content: docs,
+      paging: {
         hasMore,
         total,
       },

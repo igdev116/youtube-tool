@@ -16,3 +16,14 @@ export interface PagingResponse<T> {
   };
   message: string;
 }
+
+export interface PagingResponseV2<T> {
+  result: {
+    content: T[];
+    paging: {
+      hasMore: boolean;
+      total: number;
+    };
+  };
+  message: string;
+}

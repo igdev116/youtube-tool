@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { FilterQuery, Model } from 'mongoose';
 import {
   YoutubeChannel,
   YoutubeChannelDocument,
 } from './youtube-channel.schema';
 import { extractChannelIdFromUrl } from './youtube-channel.utils';
 import { BulkChannelDto } from './dto/bulk-channel.dto';
-import { paginateWithCursor } from '../../utils/pagination.util';
+import { paginateWithPage } from '../../utils/pagination.util';
 import { extractFirstVideoIdFromYt } from './youtube-channel.utils';
 import { UserService } from '../../user/user.service';
 import { TelegramBotService } from '../../telegram/telegram-bot.service';
@@ -60,14 +60,19 @@ export class YoutubeChannelService {
 
   async getUserChannelsWithPagination(
     userId: string,
+    page: number,
     limit: number,
-    cursor?: string,
+    keyword?: string,
   ) {
-    return paginateWithCursor<YoutubeChannelDocument>(
+    const filter: FilterQuery<YoutubeChannelDocument> = { user: userId };
+    if (keyword) {
+      filter.channelId = { $regex: keyword, $options: 'i' };
+    }
+    return paginateWithPage<YoutubeChannelDocument>(
       this.channelModel,
-      { user: userId },
+      filter,
+      page,
       limit,
-      cursor,
       { _id: 1 },
     );
   }

@@ -1,6 +1,6 @@
 export default {
   primary: {
-    DEFAULT: '#FFC107',
+    DEFAULT: '#1677ff',
     100: '#FFF5D6',
     200: '#FFEAAC',
     400: '#FFD65A',
