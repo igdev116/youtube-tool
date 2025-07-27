@@ -21,11 +21,12 @@ let CronService = CronService_1 = class CronService {
         this.youtubeChannelService = youtubeChannelService;
     }
     async handleYoutubeChannelCron() {
+        await this.youtubeChannelService.notifyAllChannelsNewVideo();
     }
 };
 exports.CronService = CronService;
 __decorate([
-    (0, schedule_1.Cron)('* * * * *'),
+    (0, schedule_1.Cron)('*/50 * * * * *'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)

@@ -12,13 +12,16 @@ export enum ChannelErrorType {
   RATE_LIMIT_ERROR = 'RATE_LIMIT_ERROR',
 }
 
-@Schema({ timestamps: true })
+@Schema()
 export class YoutubeChannel {
   @Prop({ required: true, unique: true })
   channelId: string;
 
   @Prop({ required: false })
   lastVideoId?: string;
+
+  @Prop({ type: Date, required: false })
+  lastVideoAt?: Date;
 
   @Prop({ type: Types.ObjectId, ref: User.name, required: true })
   user: Types.ObjectId | User;

@@ -32,7 +32,7 @@ const RegisterPage = () => {
 
   return (
     <div className='max-w-md mx-auto mt-20 p-6 shadow-lg rounded-lg bg-white'>
-      <h2 className='text-center mb-6'>Đăng ký</h2>
+      <h2 className='text-center text-2xl font-bold mb-6'>Đăng ký</h2>
       <Form
         name='register_form'
         initialValues={{ remember: true }}

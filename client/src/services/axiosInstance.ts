@@ -34,7 +34,16 @@ axiosInstance.interceptors.response.use(
     }
     return response.data;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    // Xử lý 401 Unauthorized
+    if (error.response?.status === 401) {
+      if (typeof window !== 'undefined') {
+        // Xóa token
+        localStorage.removeItem('accessToken');
+      }
+    }
+    return Promise.reject(error);
+  }
 );
 
 export default axiosInstance;

@@ -6,6 +6,7 @@ import Providers from './providers';
 import ProfileProvider from './profile-provider';
 import { Layout, Menu, ConfigProvider } from 'antd';
 import { HomeOutlined, PlusCircleOutlined } from '@ant-design/icons';
+import { LogoutOutlined } from '@ant-design/icons';
 import { usePathname, useRouter } from 'next/navigation';
 import './globals.css';
 import colors from '~/lib/tailwind/colors';
@@ -30,7 +31,7 @@ const menuItems = [
   },
   {
     key: '/add-telegram',
-    icon: <PlusCircleOutlined style={{ color: '#229ED9' }} />,
+    icon: <PlusCircleOutlined />,
     label: 'Cập nhật Telegram',
   },
 ];
@@ -48,6 +49,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   // Chỉ hiển thị sidebar khi đã đăng nhập và không phải trang auth
   const shouldShowSidebar = !isAuthPage && !!profile;
+
+  // Handle logout
+  const handleLogout = () => {
+    localStorage.removeItem('accessToken');
+    router.push(ROUTES.LOGIN.INDEX);
+  };
 
   // Render layout dựa trên loại trang
   const renderContent = () => {
@@ -86,16 +93,26 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     trigger={null}
                     breakpoint='lg'
                     collapsedWidth={0}>
-                    <div className='h-16 flex items-center justify-center font-bold text-2xl tracking-wide text-blue-500'>
-                      RoomBees
+                    <div className='flex flex-col h-full'>
+                      <div className='h-16 flex items-center justify-center font-bold text-2xl tracking-wide text-blue-500'>
+                        RoomBees
+                      </div>
+                      <Menu
+                        mode='inline'
+                        selectedKeys={[pathname]}
+                        className='border-r-0 text-base flex-1'
+                        items={menuItems}
+                        onClick={({ key }) => router.push(key)}
+                      />
+                      <div className='p-4 border-t border-gray-100'>
+                        <button
+                          onClick={handleLogout}
+                          className='w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded-md transition-colors'>
+                          <LogoutOutlined className='text-gray-400' />
+                          Đăng xuất
+                        </button>
+                      </div>
                     </div>
-                    <Menu
-                      mode='inline'
-                      selectedKeys={[pathname]}
-                      className='border-r-0 text-base'
-                      items={menuItems}
-                      onClick={({ key }) => router.push(key)}
-                    />
                   </Sider>
                 )}
                 <Layout>

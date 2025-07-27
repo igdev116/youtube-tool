@@ -25,3 +25,8 @@ export const ROUTES = {
 export const LS_KEYS = {
   ACCESS_TOKEN: 'accessToken',
 };
+
+export const TOOLTIP_MESSAGES = {
+  CHECK_LINK_ERROR: 'Vui lòng check lại link kênh',
+  ADD_TELEGRAM_GROUP: 'Vui lòng thêm nhóm Telegram',
+} as const;

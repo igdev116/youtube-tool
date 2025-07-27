@@ -14,10 +14,9 @@ export interface ChannelParam {
 
 export interface ChannelListItem {
   channelId: string;
-  createdAt: string;
   isActive: boolean;
   lastVideoId: string;
-  updatedAt: string;
+  lastVideoAt: string;
   user: string;
   _id: string;
   errors: ChannelErrorType[];

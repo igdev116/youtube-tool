@@ -172,6 +172,7 @@ export class YoutubeChannelService {
             }
 
             channel.lastVideoId = latestVideo.id;
+            channel.lastVideoAt = new Date(); // Cập nhật thời gian video mới
             await channel.save();
 
             console.log('channel :', channel.channelId);

@@ -133,6 +133,7 @@ let YoutubeChannelService = class YoutubeChannelService {
                         telegramGroupId = user.telegramGroupId;
                     }
                     channel.lastVideoId = latestVideo.id;
+                    channel.lastVideoAt = new Date();
                     await channel.save();
                     console.log('channel :', channel.channelId);
                     if (telegramGroupId) {

@@ -6,12 +6,13 @@ const app_module_1 = require("./app.module");
 async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
     app.enableCors({
-        origin: process.env.APP_URL ?? 'http://localhost:3000',
+        origin: process.env.APP_URL || 'http://localhost:3000',
         credentials: true,
     });
     const port = process.env.PORT ?? 4000;
     await app.listen(port);
     console.log(`🚀 Server is running on http://localhost:${port}`);
+    console.log(process.env.APP_URL);
     console.log(`📱 Telegram Bot Token: ${process.env.TELEGRAM_BOT_TOKEN ? 'Loaded ✅' : 'Missing ❌'}`);
 }
 void bootstrap();

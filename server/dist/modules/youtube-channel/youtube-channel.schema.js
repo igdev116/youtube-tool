@@ -23,6 +23,7 @@ var ChannelErrorType;
 let YoutubeChannel = class YoutubeChannel {
     channelId;
     lastVideoId;
+    lastVideoAt;
     user;
     isActive;
     errors;
@@ -37,6 +38,10 @@ __decorate([
     __metadata("design:type", String)
 ], YoutubeChannel.prototype, "lastVideoId", void 0);
 __decorate([
+    (0, mongoose_1.Prop)({ type: Date, required: false }),
+    __metadata("design:type", Date)
+], YoutubeChannel.prototype, "lastVideoAt", void 0);
+__decorate([
     (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: user_schema_1.User.name, required: true }),
     __metadata("design:type", Object)
 ], YoutubeChannel.prototype, "user", void 0);
@@ -49,7 +54,7 @@ __decorate([
     __metadata("design:type", Array)
 ], YoutubeChannel.prototype, "errors", void 0);
 exports.YoutubeChannel = YoutubeChannel = __decorate([
-    (0, mongoose_1.Schema)({ timestamps: true })
+    (0, mongoose_1.Schema)()
 ], YoutubeChannel);
 exports.YoutubeChannelSchema = mongoose_1.SchemaFactory.createForClass(YoutubeChannel);
 //# sourceMappingURL=youtube-channel.schema.js.map

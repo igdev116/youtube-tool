@@ -13,7 +13,7 @@ import {
   Col,
   Checkbox,
   message,
-  Badge,
+  Tag,
   Tooltip,
 } from 'antd';
 import { useChannelService } from '../hooks/useChannelService';
@@ -24,11 +24,13 @@ import {
   UploadOutlined,
   PlusOutlined,
   CopyOutlined,
+  LinkOutlined,
 } from '@ant-design/icons';
 import { toastSuccess, toastError } from '../utils/toast';
 import * as XLSX from 'xlsx';
 import dayjs from 'dayjs';
 import debounce from 'lodash/debounce';
+import { TOOLTIP_MESSAGES } from '../constants';
 
 const { Link } = Typography;
 
@@ -238,33 +240,114 @@ const HomePage = () => {
       },
     },
     {
-      title: 'Ngày đăng',
-      dataIndex: 'createdAt',
-      key: 'createdAt',
-      width: 120,
-      render: (createdAt: string) => dayjs(createdAt).format('DD/MM/YY'),
-    },
-    {
-      title: 'Lỗi',
-      dataIndex: 'errors',
-      key: 'errors',
-      width: 200,
-      render: (errors: ChannelErrorType[]) => {
-        if (!errors || errors.length === 0) {
+      title: 'Video mới nhất',
+      dataIndex: 'lastVideoId',
+      key: 'lastVideoId',
+      width: 150,
+      render: (lastVideoId: string, record: ChannelListItem) => {
+        // Ưu tiên hiển thị lỗi link nếu có
+        const hasLinkError = record.errors?.includes(
+          ChannelErrorType.LINK_ERROR
+        );
+        if (hasLinkError) {
           return (
-            <span className='inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800'>
-              Không có lỗi
-            </span>
+            <Tooltip
+              title={TOOLTIP_MESSAGES.CHECK_LINK_ERROR}
+              placement='top'
+              mouseEnterDelay={0}
+              mouseLeaveDelay={0}>
+              <Tag color='error'>Link kênh lỗi</Tag>
+            </Tooltip>
           );
         }
+
+        if (!lastVideoId) {
+          return (
+            <Tooltip
+              title={TOOLTIP_MESSAGES.ADD_TELEGRAM_GROUP}
+              placement='top'
+              mouseEnterDelay={0}
+              mouseLeaveDelay={0}>
+              <Tag color='warning'>Chưa cập nhật</Tag>
+            </Tooltip>
+          );
+        }
+
+        const videoLink = `https://www.youtube.com/watch?v=${lastVideoId}`;
+        return (
+          <Button
+            type='link'
+            size='small'
+            className='h-auto flex items-center gap-1'
+            onClick={() => window.open(videoLink, '_blank')}>
+            <LinkOutlined />
+            Xem ngay
+          </Button>
+        );
+      },
+    },
+    {
+      title: 'Ngày đăng cuối',
+      dataIndex: 'lastVideoAt',
+      key: 'lastVideoAt',
+      width: 150,
+      render: (lastVideoAt: string, record: ChannelListItem) => {
+        // Ưu tiên hiển thị lỗi link nếu có
+        const hasLinkError = record.errors?.includes(
+          ChannelErrorType.LINK_ERROR
+        );
+        if (hasLinkError) {
+          return (
+            <Tooltip
+              title={TOOLTIP_MESSAGES.CHECK_LINK_ERROR}
+              placement='top'
+              mouseEnterDelay={0}
+              mouseLeaveDelay={0}>
+              <Tag color='error'>Link kênh lỗi</Tag>
+            </Tooltip>
+          );
+        }
+
+        if (!lastVideoAt) {
+          return (
+            <Tooltip
+              title={TOOLTIP_MESSAGES.ADD_TELEGRAM_GROUP}
+              placement='top'
+              mouseEnterDelay={0}
+              mouseLeaveDelay={0}>
+              <Tag color='warning'>Chưa cập nhật</Tag>
+            </Tooltip>
+          );
+        }
+
+        return dayjs(lastVideoAt).format('DD/MM/YY');
+      },
+    },
+    {
+      title: 'Tình trạng link',
+      dataIndex: 'errors',
+      key: 'errors',
+      width: 160,
+      render: (errors: ChannelErrorType[]) => {
+        if (!errors || errors.length === 0) {
+          return <Tag color='success'>Link ổn định</Tag>;
+        }
+        // Kiểm tra có lỗi link không
+        const hasLinkError = errors.includes(ChannelErrorType.LINK_ERROR);
+
         return (
           <div className='flex flex-wrap gap-1'>
             {errors.map((error, index) => (
-              <span
+              <Tooltip
                 key={index}
-                className='inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800'>
-                {mapErrorTypeToMessage(error)}
-              </span>
+                title={
+                  hasLinkError ? TOOLTIP_MESSAGES.CHECK_LINK_ERROR : undefined
+                }
+                placement='top'
+                mouseEnterDelay={0}
+                mouseLeaveDelay={0}>
+                <Tag color='error'>{mapErrorTypeToMessage(error)}</Tag>
+              </Tooltip>
             ))}
           </div>
         );
@@ -292,7 +375,11 @@ const HomePage = () => {
 
         if (hasErrors) {
           return (
-            <Tooltip title='Vui lòng check lại link kênh' placement='top'>
+            <Tooltip
+              title={TOOLTIP_MESSAGES.CHECK_LINK_ERROR}
+              placement='top'
+              mouseEnterDelay={0}
+              mouseLeaveDelay={0}>
               {switchComponent}
             </Tooltip>
           );
