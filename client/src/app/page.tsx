@@ -34,6 +34,7 @@ const HomePage = () => {
     useQueryGetListChannels,
     deleteChannelMutation,
     addChannelsMutation,
+    toggleChannelMutation,
     invalidateChannels,
     deleteMultipleChannels,
   } = useChannelService();
@@ -74,6 +75,23 @@ const HomePage = () => {
     if (!excelLoading && fileInputRef.current) {
       fileInputRef.current.click();
     }
+  };
+
+  const handleToggleChannel = (channelId: string, currentStatus: boolean) => {
+    toggleChannelMutation.mutate(channelId, {
+      onSuccess: (res) => {
+        if (res.success) {
+          invalidateChannels();
+        } else {
+          toastError(res.message || 'Cập nhật trạng thái kênh thất bại!');
+        }
+      },
+      onError: (err: any) => {
+        toastError(
+          err?.response?.data?.message || 'Cập nhật trạng thái kênh thất bại!'
+        );
+      },
+    });
   };
 
   const handleDelete = (channelId: string) => {
@@ -226,7 +244,16 @@ const HomePage = () => {
       key: 'isActive',
       align: 'center' as const,
       width: 100,
-      render: (isActive: boolean) => <Switch checked={isActive} disabled />,
+      render: (isActive: boolean, record: ChannelListItem) => (
+        <Switch
+          checked={isActive}
+          onChange={() => handleToggleChannel(record._id, isActive)}
+          loading={
+            toggleChannelMutation.isPending &&
+            toggleChannelMutation.variables === record._id
+          }
+        />
+      ),
     },
     {
       title: '',
@@ -337,7 +364,7 @@ const HomePage = () => {
           </Button>
         }
         width={600}
-        destroyOnClose>
+        destroyOnHidden>
         <div
           ref={scrollRef}
           className='bg-blue-50 rounded-lg shadow-sm p-6 max-h-[70vh] overflow-y-auto'>

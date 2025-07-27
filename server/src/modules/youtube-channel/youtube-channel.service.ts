@@ -85,6 +85,22 @@ export class YoutubeChannelService {
     return deleted;
   }
 
+  async toggleChannelActive(userId: string, id: string) {
+    const channel = await this.channelModel.findOne({
+      _id: id,
+      user: userId,
+    });
+
+    if (!channel) {
+      return null;
+    }
+
+    channel.isActive = !channel.isActive;
+    await channel.save();
+
+    return channel;
+  }
+
   /**
    * Kiểm tra ngay 1 kênh có video mới không, trả về thông tin video mới nếu có
    */
@@ -105,18 +121,16 @@ export class YoutubeChannelService {
           const url = `https://www.youtube.com/${channel.channelId}`;
           const latestVideo = await extractFirstVideoIdFromYt(url);
 
-          if (latestVideo) {
+          if (latestVideo && latestVideo.id !== channel.lastVideoId) {
             let telegramGroupId: string | undefined;
             const user = channel.user;
 
-            if (user && typeof user === 'object' && 'telegramGroupId' in user) {
+            if (user && 'telegramGroupId' in user) {
               telegramGroupId = user.telegramGroupId;
             }
 
             channel.lastVideoId = latestVideo.id;
             await channel.save();
-
-            console.log('channel :', channel.channelId);
 
             if (telegramGroupId) {
               // Push job vào queue ngay lập tức khi phát hiện video mới

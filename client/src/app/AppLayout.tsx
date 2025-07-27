@@ -9,6 +9,7 @@ import { HomeOutlined, PlusCircleOutlined } from '@ant-design/icons';
 import { usePathname, useRouter } from 'next/navigation';
 import './globals.css';
 import colors from '~/lib/tailwind/colors';
+import { useUserStore } from '../store/userStore';
 
 const { Sider, Content } = Layout;
 
@@ -30,17 +31,18 @@ const menuItems = [
   },
 ];
 
-const theme = {
-  // token: {
-  //   colorPrimary: colors.primary.DEFAULT, // Màu primary từ Tailwind config
-  //   colorPrimaryHover: colors.primary['400'],
-  //   colorPrimaryActive: colors.primary['500'],
-  // },
-};
+const theme = {};
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
+  const profile = useUserStore((s) => s.profile);
+
+  // Kiểm tra xem có phải trang auth không
+  const isAuthPage = pathname === '/login' || pathname === '/register';
+
+  // Chỉ hiển thị sidebar khi đã đăng nhập và không phải trang auth
+  const shouldShowSidebar = !isAuthPage && !!profile;
 
   return (
     <html lang='en'>
@@ -56,27 +58,32 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <ProfileProvider>
             <ConfigProvider theme={theme}>
               <Layout className='min-h-screen'>
-                <Sider
-                  width={220}
-                  className='bg-white shadow-lg'
-                  collapsible
-                  trigger={null}
-                  breakpoint='lg'
-                  collapsedWidth={0}>
-                  <div className='h-16 flex items-center justify-center font-bold text-2xl tracking-wide text-blue-500'>
-                    RoomBees
-                  </div>
-                  <Menu
-                    mode='inline'
-                    selectedKeys={[pathname]}
-                    className='border-r-0 text-base'
-                    items={menuItems}
-                    onClick={({ key }) => router.push(key)}
-                  />
-                </Sider>
+                {shouldShowSidebar && (
+                  <Sider
+                    width={220}
+                    className='bg-white shadow-lg'
+                    collapsible
+                    trigger={null}
+                    breakpoint='lg'
+                    collapsedWidth={0}>
+                    <div className='h-16 flex items-center justify-center font-bold text-2xl tracking-wide text-blue-500'>
+                      RoomBees
+                    </div>
+                    <Menu
+                      mode='inline'
+                      selectedKeys={[pathname]}
+                      className='border-r-0 text-base'
+                      items={menuItems}
+                      onClick={({ key }) => router.push(key)}
+                    />
+                  </Sider>
+                )}
                 <Layout>
-                  <Content className='min-h-screen bg-gray-50'>
-                    <div className='pb-8'>{children}</div>
+                  <Content
+                    className={`min-h-screen ${shouldShowSidebar ? 'bg-gray-50' : 'bg-white'}`}>
+                    <div className={shouldShowSidebar ? 'pb-8' : ''}>
+                      {children}
+                    </div>
                   </Content>
                 </Layout>
               </Layout>

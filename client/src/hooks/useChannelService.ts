@@ -13,6 +13,10 @@ export function useChannelService() {
     mutationFn: channelService.deleteChannel,
   });
 
+  const toggleChannelMutation = useMutation({
+    mutationFn: channelService.toggleChannel,
+  });
+
   const useQueryGetListChannels = (params: GetChannelParams) =>
     useQuery({
       queryKey: ['channels', params],
@@ -34,6 +38,7 @@ export function useChannelService() {
   return {
     addChannelsMutation,
     deleteChannelMutation,
+    toggleChannelMutation,
     useQueryGetListChannels,
     invalidateChannels,
     deleteMultipleChannels,

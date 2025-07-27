@@ -8,6 +8,7 @@ import {
   Query,
   Delete,
   Param,
+  Patch,
 } from '@nestjs/common';
 import { YoutubeChannelService } from './youtube-channel.service';
 import { BulkChannelDto } from './dto/bulk-channel.dto';
@@ -105,6 +106,33 @@ export class YoutubeChannelController {
       statusCode: 200,
       message: 'Xoá kênh thành công',
       result: deleted,
+    };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id/toggle')
+  async toggleChannelActive(
+    @Param('id') id: string,
+    @Req() req: Request,
+  ): Promise<BaseResponse<any>> {
+    const user = req.user as JwtUser;
+    const userId = user.sub;
+    const channel = await this.channelService.toggleChannelActive(userId, id);
+
+    if (!channel) {
+      return {
+        success: false,
+        statusCode: 404,
+        message: 'Không tìm thấy kênh hoặc bạn không có quyền thay đổi',
+        result: null,
+      };
+    }
+
+    return {
+      success: true,
+      statusCode: 200,
+      message: `Đã ${channel.isActive ? 'bật' : 'tắt'} kênh thành công`,
+      result: channel,
     };
   }
 }
