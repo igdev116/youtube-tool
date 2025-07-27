@@ -18,8 +18,10 @@ export class TelegramQueueService implements OnModuleInit {
   async onModuleInit() {
     this.telegramQueue = new Queue('telegram-queue', {
       connection: {
-        host: 'localhost',
-        port: 6379,
+        host: process.env.REDIS_HOST,
+        port: Number(process.env.REDIS_PORT ?? 6379),
+        password: process.env.REDIS_PASSWORD,
+        username: process.env.REDIS_USERNAME,
       },
       defaultJobOptions: {
         removeOnComplete: true, // Tự động xóa job khi hoàn thành
