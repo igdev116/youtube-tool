@@ -79,9 +79,24 @@ export class TelegramQueueService implements OnModuleInit {
   }
 
   async clearQueue() {
-    await this.telegramQueue.clean(0, 0, 'active');
-    await this.telegramQueue.clean(0, 0, 'wait');
-    await this.telegramQueue.clean(0, 0, 'completed');
-    await this.telegramQueue.clean(0, 0, 'failed');
+    try {
+      // Xóa tất cả jobs trong queue
+      await this.telegramQueue.clean(0, 0, 'active');
+      await this.telegramQueue.clean(0, 0, 'wait');
+      await this.telegramQueue.clean(0, 0, 'completed');
+      await this.telegramQueue.clean(0, 0, 'failed');
+
+      // Xóa toàn bộ queue và tất cả keys liên quan
+      await this.telegramQueue.obliterate({ force: true });
+
+      // Reset counter
+      this.jobCounter = 0;
+
+      console.log(
+        '🧹 Đã xóa hoàn toàn telegram queue và tất cả keys trong Redis',
+      );
+    } catch (error) {
+      console.error('❌ Lỗi khi clear queue:', error.message);
+    }
   }
 }
