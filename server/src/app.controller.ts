@@ -12,6 +12,8 @@ export class AppController {
 
   @Get('ping')
   ping() {
-    return '✅ Server đang hoạt động';
+    const message = '✅ Server đang hoạt động';
+    console.log(message);
+    return message;
   }
 }

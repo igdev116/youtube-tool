@@ -21,7 +21,9 @@ let AppController = class AppController {
         return this.appService.getHello();
     }
     ping() {
-        return '✅ Server đang hoạt động';
+        const message = '✅ Server đang hoạt động';
+        console.log(message);
+        return message;
     }
 };
 exports.AppController = AppController;
