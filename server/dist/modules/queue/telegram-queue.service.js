@@ -32,6 +32,7 @@ let TelegramQueueService = class TelegramQueueService {
     }
     jobCounter = 0;
     async addTelegramMessageJob(jobData) {
+        console.log(`📊 Adding job - Counter: ${this.jobCounter}`);
         await this.telegramQueue.add('send-message', jobData, {
             delay: this.jobCounter * 5000,
             attempts: 3,

@@ -13,9 +13,12 @@ import {
   Col,
   Checkbox,
   message,
+  Badge,
+  Tooltip,
 } from 'antd';
 import { useChannelService } from '../hooks/useChannelService';
 import type { ChannelListItem } from '../types/channel';
+import { ChannelErrorType } from '../types/channel';
 import {
   DeleteOutlined,
   UploadOutlined,
@@ -149,6 +152,9 @@ const HomePage = () => {
           toastSuccess('Thêm kênh thành công!');
           form.resetFields();
           setOpen(false);
+          // Reset về trang 1 và refetch data
+          setCurrentPage(1);
+          invalidateChannels();
         } else {
           toastError(res.message || 'Thêm kênh thất bại!');
         }
@@ -239,21 +245,61 @@ const HomePage = () => {
       render: (createdAt: string) => dayjs(createdAt).format('DD/MM/YY'),
     },
     {
+      title: 'Lỗi',
+      dataIndex: 'errors',
+      key: 'errors',
+      width: 200,
+      render: (errors: ChannelErrorType[]) => {
+        if (!errors || errors.length === 0) {
+          return (
+            <span className='inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800'>
+              Không có lỗi
+            </span>
+          );
+        }
+        return (
+          <div className='flex flex-wrap gap-1'>
+            {errors.map((error, index) => (
+              <span
+                key={index}
+                className='inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800'>
+                {mapErrorTypeToMessage(error)}
+              </span>
+            ))}
+          </div>
+        );
+      },
+    },
+    {
       title: 'Kích hoạt',
       dataIndex: 'isActive',
       key: 'isActive',
       align: 'center' as const,
       width: 100,
-      render: (isActive: boolean, record: ChannelListItem) => (
-        <Switch
-          checked={isActive}
-          onChange={() => handleToggleChannel(record._id, isActive)}
-          loading={
-            toggleChannelMutation.isPending &&
-            toggleChannelMutation.variables === record._id
-          }
-        />
-      ),
+      render: (isActive: boolean, record: ChannelListItem) => {
+        const hasErrors = record.errors && record.errors.length > 0;
+        const switchComponent = (
+          <Switch
+            checked={isActive}
+            onChange={() => handleToggleChannel(record._id, isActive)}
+            disabled={hasErrors}
+            loading={
+              toggleChannelMutation.isPending &&
+              toggleChannelMutation.variables === record._id
+            }
+          />
+        );
+
+        if (hasErrors) {
+          return (
+            <Tooltip title='Vui lòng check lại link kênh' placement='top'>
+              {switchComponent}
+            </Tooltip>
+          );
+        }
+
+        return switchComponent;
+      },
     },
     {
       title: '',
@@ -302,6 +348,22 @@ const HomePage = () => {
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
     debounceSearch(e.target.value);
+  };
+
+  // Map error type thành message
+  const mapErrorTypeToMessage = (errorType: ChannelErrorType): string => {
+    switch (errorType) {
+      case ChannelErrorType.LINK_ERROR:
+        return 'Link kênh lỗi';
+      case ChannelErrorType.NETWORK_ERROR:
+        return 'Lỗi kết nối mạng';
+      case ChannelErrorType.PARSE_ERROR:
+        return 'Lỗi xử lý dữ liệu';
+      case ChannelErrorType.RATE_LIMIT_ERROR:
+        return 'Lỗi giới hạn tần suất';
+      default:
+        return 'Lỗi không xác định';
+    }
   };
 
   return (
@@ -369,7 +431,9 @@ const HomePage = () => {
           ref={scrollRef}
           className='bg-blue-50 rounded-lg shadow-sm p-6 max-h-[70vh] overflow-y-auto'>
           <div className='flex justify-between items-center mb-4'>
-            <span className='font-bold text-lg'>Thêm kênh Youtube</span>
+            <div className='font-bold text-lg text-blue-500 mb-2'>
+              Số lượng kênh: {channelCount}
+            </div>
             <Button
               type='primary'
               loading={excelLoading}
@@ -387,9 +451,7 @@ const HomePage = () => {
               disabled={excelLoading}
             />
           </div>
-          <div className='font-bold text-lg text-blue-500 mb-2'>
-            Số lượng kênh: {channelCount}
-          </div>
+
           <Form
             form={form}
             name='add_channel_form'

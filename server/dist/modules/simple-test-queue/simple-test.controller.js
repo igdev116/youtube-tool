@@ -8,6 +8,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SimpleTestController = void 0;
 const common_1 = require("@nestjs/common");
@@ -81,6 +82,6 @@ __decorate([
 ], SimpleTestController.prototype, "resetCounter", null);
 exports.SimpleTestController = SimpleTestController = __decorate([
     (0, common_1.Controller)('simple-test'),
-    __metadata("design:paramtypes", [simple_test_service_1.SimpleTestService])
+    __metadata("design:paramtypes", [typeof (_a = typeof simple_test_service_1.SimpleTestService !== "undefined" && simple_test_service_1.SimpleTestService) === "function" ? _a : Object])
 ], SimpleTestController);
 //# sourceMappingURL=simple-test.controller.js.map

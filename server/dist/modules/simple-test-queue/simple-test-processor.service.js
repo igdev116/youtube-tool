@@ -9,6 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 var SimpleTestProcessorService_1;
+var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SimpleTestProcessorService = void 0;
 const common_1 = require("@nestjs/common");
@@ -51,7 +52,6 @@ let SimpleTestProcessorService = SimpleTestProcessorService_1 = class SimpleTest
 exports.SimpleTestProcessorService = SimpleTestProcessorService;
 exports.SimpleTestProcessorService = SimpleTestProcessorService = SimpleTestProcessorService_1 = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [simple_test_service_1.SimpleTestService,
-        redis_connection_service_1.RedisConnectionService])
+    __metadata("design:paramtypes", [typeof (_a = typeof simple_test_service_1.SimpleTestService !== "undefined" && simple_test_service_1.SimpleTestService) === "function" ? _a : Object, redis_connection_service_1.RedisConnectionService])
 ], SimpleTestProcessorService);
 //# sourceMappingURL=simple-test-processor.service.js.map

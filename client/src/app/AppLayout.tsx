@@ -10,6 +10,10 @@ import { usePathname, useRouter } from 'next/navigation';
 import './globals.css';
 import colors from '~/lib/tailwind/colors';
 import { useUserStore } from '../store/userStore';
+import { ROUTES } from '../constants';
+import ProtectedRoute from '../components/ProtectedRoute';
+import PublicRoute from '../components/PublicRoute';
+import Next13ProgressBar from 'next13-progressbar';
 
 const { Sider, Content } = Layout;
 
@@ -39,10 +43,20 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const profile = useUserStore((s) => s.profile);
 
   // Kiểm tra xem có phải trang auth không
-  const isAuthPage = pathname === '/login' || pathname === '/register';
+  const isAuthPage =
+    pathname === ROUTES.LOGIN.INDEX || pathname === ROUTES.REGISTER.INDEX;
 
   // Chỉ hiển thị sidebar khi đã đăng nhập và không phải trang auth
   const shouldShowSidebar = !isAuthPage && !!profile;
+
+  // Render layout dựa trên loại trang
+  const renderContent = () => {
+    if (isAuthPage) {
+      return <PublicRoute>{children}</PublicRoute>;
+    } else {
+      return <ProtectedRoute>{children}</ProtectedRoute>;
+    }
+  };
 
   return (
     <html lang='en'>
@@ -54,6 +68,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <link rel='icon' href='/logo-yellow-on-brown.svg' sizes='any' />
       </head>
       <body className={font.className}>
+        <Next13ProgressBar
+          color={colors.primary.DEFAULT}
+          height='3px'
+          showOnShallow={true}
+          options={{ showSpinner: false }}
+        />
         <Providers>
           <ProfileProvider>
             <ConfigProvider theme={theme}>
@@ -82,7 +102,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   <Content
                     className={`min-h-screen ${shouldShowSidebar ? 'bg-gray-50' : 'bg-white'}`}>
                     <div className={shouldShowSidebar ? 'pb-8' : ''}>
-                      {children}
+                      {renderContent()}
                     </div>
                   </Content>
                 </Layout>

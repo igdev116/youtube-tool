@@ -35,6 +35,21 @@ let YoutubeChannelService = class YoutubeChannelService {
         this.telegramBotService = telegramBotService;
         this.telegramQueueService = telegramQueueService;
     }
+    async addChannelError(channel, errorType) {
+        const updateData = {};
+        const currentErrors = channel.errors || [];
+        if (!currentErrors.includes(errorType)) {
+            updateData.$addToSet = { errors: errorType };
+        }
+        if (errorType === youtube_channel_schema_1.ChannelErrorType.LINK_ERROR) {
+            updateData.isActive = false;
+            console.log(`❌ Channel ${channel.channelId} bị tắt do lỗi link`);
+        }
+        if (Object.keys(updateData).length > 0) {
+            await this.channelModel.updateOne({ _id: channel._id }, updateData);
+            console.log(`⚠️ Đã thêm lỗi ${errorType} cho channel ${channel.channelId}`);
+        }
+    }
     async addChannelsBulk(channels, userId) {
         const errorLinks = [];
         const docs = [];
@@ -43,6 +58,14 @@ let YoutubeChannelService = class YoutubeChannelService {
             const channelId = await (0, youtube_channel_utils_1.extractChannelIdFromUrl)(item.link);
             if (!channelId) {
                 errorLinks.push({ link: item.link, reason: 'không hợp lệ' });
+                return;
+            }
+            const existingChannel = await this.channelModel.findOne({
+                channelId,
+                user: userId,
+            });
+            if (existingChannel) {
+                errorLinks.push({ link: item.link, reason: 'đã tồn tại' });
                 return;
             }
             try {
@@ -111,6 +134,7 @@ let YoutubeChannelService = class YoutubeChannelService {
                     }
                     channel.lastVideoId = latestVideo.id;
                     await channel.save();
+                    console.log('channel :', channel.channelId);
                     if (telegramGroupId) {
                         await this.telegramQueueService.addTelegramMessageJob({
                             groupId: telegramGroupId,
@@ -123,9 +147,13 @@ let YoutubeChannelService = class YoutubeChannelService {
                         });
                     }
                 }
+                else if (!latestVideo) {
+                    await this.addChannelError(channel, youtube_channel_schema_1.ChannelErrorType.LINK_ERROR);
+                }
             }
             catch (error) {
                 console.log('error :', error);
+                await this.addChannelError(channel, youtube_channel_schema_1.ChannelErrorType.NETWORK_ERROR);
             }
         }));
         console.log('tasks :', tasks.length);

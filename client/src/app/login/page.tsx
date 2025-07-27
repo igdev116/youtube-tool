@@ -8,6 +8,7 @@ import { toastSuccess, toastError } from '../../utils/toast';
 import type { BaseResponse } from '../../types/common';
 import type { LoginResponse } from '../../types/auth';
 import Link from 'next/link';
+import { ROUTES } from '../../constants';
 
 const LoginPage = () => {
   const { loginMutation } = useAuthService();
@@ -19,7 +20,7 @@ const LoginPage = () => {
         onSuccess: (res: BaseResponse<LoginResponse>) => {
           if (res.success) {
             toastSuccess('Đăng nhập thành công!');
-            window.location.href = '/';
+            window.location.href = ROUTES.HOME;
           } else {
             toastError(res.message || 'Đăng nhập thất bại!');
           }
@@ -73,7 +74,7 @@ const LoginPage = () => {
       </Form>
       <div className='text-center mt-4'>
         <span>Bạn chưa có tài khoản? </span>
-        <Link href='/register' className='text-blue-500'>
+        <Link href={ROUTES.REGISTER.INDEX} className='text-blue-500'>
           Đăng ký ngay
         </Link>
       </div>

@@ -21,3 +21,7 @@ export const ROUTES = {
     INDEX: '/app',
   },
 };
+
+export const LS_KEYS = {
+  ACCESS_TOKEN: 'accessToken',
+};

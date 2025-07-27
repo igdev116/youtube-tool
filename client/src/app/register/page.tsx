@@ -7,6 +7,7 @@ import { useAuthService } from '../../hooks/useAuthService';
 import { toastSuccess, toastError } from '../../utils/toast';
 import type { BaseResponse } from '../../types/common';
 import Link from 'next/link';
+import { ROUTES } from '../../constants';
 
 const RegisterPage = () => {
   const { registerMutation } = useAuthService();
@@ -71,7 +72,7 @@ const RegisterPage = () => {
       </Form>
       <div className='text-center mt-4'>
         <span>Đã có tài khoản? </span>
-        <Link href='/login' className='text-blue-500'>
+        <Link href={ROUTES.LOGIN.INDEX} className='text-blue-500'>
           Đăng nhập
         </Link>
       </div>

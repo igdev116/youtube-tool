@@ -44,6 +44,7 @@ const extractFirstVideoIdFromYt = async (url, type = 'short') => {
             };
         }
         else {
+            console.log(data.contents.twoColumnBrowseResultsRenderer.tabs.find((tab) => tab.tabRenderer.title === 'Shorts'));
             const firstVideo = data.contents.twoColumnBrowseResultsRenderer.tabs.find((tab) => tab.tabRenderer.title === 'Shorts').tabRenderer.content.richGridRenderer.contents[0].richItemRenderer
                 .content.shortsLockupViewModel.onTap.innertubeCommand.reelWatchEndpoint;
             return {
@@ -55,7 +56,7 @@ const extractFirstVideoIdFromYt = async (url, type = 'short') => {
         }
     }
     catch (error) {
-        console.log('error :', url, error.message);
+        console.log(`URL lỗi ${url} - ${error.message}`);
         return null;
     }
 };

@@ -9,13 +9,7 @@ export declare class SimpleTestController {
     }>;
     getStatus(): Promise<{
         success: boolean;
-        status: {
-            waiting: number;
-            active: number;
-            completed: number;
-            failed: number;
-            total: number;
-        };
+        status: any;
     }>;
     clearQueue(): Promise<{
         success: boolean;

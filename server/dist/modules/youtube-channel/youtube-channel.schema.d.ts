@@ -3,11 +3,18 @@ import { User } from '../../user/user.schema';
 export type YoutubeChannelDocument = YoutubeChannel & Document & {
     user: Types.ObjectId | User;
 };
+export declare enum ChannelErrorType {
+    LINK_ERROR = "LINK_ERROR",
+    NETWORK_ERROR = "NETWORK_ERROR",
+    PARSE_ERROR = "PARSE_ERROR",
+    RATE_LIMIT_ERROR = "RATE_LIMIT_ERROR"
+}
 export declare class YoutubeChannel {
     channelId: string;
     lastVideoId?: string;
     user: Types.ObjectId | User;
     isActive: boolean;
+    errors: ChannelErrorType[];
 }
 export declare const YoutubeChannelSchema: import("mongoose").Schema<YoutubeChannel, import("mongoose").Model<YoutubeChannel, any, any, any, Document<unknown, any, YoutubeChannel, any> & YoutubeChannel & {
     _id: Types.ObjectId;

@@ -9,7 +9,6 @@ import { YoutubeChannelModule } from './modules/youtube-channel/youtube-channel.
 import { TelegramModule } from './telegram/telegram.module';
 import { CronModule } from './modules/cron/cron.module';
 import { QueueModule } from './modules/queue/queue.module';
-import { SimpleTestQueueModule } from './modules/simple-test-queue/simple-test-queue.module';
 
 @Module({
   imports: [
@@ -26,7 +25,7 @@ import { SimpleTestQueueModule } from './modules/simple-test-queue/simple-test-q
     YoutubeChannelModule,
     TelegramModule,
     CronModule,
-    process.env.NODE_ENV === 'production' ? QueueModule : SimpleTestQueueModule,
+    QueueModule,
   ],
   controllers: [AppController],
   providers: [AppService],

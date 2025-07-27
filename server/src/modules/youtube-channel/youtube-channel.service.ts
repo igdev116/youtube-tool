@@ -4,6 +4,7 @@ import { FilterQuery, Model } from 'mongoose';
 import {
   YoutubeChannel,
   YoutubeChannelDocument,
+  ChannelErrorType,
 } from './youtube-channel.schema';
 import { extractChannelIdFromUrl } from './youtube-channel.utils';
 import { BulkChannelDto } from './dto/bulk-channel.dto';
@@ -25,6 +26,35 @@ export class YoutubeChannelService {
   ) {}
 
   /**
+   * Thêm lỗi vào channel và toggle isActive thành false nếu cần
+   */
+  private async addChannelError(
+    channel: YoutubeChannelDocument,
+    errorType: ChannelErrorType,
+  ) {
+    const updateData: any = {};
+
+    // Chỉ thêm lỗi nếu chưa có
+    const currentErrors = channel.errors || [];
+    if (!currentErrors.includes(errorType)) {
+      updateData.$addToSet = { errors: errorType };
+    }
+
+    // Nếu là LINK_ERROR, toggle isActive thành false
+    if (errorType === ChannelErrorType.LINK_ERROR) {
+      updateData.isActive = false;
+      console.log(`❌ Channel ${channel.channelId} bị tắt do lỗi link`);
+    }
+
+    if (Object.keys(updateData).length > 0) {
+      await this.channelModel.updateOne({ _id: channel._id }, updateData);
+      console.log(
+        `⚠️ Đã thêm lỗi ${errorType} cho channel ${channel.channelId}`,
+      );
+    }
+  }
+
+  /**
    * Nhận mảng object { link, isActive, userId }, extract channelId, kiểm tra hợp lệ, nếu có lỗi trả về message, nếu hợp lệ mới lưu vào DB
    */
   async addChannelsBulk(channels: BulkChannelDto[], userId: string) {
@@ -38,6 +68,18 @@ export class YoutubeChannelService {
           errorLinks.push({ link: item.link, reason: 'không hợp lệ' });
           return;
         }
+
+        // Kiểm tra xem channelId đã tồn tại với user này chưa
+        const existingChannel = await this.channelModel.findOne({
+          channelId,
+          user: userId,
+        });
+
+        if (existingChannel) {
+          errorLinks.push({ link: item.link, reason: 'đã tồn tại' });
+          return;
+        }
+
         try {
           const doc = await this.channelModel.create({
             channelId,
@@ -132,6 +174,8 @@ export class YoutubeChannelService {
             channel.lastVideoId = latestVideo.id;
             await channel.save();
 
+            console.log('channel :', channel.channelId);
+
             if (telegramGroupId) {
               // Push job vào queue ngay lập tức khi phát hiện video mới
               await this.telegramQueueService.addTelegramMessageJob({
@@ -144,10 +188,14 @@ export class YoutubeChannelService {
                 },
               });
             }
+          } else if (!latestVideo) {
+            // Nếu không lấy được video, thêm lỗi LINK_ERROR
+            await this.addChannelError(channel, ChannelErrorType.LINK_ERROR);
           }
         } catch (error) {
           console.log('error :', error);
-          // Có thể log lỗi hoặc xử lý retry nếu cần
+          // Thêm lỗi NETWORK_ERROR nếu có exception
+          await this.addChannelError(channel, ChannelErrorType.NETWORK_ERROR);
         }
       }),
     );
