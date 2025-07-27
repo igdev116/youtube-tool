@@ -5,23 +5,23 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TelegramQueueService = void 0;
 const common_1 = require("@nestjs/common");
 const bullmq_1 = require("bullmq");
+const redis_connection_service_1 = require("./redis-connection.service");
 let TelegramQueueService = class TelegramQueueService {
+    redisConnectionService;
     telegramQueue;
+    constructor(redisConnectionService) {
+        this.redisConnectionService = redisConnectionService;
+    }
     async onModuleInit() {
         this.telegramQueue = new bullmq_1.Queue('telegram-queue', {
-            connection: {
-                host: process.env.REDIS_HOST,
-                port: Number(process.env.REDIS_PORT ?? 6379),
-                password: process.env.REDIS_PASSWORD,
-                username: process.env.REDIS_USERNAME,
-                tls: {
-                    rejectUnauthorized: false,
-                },
-            },
+            connection: this.redisConnectionService.getConnectionConfig(),
             defaultJobOptions: {
                 removeOnComplete: true,
                 removeOnFail: 3,
@@ -72,6 +72,7 @@ let TelegramQueueService = class TelegramQueueService {
 };
 exports.TelegramQueueService = TelegramQueueService;
 exports.TelegramQueueService = TelegramQueueService = __decorate([
-    (0, common_1.Injectable)()
+    (0, common_1.Injectable)(),
+    __metadata("design:paramtypes", [redis_connection_service_1.RedisConnectionService])
 ], TelegramQueueService);
 //# sourceMappingURL=telegram-queue.service.js.map

@@ -14,12 +14,15 @@ exports.SimpleTestProcessorService = void 0;
 const common_1 = require("@nestjs/common");
 const bullmq_1 = require("bullmq");
 const simple_test_service_1 = require("./simple-test.service");
+const redis_connection_service_1 = require("../queue/redis-connection.service");
 let SimpleTestProcessorService = SimpleTestProcessorService_1 = class SimpleTestProcessorService {
     simpleTestService;
+    redisConnectionService;
     logger = new common_1.Logger(SimpleTestProcessorService_1.name);
     worker;
-    constructor(simpleTestService) {
+    constructor(simpleTestService, redisConnectionService) {
         this.simpleTestService = simpleTestService;
+        this.redisConnectionService = redisConnectionService;
     }
     onModuleInit() {
         this.worker = new bullmq_1.Worker('simple-test-queue', async (job) => {
@@ -34,10 +37,7 @@ let SimpleTestProcessorService = SimpleTestProcessorService_1 = class SimpleTest
                 throw error;
             }
         }, {
-            connection: {
-                host: 'localhost',
-                port: 6379,
-            },
+            connection: this.redisConnectionService.getConnectionConfig(),
             concurrency: 1,
         });
         this.worker.on('completed', (job) => {
@@ -51,6 +51,7 @@ let SimpleTestProcessorService = SimpleTestProcessorService_1 = class SimpleTest
 exports.SimpleTestProcessorService = SimpleTestProcessorService;
 exports.SimpleTestProcessorService = SimpleTestProcessorService = SimpleTestProcessorService_1 = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [simple_test_service_1.SimpleTestService])
+    __metadata("design:paramtypes", [simple_test_service_1.SimpleTestService,
+        redis_connection_service_1.RedisConnectionService])
 ], SimpleTestProcessorService);
 //# sourceMappingURL=simple-test-processor.service.js.map

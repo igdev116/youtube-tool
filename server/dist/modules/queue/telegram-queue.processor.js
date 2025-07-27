@@ -15,14 +15,17 @@ const common_1 = require("@nestjs/common");
 const bullmq_1 = require("bullmq");
 const telegram_bot_service_1 = require("../../telegram/telegram-bot.service");
 const telegram_queue_service_1 = require("./telegram-queue.service");
+const redis_connection_service_1 = require("./redis-connection.service");
 let TelegramQueueProcessor = TelegramQueueProcessor_1 = class TelegramQueueProcessor {
     telegramBotService;
     telegramQueueService;
+    redisConnectionService;
     logger = new common_1.Logger(TelegramQueueProcessor_1.name);
     worker;
-    constructor(telegramBotService, telegramQueueService) {
+    constructor(telegramBotService, telegramQueueService, redisConnectionService) {
         this.telegramBotService = telegramBotService;
         this.telegramQueueService = telegramQueueService;
+        this.redisConnectionService = redisConnectionService;
     }
     onModuleInit() {
         this.worker = new bullmq_1.Worker('telegram-queue', async (job) => {
@@ -37,15 +40,7 @@ let TelegramQueueProcessor = TelegramQueueProcessor_1 = class TelegramQueueProce
                 throw error;
             }
         }, {
-            connection: {
-                host: process.env.REDIS_HOST,
-                port: Number(process.env.REDIS_PORT ?? 6379),
-                password: process.env.REDIS_PASSWORD,
-                username: process.env.REDIS_USERNAME,
-                tls: {
-                    rejectUnauthorized: false,
-                },
-            },
+            connection: this.redisConnectionService.getConnectionConfig(),
             concurrency: 1,
         });
         this.worker.on('completed', (job) => {
@@ -61,6 +56,7 @@ exports.TelegramQueueProcessor = TelegramQueueProcessor;
 exports.TelegramQueueProcessor = TelegramQueueProcessor = TelegramQueueProcessor_1 = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [telegram_bot_service_1.TelegramBotService,
-        telegram_queue_service_1.TelegramQueueService])
+        telegram_queue_service_1.TelegramQueueService,
+        redis_connection_service_1.RedisConnectionService])
 ], TelegramQueueProcessor);
 //# sourceMappingURL=telegram-queue.processor.js.map

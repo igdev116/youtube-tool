@@ -1,5 +1,6 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { Queue } from 'bullmq';
+import { RedisConnectionService } from './redis-connection.service';
 
 export interface TelegramMessageJob {
   groupId: string;
@@ -15,17 +16,13 @@ export interface TelegramMessageJob {
 export class TelegramQueueService implements OnModuleInit {
   private telegramQueue: Queue;
 
+  constructor(
+    private readonly redisConnectionService: RedisConnectionService,
+  ) {}
+
   async onModuleInit() {
     this.telegramQueue = new Queue('telegram-queue', {
-      connection: {
-        host: process.env.REDIS_HOST,
-        port: Number(process.env.REDIS_PORT ?? 6379),
-        password: process.env.REDIS_PASSWORD,
-        username: process.env.REDIS_USERNAME,
-        tls: {
-          rejectUnauthorized: false,
-        },
-      },
+      connection: this.redisConnectionService.getConnectionConfig(),
       defaultJobOptions: {
         removeOnComplete: true, // Tự động xóa job khi hoàn thành
         removeOnFail: 3, // Giữ lại 3 job failed gần nhất

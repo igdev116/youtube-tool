@@ -1,5 +1,6 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { Queue } from 'bullmq';
+import { RedisConnectionService } from '../queue/redis-connection.service';
 
 export interface SimpleTestJob {
   orderId: string;
@@ -11,12 +12,13 @@ export class SimpleTestService implements OnModuleInit {
   private testQueue: Queue;
   private orderCounter = 0;
 
+  constructor(
+    private readonly redisConnectionService: RedisConnectionService,
+  ) {}
+
   async onModuleInit() {
     this.testQueue = new Queue('simple-test-queue', {
-      connection: {
-        host: 'localhost',
-        port: 6379,
-      },
+      connection: this.redisConnectionService.getConnectionConfig(),
       defaultJobOptions: {
         removeOnComplete: true, // Tự động xóa job khi hoàn thành
         removeOnFail: 3, // Giữ lại 3 job failed gần nhất

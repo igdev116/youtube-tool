@@ -1,13 +1,17 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Worker, Job } from 'bullmq';
 import { SimpleTestJob, SimpleTestService } from './simple-test.service';
+import { RedisConnectionService } from '../queue/redis-connection.service';
 
 @Injectable()
 export class SimpleTestProcessorService implements OnModuleInit {
   private readonly logger = new Logger(SimpleTestProcessorService.name);
   private worker: Worker;
 
-  constructor(private readonly simpleTestService: SimpleTestService) {}
+  constructor(
+    private readonly simpleTestService: SimpleTestService,
+    private readonly redisConnectionService: RedisConnectionService,
+  ) {}
 
   onModuleInit() {
     this.worker = new Worker(
@@ -30,10 +34,7 @@ export class SimpleTestProcessorService implements OnModuleInit {
         }
       },
       {
-        connection: {
-          host: 'localhost',
-          port: 6379,
-        },
+        connection: this.redisConnectionService.getConnectionConfig(),
         concurrency: 1, // Chỉ xử lý 1 job tại một thời điểm
       },
     );

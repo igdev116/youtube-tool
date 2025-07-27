@@ -11,11 +11,13 @@ const common_1 = require("@nestjs/common");
 const simple_test_service_1 = require("./simple-test.service");
 const simple_test_processor_service_1 = require("./simple-test-processor.service");
 const simple_test_controller_1 = require("./simple-test.controller");
+const queue_module_1 = require("../queue/queue.module");
 let SimpleTestQueueModule = class SimpleTestQueueModule {
 };
 exports.SimpleTestQueueModule = SimpleTestQueueModule;
 exports.SimpleTestQueueModule = SimpleTestQueueModule = __decorate([
     (0, common_1.Module)({
+        imports: [queue_module_1.QueueModule],
         providers: [simple_test_service_1.SimpleTestService, simple_test_processor_service_1.SimpleTestProcessorService],
         exports: [simple_test_service_1.SimpleTestService],
         controllers: [simple_test_controller_1.SimpleTestController],

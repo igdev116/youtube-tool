@@ -5,6 +5,7 @@ import {
   TelegramMessageJob,
   TelegramQueueService,
 } from './telegram-queue.service';
+import { RedisConnectionService } from './redis-connection.service';
 
 @Injectable()
 export class TelegramQueueProcessor implements OnModuleInit {
@@ -14,6 +15,7 @@ export class TelegramQueueProcessor implements OnModuleInit {
   constructor(
     private readonly telegramBotService: TelegramBotService,
     private readonly telegramQueueService: TelegramQueueService,
+    private readonly redisConnectionService: RedisConnectionService,
   ) {}
 
   onModuleInit() {
@@ -40,15 +42,7 @@ export class TelegramQueueProcessor implements OnModuleInit {
         }
       },
       {
-        connection: {
-          host: process.env.REDIS_HOST,
-          port: Number(process.env.REDIS_PORT ?? 6379),
-          password: process.env.REDIS_PASSWORD,
-          username: process.env.REDIS_USERNAME,
-          tls: {
-            rejectUnauthorized: false,
-          },
-        },
+        connection: this.redisConnectionService.getConnectionConfig(),
         concurrency: 1, // Chỉ xử lý 1 job tại một thời điểm
       },
     );
