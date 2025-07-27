@@ -16,7 +16,11 @@ import { SimpleTestQueueModule } from './modules/simple-test-queue/simple-test-q
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    MongooseModule.forRoot('mongodb://localhost:27017/youtube-monitor'),
+    MongooseModule.forRoot(
+      process.env.NODE_ENV === 'production'
+        ? (process.env.MONGO_URI ?? '')
+        : (process.env.MONGO_URI_LOCAL ?? ''),
+    ),
     UserModule,
     AuthModule,
     YoutubeChannelModule,
