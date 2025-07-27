@@ -8,10 +8,10 @@ async function bootstrap() {
     origin: 'http://localhost:3000',
     credentials: true,
   });
-  // const port = process.env.PORT ?? 4000;
-  await app.listen(4000);
+  const port = process.env.PORT ?? 4000;
+  await app.listen(port);
 
-  console.log(`🚀 Server is running on http://localhost:4000`);
+  console.log(`🚀 Server is running on http://localhost:${port}`);
   console.log(
     `📱 Telegram Bot Token: ${process.env.TELEGRAM_BOT_TOKEN ? 'Loaded ✅' : 'Missing ❌'}`,
   );
