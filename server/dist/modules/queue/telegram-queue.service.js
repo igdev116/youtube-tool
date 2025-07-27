@@ -18,6 +18,9 @@ let TelegramQueueService = class TelegramQueueService {
                 port: Number(process.env.REDIS_PORT ?? 6379),
                 password: process.env.REDIS_PASSWORD,
                 username: process.env.REDIS_USERNAME,
+                tls: {
+                    rejectUnauthorized: false,
+                },
             },
             defaultJobOptions: {
                 removeOnComplete: true,

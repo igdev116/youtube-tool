@@ -45,6 +45,9 @@ export class TelegramQueueProcessor implements OnModuleInit {
           port: Number(process.env.REDIS_PORT ?? 6379),
           password: process.env.REDIS_PASSWORD,
           username: process.env.REDIS_USERNAME,
+          tls: {
+            rejectUnauthorized: false,
+          },
         },
         concurrency: 1, // Chỉ xử lý 1 job tại một thời điểm
       },
