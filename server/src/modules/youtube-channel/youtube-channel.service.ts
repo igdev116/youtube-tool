@@ -200,7 +200,6 @@ export class YoutubeChannelService {
         }
       }),
     );
-    console.log('tasks :', tasks.length);
     await Promise.all(tasks);
   }
 }

@@ -157,7 +157,6 @@ let YoutubeChannelService = class YoutubeChannelService {
                 await this.addChannelError(channel, youtube_channel_schema_1.ChannelErrorType.NETWORK_ERROR);
             }
         }));
-        console.log('tasks :', tasks.length);
         await Promise.all(tasks);
     }
 };
