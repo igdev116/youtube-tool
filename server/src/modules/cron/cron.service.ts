@@ -5,12 +5,29 @@ import { YoutubeChannelService } from '../youtube-channel/youtube-channel.servic
 @Injectable()
 export class CronService {
   private readonly logger = new Logger(CronService.name);
+  private isProcessing = false; // Flag để tránh overlap
+
   constructor(private readonly youtubeChannelService: YoutubeChannelService) {}
 
-  @Cron('*/50 * * * * *') // mỗi phút
+  @Cron('0 */1 * * * *') // mỗi 1 phút
   async handleYoutubeChannelCron() {
-    // this.logger.log('🚀 Running YouTube channel notification cron...');
-    await this.youtubeChannelService.notifyAllChannelsNewVideo();
-    // this.logger.log('✅ Done YouTube channel notification cron');
+    console.log('--------------------------------');
+
+    // Kiểm tra nếu đang xử lý thì bỏ qua
+    if (this.isProcessing) {
+      this.logger.log('⏳ Cron đang chạy, bỏ qua lần này...');
+      return;
+    }
+
+    try {
+      this.isProcessing = true;
+      this.logger.log('🚀 Running YouTube channel notification cron...');
+      await this.youtubeChannelService.notifyAllChannelsNewVideo();
+      this.logger.log('✅ Done YouTube channel notification cron');
+    } catch (error) {
+      this.logger.error('❌ Error in YouTube channel cron:', error.message);
+    } finally {
+      this.isProcessing = false;
+    }
   }
 }

@@ -22,7 +22,7 @@ export class TelegramQueueProcessor implements OnModuleInit {
     this.worker = new Worker(
       'telegram-queue',
       async (job: Job<TelegramMessageJob>) => {
-        console.log(`📱 Đang gửi tin nhắn Telegram: ${job.id}`);
+        // console.log(`📱 Đang gửi tin nhắn Telegram: ${job.id}`);
 
         try {
           // Gửi tin nhắn Telegram thật
@@ -31,7 +31,7 @@ export class TelegramQueueProcessor implements OnModuleInit {
             job.data.video,
           );
 
-          console.log(`✅ Đã gửi tin nhắn thành công: ${job.id}`);
+          // console.log(`✅ Đã gửi tin nhắn thành công: ${job.id}`);
           // Job sẽ tự động được xóa bởi removeOnComplete: true
 
           // Kiểm tra và reset jobCounter nếu queue trống
@@ -49,11 +49,11 @@ export class TelegramQueueProcessor implements OnModuleInit {
 
     this.worker.on('completed', (job) => {
       console.log(`Job ${job.id} completed`);
-      console.log('--------------------------------');
+      // console.log('--------------------------------');
     });
 
     this.worker.on('failed', (job, err) => {
-      console.error(`Job ${job?.id} failed: ${err.message}`);
+      // console.error(`Job ${job?.id} failed: ${err.message}`);
     });
   }
 }

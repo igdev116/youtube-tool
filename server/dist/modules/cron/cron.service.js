@@ -17,16 +17,33 @@ const youtube_channel_service_1 = require("../youtube-channel/youtube-channel.se
 let CronService = CronService_1 = class CronService {
     youtubeChannelService;
     logger = new common_1.Logger(CronService_1.name);
+    isProcessing = false;
     constructor(youtubeChannelService) {
         this.youtubeChannelService = youtubeChannelService;
     }
     async handleYoutubeChannelCron() {
-        await this.youtubeChannelService.notifyAllChannelsNewVideo();
+        console.log('--------------------------------');
+        if (this.isProcessing) {
+            this.logger.log('⏳ Cron đang chạy, bỏ qua lần này...');
+            return;
+        }
+        try {
+            this.isProcessing = true;
+            this.logger.log('🚀 Running YouTube channel notification cron...');
+            await this.youtubeChannelService.notifyAllChannelsNewVideo();
+            this.logger.log('✅ Done YouTube channel notification cron');
+        }
+        catch (error) {
+            this.logger.error('❌ Error in YouTube channel cron:', error.message);
+        }
+        finally {
+            this.isProcessing = false;
+        }
     }
 };
 exports.CronService = CronService;
 __decorate([
-    (0, schedule_1.Cron)('*/50 * * * * *'),
+    (0, schedule_1.Cron)('0 */1 * * * *'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)

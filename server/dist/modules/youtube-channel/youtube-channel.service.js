@@ -43,11 +43,9 @@ let YoutubeChannelService = class YoutubeChannelService {
         }
         if (errorType === youtube_channel_schema_1.ChannelErrorType.LINK_ERROR) {
             updateData.isActive = false;
-            console.log(`❌ Channel ${channel.channelId} bị tắt do lỗi link`);
         }
         if (Object.keys(updateData).length > 0) {
             await this.channelModel.updateOne({ _id: channel._id }, updateData);
-            console.log(`⚠️ Đã thêm lỗi ${errorType} cho channel ${channel.channelId}`);
         }
     }
     async addChannelsBulk(channels, userId) {
@@ -121,8 +119,14 @@ let YoutubeChannelService = class YoutubeChannelService {
             .find({ isActive: true })
             .populate('user')
             .exec();
-        const limit = (0, p_limit_1.default)(5);
+        const limit = (0, p_limit_1.default)(3);
+        const processingChannels = new Set();
         const tasks = activeChannels.map((channel) => limit(async () => {
+            if (processingChannels.has(channel.channelId)) {
+                console.log(`⏳ Channel ${channel.channelId} đang được xử lý, bỏ qua`);
+                return;
+            }
+            processingChannels.add(channel.channelId);
             try {
                 const url = `https://www.youtube.com/${channel.channelId}`;
                 const latestVideo = await (0, youtube_channel_utils_2.extractFirstVideoIdFromYt)(url);
@@ -135,7 +139,6 @@ let YoutubeChannelService = class YoutubeChannelService {
                     channel.lastVideoId = latestVideo.id;
                     channel.lastVideoAt = new Date();
                     await channel.save();
-                    console.log('channel :', channel.channelId);
                     if (telegramGroupId) {
                         await this.telegramQueueService.addTelegramMessageJob({
                             groupId: telegramGroupId,
@@ -156,8 +159,13 @@ let YoutubeChannelService = class YoutubeChannelService {
                 console.log('error :', error);
                 await this.addChannelError(channel, youtube_channel_schema_1.ChannelErrorType.NETWORK_ERROR);
             }
+            finally {
+                processingChannels.delete(channel.channelId);
+            }
         }));
+        console.log(`🚀 Bắt đầu xử lý ${tasks.length} channels`);
         await Promise.all(tasks);
+        console.log(`✅ Hoàn thành xử lý ${tasks.length} channels`);
     }
 };
 exports.YoutubeChannelService = YoutubeChannelService;

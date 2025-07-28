@@ -29,10 +29,8 @@ let TelegramQueueProcessor = TelegramQueueProcessor_1 = class TelegramQueueProce
     }
     onModuleInit() {
         this.worker = new bullmq_1.Worker('telegram-queue', async (job) => {
-            console.log(`📱 Đang gửi tin nhắn Telegram: ${job.id}`);
             try {
                 await this.telegramBotService.sendNewVideoToGroup(job.data.groupId, job.data.video);
-                console.log(`✅ Đã gửi tin nhắn thành công: ${job.id}`);
                 await this.telegramQueueService.resetJobCounter();
             }
             catch (error) {
@@ -45,10 +43,8 @@ let TelegramQueueProcessor = TelegramQueueProcessor_1 = class TelegramQueueProce
         });
         this.worker.on('completed', (job) => {
             console.log(`Job ${job.id} completed`);
-            console.log('--------------------------------');
         });
         this.worker.on('failed', (job, err) => {
-            console.error(`Job ${job?.id} failed: ${err.message}`);
         });
     }
 };

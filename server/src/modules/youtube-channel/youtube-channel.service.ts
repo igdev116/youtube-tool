@@ -43,14 +43,14 @@ export class YoutubeChannelService {
     // Nếu là LINK_ERROR, toggle isActive thành false
     if (errorType === ChannelErrorType.LINK_ERROR) {
       updateData.isActive = false;
-      console.log(`❌ Channel ${channel.channelId} bị tắt do lỗi link`);
+      // console.log(`❌ Channel ${channel.channelId} bị tắt do lỗi link`);
     }
 
     if (Object.keys(updateData).length > 0) {
       await this.channelModel.updateOne({ _id: channel._id }, updateData);
-      console.log(
-        `⚠️ Đã thêm lỗi ${errorType} cho channel ${channel.channelId}`,
-      );
+      // console.log(
+      //   `⚠️ Đã thêm lỗi ${errorType} cho channel ${channel.channelId}`,
+      // );
     }
   }
 
@@ -156,9 +156,21 @@ export class YoutubeChannelService {
       .populate('user')
       .exec();
 
-    const limit = pLimit(5);
+    const limit = pLimit(3); // Giảm từ 5 xuống 3 để tránh quá tải
+    const processingChannels = new Set<string>(); // Track channels đang xử lý
+
     const tasks = activeChannels.map((channel) =>
       limit(async () => {
+        // Kiểm tra channel đã được xử lý chưa
+        if (processingChannels.has(channel.channelId)) {
+          console.log(
+            `⏳ Channel ${channel.channelId} đang được xử lý, bỏ qua`,
+          );
+          return;
+        }
+
+        processingChannels.add(channel.channelId);
+
         try {
           const url = `https://www.youtube.com/${channel.channelId}`;
           const latestVideo = await extractFirstVideoIdFromYt(url);
@@ -172,10 +184,12 @@ export class YoutubeChannelService {
             }
 
             channel.lastVideoId = latestVideo.id;
-            channel.lastVideoAt = new Date(); // Cập nhật thời gian video mới
+            channel.lastVideoAt = new Date();
             await channel.save();
 
-            console.log('channel :', channel.channelId);
+            // console.log(
+            //   `📺 Channel ${channel.channelId} có video mới: ${latestVideo.id}`,
+            // );
 
             if (telegramGroupId) {
               // Push job vào queue ngay lập tức khi phát hiện video mới
@@ -197,9 +211,15 @@ export class YoutubeChannelService {
           console.log('error :', error);
           // Thêm lỗi NETWORK_ERROR nếu có exception
           await this.addChannelError(channel, ChannelErrorType.NETWORK_ERROR);
+        } finally {
+          // Luôn remove khỏi processing set
+          processingChannels.delete(channel.channelId);
         }
       }),
     );
+
+    console.log(`🚀 Bắt đầu xử lý ${tasks.length} channels`);
     await Promise.all(tasks);
+    console.log(`✅ Hoàn thành xử lý ${tasks.length} channels`);
   }
 }
