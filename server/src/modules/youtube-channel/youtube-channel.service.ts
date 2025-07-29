@@ -60,7 +60,7 @@ export class YoutubeChannelService {
   async addChannelsBulk(channels: BulkChannelDto[], userId: string) {
     const errorLinks: { link: string; reason: string }[] = [];
     const docs: YoutubeChannelDocument[] = [];
-    const limit = pLimit(5); // Giới hạn 5 promise song song
+    const limit = pLimit(100); // Giới hạn 5 promise song song
     const tasks = channels.map((item) =>
       limit(async () => {
         const channelId = await extractChannelIdFromUrl(item.link);
@@ -144,41 +144,6 @@ export class YoutubeChannelService {
   }
 
   /**
-   * Reset tất cả lastVideoId và lastVideoAt của tất cả channels
-   */
-  async resetAllLastVideoId() {
-    const result = await this.channelModel.updateMany(
-      {},
-      {
-        $unset: { lastVideoId: 1, lastVideoAt: 1 },
-      },
-    );
-
-    console.log(`🔄 Đã reset lastVideoId cho ${result.modifiedCount} channels`);
-    return {
-      success: true,
-      message: `Đã reset lastVideoId cho ${result.modifiedCount} channels`,
-      modifiedCount: result.modifiedCount,
-    };
-  }
-
-  /**
-   * Xóa tất cả channels có field errors không rỗng
-   */
-  async deleteAllChannelsWithErrors() {
-    const result = await this.channelModel.deleteMany({
-      errors: { $exists: true, $ne: [] }, // Có field errors và không rỗng
-    });
-
-    console.log(`🗑️ Đã xóa ${result.deletedCount} channels có lỗi`);
-    return {
-      success: true,
-      message: `Đã xóa ${result.deletedCount} channels có lỗi`,
-      deletedCount: result.deletedCount,
-    };
-  }
-
-  /**
    * Kiểm tra ngay 1 kênh có video mới không, trả về thông tin video mới nếu có
    */
   async testCheckNewVideo() {
@@ -240,7 +205,10 @@ export class YoutubeChannelService {
             }
           } else if (!latestVideo) {
             // Nếu không lấy được video, thêm lỗi LINK_ERROR
-            await this.addChannelError(channel, ChannelErrorType.LINK_ERROR);
+            await this.addChannelError(
+              channel,
+              ChannelErrorType.SHORT_NOT_FOUND,
+            );
           }
         } catch (error) {
           console.log('error :', error);

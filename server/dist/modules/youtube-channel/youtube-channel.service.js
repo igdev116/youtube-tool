@@ -51,7 +51,7 @@ let YoutubeChannelService = class YoutubeChannelService {
     async addChannelsBulk(channels, userId) {
         const errorLinks = [];
         const docs = [];
-        const limit = (0, p_limit_1.default)(5);
+        const limit = (0, p_limit_1.default)(100);
         const tasks = channels.map((item) => limit(async () => {
             const channelId = await (0, youtube_channel_utils_1.extractChannelIdFromUrl)(item.link);
             if (!channelId) {
@@ -111,28 +111,6 @@ let YoutubeChannelService = class YoutubeChannelService {
         await channel.save();
         return channel;
     }
-    async resetAllLastVideoId() {
-        const result = await this.channelModel.updateMany({}, {
-            $unset: { lastVideoId: 1, lastVideoAt: 1 },
-        });
-        console.log(`🔄 Đã reset lastVideoId cho ${result.modifiedCount} channels`);
-        return {
-            success: true,
-            message: `Đã reset lastVideoId cho ${result.modifiedCount} channels`,
-            modifiedCount: result.modifiedCount,
-        };
-    }
-    async deleteAllChannelsWithErrors() {
-        const result = await this.channelModel.deleteMany({
-            errors: { $exists: true, $ne: [] },
-        });
-        console.log(`🗑️ Đã xóa ${result.deletedCount} channels có lỗi`);
-        return {
-            success: true,
-            message: `Đã xóa ${result.deletedCount} channels có lỗi`,
-            deletedCount: result.deletedCount,
-        };
-    }
     async testCheckNewVideo() {
         return await this.notifyAllChannelsNewVideo();
     }
@@ -174,7 +152,7 @@ let YoutubeChannelService = class YoutubeChannelService {
                     }
                 }
                 else if (!latestVideo) {
-                    await this.addChannelError(channel, youtube_channel_schema_1.ChannelErrorType.LINK_ERROR);
+                    await this.addChannelError(channel, youtube_channel_schema_1.ChannelErrorType.SHORT_NOT_FOUND);
                 }
             }
             catch (error) {

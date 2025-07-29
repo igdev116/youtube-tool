@@ -41,11 +41,7 @@ let TelegramQueueProcessor = TelegramQueueProcessor_1 = class TelegramQueueProce
             connection: this.redisConnectionService.getConnectionConfig(),
             concurrency: 1,
         });
-        this.worker.on('completed', (job) => {
-            console.log(`Job ${job.id} completed`);
-        });
-        this.worker.on('failed', (job, err) => {
-        });
+        console.log('📱 Telegram queue processor đã được khởi tạo');
     }
 };
 exports.TelegramQueueProcessor = TelegramQueueProcessor;

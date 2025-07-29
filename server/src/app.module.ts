@@ -9,6 +9,7 @@ import { YoutubeChannelModule } from './modules/youtube-channel/youtube-channel.
 import { TelegramModule } from './telegram/telegram.module';
 import { CronModule } from './modules/cron/cron.module';
 import { QueueModule } from './modules/queue/queue.module';
+import { AdminModule } from './modules/admin/admin.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { QueueModule } from './modules/queue/queue.module';
     TelegramModule,
     CronModule,
     QueueModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],

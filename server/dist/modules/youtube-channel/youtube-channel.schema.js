@@ -19,6 +19,7 @@ var ChannelErrorType;
     ChannelErrorType["NETWORK_ERROR"] = "NETWORK_ERROR";
     ChannelErrorType["PARSE_ERROR"] = "PARSE_ERROR";
     ChannelErrorType["RATE_LIMIT_ERROR"] = "RATE_LIMIT_ERROR";
+    ChannelErrorType["SHORT_NOT_FOUND"] = "SHORT_NOT_FOUND";
 })(ChannelErrorType || (exports.ChannelErrorType = ChannelErrorType = {}));
 let YoutubeChannel = class YoutubeChannel {
     channelId;

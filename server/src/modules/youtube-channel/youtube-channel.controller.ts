@@ -135,32 +135,4 @@ export class YoutubeChannelController {
       result: channel,
     };
   }
-
-  @UseGuards(JwtAuthGuard)
-  @Post('reset-last-video-id')
-  async resetAllLastVideoId(): Promise<BaseResponse<any>> {
-    const result = await this.channelService.resetAllLastVideoId();
-    return {
-      success: true,
-      statusCode: 200,
-      message: result.message,
-      result: {
-        modifiedCount: result.modifiedCount,
-      },
-    };
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Post('delete-channels-with-errors')
-  async deleteAllChannelsWithErrors(): Promise<BaseResponse<any>> {
-    const result = await this.channelService.deleteAllChannelsWithErrors();
-    return {
-      success: true,
-      statusCode: 200,
-      message: result.message,
-      result: {
-        deletedCount: result.deletedCount,
-      },
-    };
-  }
 }
