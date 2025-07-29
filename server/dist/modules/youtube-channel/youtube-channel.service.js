@@ -111,6 +111,28 @@ let YoutubeChannelService = class YoutubeChannelService {
         await channel.save();
         return channel;
     }
+    async resetAllLastVideoId() {
+        const result = await this.channelModel.updateMany({}, {
+            $unset: { lastVideoId: 1, lastVideoAt: 1 },
+        });
+        console.log(`🔄 Đã reset lastVideoId cho ${result.modifiedCount} channels`);
+        return {
+            success: true,
+            message: `Đã reset lastVideoId cho ${result.modifiedCount} channels`,
+            modifiedCount: result.modifiedCount,
+        };
+    }
+    async deleteAllChannelsWithErrors() {
+        const result = await this.channelModel.deleteMany({
+            errors: { $exists: true, $ne: [] },
+        });
+        console.log(`🗑️ Đã xóa ${result.deletedCount} channels có lỗi`);
+        return {
+            success: true,
+            message: `Đã xóa ${result.deletedCount} channels có lỗi`,
+            deletedCount: result.deletedCount,
+        };
+    }
     async testCheckNewVideo() {
         return await this.notifyAllChannelsNewVideo();
     }

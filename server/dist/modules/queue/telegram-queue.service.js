@@ -19,7 +19,7 @@ let TelegramQueueService = class TelegramQueueService {
     constructor(redisConnectionService) {
         this.redisConnectionService = redisConnectionService;
     }
-    async onModuleInit() {
+    onModuleInit() {
         this.telegramQueue = new bullmq_1.Queue('telegram-queue', {
             connection: this.redisConnectionService.getConnectionConfig(),
             defaultJobOptions: {
@@ -27,8 +27,7 @@ let TelegramQueueService = class TelegramQueueService {
                 removeOnFail: 3,
             },
         });
-        await this.clearQueue();
-        console.log('🧹 Đã clear telegram queue khi start server');
+        console.log('📱 Telegram queue đã được khởi tạo');
     }
     jobCounter = 0;
     async addTelegramMessageJob(jobData) {

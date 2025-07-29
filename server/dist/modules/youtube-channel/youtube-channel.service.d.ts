@@ -31,6 +31,16 @@ export declare class YoutubeChannelService {
     }> & {
         __v: number;
     }) | null>;
+    resetAllLastVideoId(): Promise<{
+        success: boolean;
+        message: string;
+        modifiedCount: number;
+    }>;
+    deleteAllChannelsWithErrors(): Promise<{
+        success: boolean;
+        message: string;
+        deletedCount: number;
+    }>;
     testCheckNewVideo(): Promise<void>;
     notifyAllChannelsNewVideo(): Promise<void>;
 }

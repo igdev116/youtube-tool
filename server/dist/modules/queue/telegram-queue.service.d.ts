@@ -13,7 +13,7 @@ export declare class TelegramQueueService implements OnModuleInit {
     private readonly redisConnectionService;
     private telegramQueue;
     constructor(redisConnectionService: RedisConnectionService);
-    onModuleInit(): Promise<void>;
+    onModuleInit(): void;
     private jobCounter;
     addTelegramMessageJob(jobData: TelegramMessageJob): Promise<void>;
     resetJobCounter(): Promise<void>;

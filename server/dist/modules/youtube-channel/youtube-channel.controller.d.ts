@@ -10,4 +10,6 @@ export declare class YoutubeChannelController {
     testCheckNewVideo(): Promise<void>;
     deleteChannel(id: string, req: Request): Promise<BaseResponse<any>>;
     toggleChannelActive(id: string, req: Request): Promise<BaseResponse<any>>;
+    resetAllLastVideoId(): Promise<BaseResponse<any>>;
+    deleteAllChannelsWithErrors(): Promise<BaseResponse<any>>;
 }

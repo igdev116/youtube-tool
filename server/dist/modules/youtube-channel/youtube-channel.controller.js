@@ -94,6 +94,28 @@ let YoutubeChannelController = class YoutubeChannelController {
             result: channel,
         };
     }
+    async resetAllLastVideoId() {
+        const result = await this.channelService.resetAllLastVideoId();
+        return {
+            success: true,
+            statusCode: 200,
+            message: result.message,
+            result: {
+                modifiedCount: result.modifiedCount,
+            },
+        };
+    }
+    async deleteAllChannelsWithErrors() {
+        const result = await this.channelService.deleteAllChannelsWithErrors();
+        return {
+            success: true,
+            statusCode: 200,
+            message: result.message,
+            result: {
+                deletedCount: result.deletedCount,
+            },
+        };
+    }
 };
 exports.YoutubeChannelController = YoutubeChannelController;
 __decorate([
@@ -141,6 +163,20 @@ __decorate([
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], YoutubeChannelController.prototype, "toggleChannelActive", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.Post)('reset-last-video-id'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], YoutubeChannelController.prototype, "resetAllLastVideoId", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.Post)('delete-channels-with-errors'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], YoutubeChannelController.prototype, "deleteAllChannelsWithErrors", null);
 exports.YoutubeChannelController = YoutubeChannelController = __decorate([
     (0, common_1.Controller)('channel'),
     __metadata("design:paramtypes", [youtube_channel_service_1.YoutubeChannelService])

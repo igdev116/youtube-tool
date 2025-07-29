@@ -144,6 +144,41 @@ export class YoutubeChannelService {
   }
 
   /**
+   * Reset tất cả lastVideoId và lastVideoAt của tất cả channels
+   */
+  async resetAllLastVideoId() {
+    const result = await this.channelModel.updateMany(
+      {},
+      {
+        $unset: { lastVideoId: 1, lastVideoAt: 1 },
+      },
+    );
+
+    console.log(`🔄 Đã reset lastVideoId cho ${result.modifiedCount} channels`);
+    return {
+      success: true,
+      message: `Đã reset lastVideoId cho ${result.modifiedCount} channels`,
+      modifiedCount: result.modifiedCount,
+    };
+  }
+
+  /**
+   * Xóa tất cả channels có field errors không rỗng
+   */
+  async deleteAllChannelsWithErrors() {
+    const result = await this.channelModel.deleteMany({
+      errors: { $exists: true, $ne: [] }, // Có field errors và không rỗng
+    });
+
+    console.log(`🗑️ Đã xóa ${result.deletedCount} channels có lỗi`);
+    return {
+      success: true,
+      message: `Đã xóa ${result.deletedCount} channels có lỗi`,
+      deletedCount: result.deletedCount,
+    };
+  }
+
+  /**
    * Kiểm tra ngay 1 kênh có video mới không, trả về thông tin video mới nếu có
    */
   async testCheckNewVideo() {

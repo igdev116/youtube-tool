@@ -20,7 +20,7 @@ export class TelegramQueueService implements OnModuleInit {
     private readonly redisConnectionService: RedisConnectionService,
   ) {}
 
-  async onModuleInit() {
+  onModuleInit() {
     this.telegramQueue = new Queue('telegram-queue', {
       connection: this.redisConnectionService.getConnectionConfig(),
       defaultJobOptions: {
@@ -29,9 +29,7 @@ export class TelegramQueueService implements OnModuleInit {
       },
     });
 
-    // Clear queue khi start server để tránh jobs cũ gửi liên tục
-    await this.clearQueue();
-    console.log('🧹 Đã clear telegram queue khi start server');
+    console.log('📱 Telegram queue đã được khởi tạo');
   }
 
   private jobCounter = 0;
