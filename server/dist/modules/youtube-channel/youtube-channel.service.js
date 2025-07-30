@@ -123,7 +123,6 @@ let YoutubeChannelService = class YoutubeChannelService {
         const processingChannels = new Set();
         const tasks = activeChannels.map((channel) => limit(async () => {
             if (processingChannels.has(channel.channelId)) {
-                console.log(`⏳ Channel ${channel.channelId} đang được xử lý, bỏ qua`);
                 return;
             }
             processingChannels.add(channel.channelId);
@@ -136,19 +135,31 @@ let YoutubeChannelService = class YoutubeChannelService {
                     if (user && 'telegramGroupId' in user) {
                         telegramGroupId = user.telegramGroupId;
                     }
-                    channel.lastVideoId = latestVideo.id;
-                    channel.lastVideoAt = new Date();
-                    await channel.save();
-                    if (telegramGroupId) {
-                        await this.telegramQueueService.addTelegramMessageJob({
-                            groupId: telegramGroupId,
-                            video: {
-                                title: latestVideo.title || '',
-                                url: `https://www.youtube.com/watch?v=${latestVideo.id}`,
-                                thumbnail: latestVideo.thumbnail,
-                                channelId: channel.channelId,
-                            },
-                        });
+                    const updatedChannel = await this.channelModel.findOneAndUpdate({
+                        _id: channel._id,
+                        $or: [
+                            { lastVideoId: { $exists: false } },
+                            { lastVideoId: null },
+                            { lastVideoId: { $ne: latestVideo.id } },
+                        ],
+                    }, {
+                        $set: {
+                            lastVideoId: latestVideo.id,
+                            lastVideoAt: new Date(),
+                        },
+                    }, { new: true });
+                    if (updatedChannel) {
+                        if (telegramGroupId) {
+                            await this.telegramQueueService.addTelegramMessageJob({
+                                groupId: telegramGroupId,
+                                video: {
+                                    title: latestVideo.title || '',
+                                    url: `https://www.youtube.com/watch?v=${latestVideo.id}`,
+                                    thumbnail: latestVideo.thumbnail,
+                                    channelId: channel.channelId,
+                                },
+                            });
+                        }
                     }
                 }
                 else if (!latestVideo) {
@@ -163,9 +174,7 @@ let YoutubeChannelService = class YoutubeChannelService {
                 processingChannels.delete(channel.channelId);
             }
         }));
-        console.log(`🚀 Bắt đầu xử lý ${tasks.length} channels`);
         await Promise.all(tasks);
-        console.log(`✅ Hoàn thành xử lý ${tasks.length} channels`);
     }
 };
 exports.YoutubeChannelService = YoutubeChannelService;

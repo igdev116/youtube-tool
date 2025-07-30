@@ -163,9 +163,6 @@ export class YoutubeChannelService {
       limit(async () => {
         // Kiểm tra channel đã được xử lý chưa
         if (processingChannels.has(channel.channelId)) {
-          console.log(
-            `⏳ Channel ${channel.channelId} đang được xử lý, bỏ qua`,
-          );
           return;
         }
 
@@ -183,25 +180,39 @@ export class YoutubeChannelService {
               telegramGroupId = user.telegramGroupId;
             }
 
-            channel.lastVideoId = latestVideo.id;
-            channel.lastVideoAt = new Date();
-            await channel.save();
-
-            // console.log(
-            //   `📺 Channel ${channel.channelId} có video mới: ${latestVideo.id}`,
-            // );
-
-            if (telegramGroupId) {
-              // Push job vào queue ngay lập tức khi phát hiện video mới
-              await this.telegramQueueService.addTelegramMessageJob({
-                groupId: telegramGroupId,
-                video: {
-                  title: latestVideo.title || '',
-                  url: `https://www.youtube.com/watch?v=${latestVideo.id}`,
-                  thumbnail: latestVideo.thumbnail,
-                  channelId: channel.channelId,
+            // Sử dụng findOneAndUpdate để tránh race condition
+            const updatedChannel = await this.channelModel.findOneAndUpdate(
+              {
+                _id: channel._id,
+                $or: [
+                  { lastVideoId: { $exists: false } },
+                  { lastVideoId: null },
+                  { lastVideoId: { $ne: latestVideo.id } },
+                ],
+              },
+              {
+                $set: {
+                  lastVideoId: latestVideo.id,
+                  lastVideoAt: new Date(),
                 },
-              });
+              },
+              { new: true },
+            );
+
+            // Chỉ gửi tin nhắn nếu thực sự update thành công
+            if (updatedChannel) {
+              if (telegramGroupId) {
+                // Push job vào queue ngay lập tức khi phát hiện video mới
+                await this.telegramQueueService.addTelegramMessageJob({
+                  groupId: telegramGroupId,
+                  video: {
+                    title: latestVideo.title || '',
+                    url: `https://www.youtube.com/watch?v=${latestVideo.id}`,
+                    thumbnail: latestVideo.thumbnail,
+                    channelId: channel.channelId,
+                  },
+                });
+              }
             }
           } else if (!latestVideo) {
             // Nếu không lấy được video, thêm lỗi LINK_ERROR
@@ -221,8 +232,6 @@ export class YoutubeChannelService {
       }),
     );
 
-    console.log(`🚀 Bắt đầu xử lý ${tasks.length} channels`);
     await Promise.all(tasks);
-    console.log(`✅ Hoàn thành xử lý ${tasks.length} channels`);
   }
 }
