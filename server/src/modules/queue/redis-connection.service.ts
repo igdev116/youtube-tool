@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
+import { ConnectionOptions } from 'bullmq';
 
 @Injectable()
 export class RedisConnectionService {
-  getConnectionConfig() {
+  getConnectionConfig(): ConnectionOptions {
     return process.env.NODE_ENV === 'production'
       ? {
           host: process.env.REDIS_HOST,
@@ -12,14 +13,10 @@ export class RedisConnectionService {
           tls: {
             rejectUnauthorized: false,
           },
-          maxmemoryPolicy: 'allkeys-lru',
-          ttl: 3600, // 1 giờ
         }
       : {
           host: 'localhost',
           port: 6379,
-          maxmemoryPolicy: 'allkeys-lru',
-          ttl: 3600, // 1 giờ
         };
   }
 }

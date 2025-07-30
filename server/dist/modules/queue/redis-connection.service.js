@@ -19,14 +19,10 @@ let RedisConnectionService = class RedisConnectionService {
                 tls: {
                     rejectUnauthorized: false,
                 },
-                maxmemoryPolicy: 'allkeys-lru',
-                ttl: 3600,
             }
             : {
                 host: 'localhost',
                 port: 6379,
-                maxmemoryPolicy: 'allkeys-lru',
-                ttl: 3600,
             };
     }
 };
