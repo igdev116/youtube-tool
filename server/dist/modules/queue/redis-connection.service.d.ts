@@ -7,9 +7,13 @@ export declare class RedisConnectionService {
         tls: {
             rejectUnauthorized: boolean;
         };
+        maxmemoryPolicy: string;
+        ttl: number;
     } | {
         host: string;
         port: number;
+        maxmemoryPolicy: string;
+        ttl: number;
         password?: undefined;
         username?: undefined;
         tls?: undefined;
