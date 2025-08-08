@@ -41,7 +41,7 @@ let TelegramQueueService = class TelegramQueueService {
                 type: 'exponential',
                 delay: 2000,
             },
-            removeOnComplete: true,
+            removeOnComplete: false,
             removeOnFail: 3,
         });
         this.jobCounter++;

@@ -37,6 +37,17 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
         this.telegramBotService = telegramBotService;
         this.telegramQueueService = telegramQueueService;
     }
+    getUserIdFromRef(userRef) {
+        if (userRef && typeof userRef === 'object') {
+            if ('_id' in userRef && userRef._id) {
+                return String(userRef._id);
+            }
+            if (typeof userRef.toString === 'function') {
+                return userRef.toString();
+            }
+        }
+        return String(userRef);
+    }
     async addChannelError(channel, errorType) {
         const updateData = {};
         const currentErrors = channel.errors || [];
@@ -123,7 +134,14 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
             .populate('user')
             .exec();
         const limit = (0, p_limit_1.default)(5);
+        const processingChannels = new Set();
         const tasks = activeChannels.map((channel) => limit(async () => {
+            const userIdKey = this.getUserIdFromRef(channel.user);
+            const processingKey = `${channel.channelId}:${userIdKey}`;
+            if (processingChannels.has(processingKey)) {
+                return;
+            }
+            processingChannels.add(processingKey);
             try {
                 const url = `https://www.youtube.com/${channel.channelId}`;
                 const latestVideo = await (0, youtube_channel_utils_2.extractFirstVideoIdFromYt)(url);
@@ -147,18 +165,16 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
                             lastVideoAt: new Date(),
                         },
                     }, { new: true });
-                    if (updatedChannel) {
-                        if (telegramGroupId) {
-                            await this.telegramQueueService.addTelegramMessageJob({
-                                groupId: telegramGroupId,
-                                video: {
-                                    title: latestVideo.title || '',
-                                    url: `https://www.youtube.com/watch?v=${latestVideo.id}`,
-                                    thumbnail: latestVideo.thumbnail,
-                                    channelId: channel.channelId,
-                                },
-                            });
-                        }
+                    if (updatedChannel && telegramGroupId) {
+                        await this.telegramQueueService.addTelegramMessageJob({
+                            groupId: telegramGroupId,
+                            video: {
+                                title: latestVideo.title || '',
+                                url: `https://www.youtube.com/watch?v=${latestVideo.id}`,
+                                thumbnail: latestVideo.thumbnail,
+                                channelId: channel.channelId,
+                            },
+                        });
                     }
                 }
                 else if (!latestVideo) {
@@ -168,6 +184,9 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
             catch (error) {
                 console.log('error :', error);
                 await this.addChannelError(channel, youtube_channel_schema_1.ChannelErrorType.NETWORK_ERROR);
+            }
+            finally {
+                processingChannels.delete(processingKey);
             }
         }));
         await Promise.all(tasks);

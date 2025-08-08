@@ -174,7 +174,7 @@ export class YoutubeChannelService {
       .populate('user')
       .exec();
 
-    const limit = pLimit(3); // Giảm từ 5 xuống 3 để tránh quá tải
+    const limit = pLimit(5); // Giảm từ 5 xuống 3 để tránh quá tải
     const processingChannels = new Set<string>(); // Track channels đang xử lý theo cặp channelId+userId
 
     const tasks = activeChannels.map((channel) =>
@@ -224,19 +224,17 @@ export class YoutubeChannelService {
             );
 
             // Chỉ gửi tin nhắn nếu thực sự update thành công
-            if (updatedChannel) {
-              if (telegramGroupId) {
-                // Push job vào queue ngay lập tức khi phát hiện video mới
-                await this.telegramQueueService.addTelegramMessageJob({
-                  groupId: telegramGroupId,
-                  video: {
-                    title: latestVideo.title || '',
-                    url: `https://www.youtube.com/watch?v=${latestVideo.id}`,
-                    thumbnail: latestVideo.thumbnail,
-                    channelId: channel.channelId,
-                  },
-                });
-              }
+            if (updatedChannel && telegramGroupId) {
+              // Push job vào queue ngay lập tức khi phát hiện video mới
+              await this.telegramQueueService.addTelegramMessageJob({
+                groupId: telegramGroupId,
+                video: {
+                  title: latestVideo.title || '',
+                  url: `https://www.youtube.com/watch?v=${latestVideo.id}`,
+                  thumbnail: latestVideo.thumbnail,
+                  channelId: channel.channelId,
+                },
+              });
             }
           } else if (!latestVideo) {
             // Nếu không lấy được video, thêm lỗi LINK_ERROR

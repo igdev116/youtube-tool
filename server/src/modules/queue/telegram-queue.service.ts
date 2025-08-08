@@ -46,7 +46,7 @@ export class TelegramQueueService implements OnModuleInit {
         type: 'exponential',
         delay: 2000,
       },
-      removeOnComplete: true, // Tự động xóa job khi hoàn thành
+      removeOnComplete: false, // Tự động xóa job khi hoàn thành
       removeOnFail: 3, // Giữ lại 3 job failed gần nhất
     });
 
