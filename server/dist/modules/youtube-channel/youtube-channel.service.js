@@ -145,7 +145,6 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
                     if (user && 'telegramGroupId' in user) {
                         telegramGroupId = user.telegramGroupId;
                     }
-                    this.logger.debug(`Kênh vừa phát hiện video mới ==> ${channel.channelId}`);
                     const updatedChannel = await this.channelModel.findOneAndUpdate({
                         _id: channel._id,
                         $or: [
@@ -159,7 +158,7 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
                             lastVideoAt: new Date(),
                         },
                     }, { new: true });
-                    this.logger.warn(`Kênh ${channel.channelId} đã có video mới: ${latestVideo.id}. lastVideoId trước đó: ${channel.lastVideoId}`);
+                    this.logger.debug(`Kênh ${channel.channelId} đã có video mới: ${latestVideo.id}. lastVideoId trước đó: ${channel.lastVideoId}`);
                     if (updatedChannel && telegramGroupId) {
                         await this.telegramQueueService.addTelegramMessageJob({
                             groupId: telegramGroupId,
@@ -168,7 +167,7 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
                                 url: `https://www.youtube.com/watch?v=${latestVideo.id}`,
                                 thumbnail: latestVideo.thumbnail,
                                 channelId: channel.channelId,
-                                jobId: `${channel.channelId}-${userIdKey}`,
+                                jobId: `${channel.channelId}/${latestVideo.id}/${userIdKey}`,
                             },
                         });
                     }

@@ -226,7 +226,7 @@ export class YoutubeChannelService {
                   url: `https://www.youtube.com/watch?v=${latestVideo.id}`,
                   thumbnail: latestVideo.thumbnail,
                   channelId: channel.channelId,
-                  jobId: `${channel.channelId}-${latestVideo.id}-${userIdKey}`,
+                  jobId: `${channel.channelId}/${latestVideo.id}/${userIdKey}`,
                 },
               });
             }

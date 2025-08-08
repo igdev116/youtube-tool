@@ -24,17 +24,13 @@ let CronService = CronService_1 = class CronService {
     async handleYoutubeChannelCron() {
         console.log('--------------------------------');
         if (this.isProcessing) {
-            this.logger.log('⏳ Cron đang chạy, bỏ qua lần này...');
             return;
         }
         try {
             this.isProcessing = true;
-            this.logger.log('🚀 Running YouTube channel notification cron...');
             await this.youtubeChannelService.notifyAllChannelsNewVideo();
-            this.logger.log('✅ Done YouTube channel notification cron');
         }
         catch (error) {
-            this.logger.error('❌ Error in YouTube channel cron:', error.message);
         }
         finally {
             this.isProcessing = false;
