@@ -9,6 +9,7 @@ export interface TelegramMessageJob {
     url: string;
     channelId?: string;
     thumbnail: string;
+    jobId: string;
   };
 }
 
@@ -40,6 +41,7 @@ export class TelegramQueueService implements OnModuleInit {
     const selectedHandler = handlerNames[this.jobCounter % handlerNames.length];
 
     await this.telegramQueue.add(selectedHandler, jobData, {
+      jobId: jobData.video.jobId,
       delay: this.jobCounter * this.delay, // Giảm từ 5000 xuống 2000ms
       attempts: 3, // Retry tối đa 3 lần nếu fail
       backoff: {

@@ -175,18 +175,11 @@ export class YoutubeChannelService {
       .exec();
 
     const limit = pLimit(5); // Giảm từ 5 xuống 3 để tránh quá tải
-    const processingChannels = new Set<string>(); // Track channels đang xử lý theo cặp channelId+userId
 
     const tasks = activeChannels.map((channel) =>
       limit(async () => {
         // Kiểm tra channel+user đã được xử lý chưa (vì 1 channel có thể thuộc nhiều user)
         const userIdKey = this.getUserIdFromRef(channel.user);
-        const processingKey = `${channel.channelId}:${userIdKey}`;
-        if (processingChannels.has(processingKey)) {
-          return;
-        }
-
-        processingChannels.add(processingKey);
 
         try {
           const url = `https://www.youtube.com/${channel.channelId}`;
@@ -233,6 +226,7 @@ export class YoutubeChannelService {
                   url: `https://www.youtube.com/watch?v=${latestVideo.id}`,
                   thumbnail: latestVideo.thumbnail,
                   channelId: channel.channelId,
+                  jobId: `${channel.channelId}-${userIdKey}`,
                 },
               });
             }
@@ -247,9 +241,6 @@ export class YoutubeChannelService {
           console.log('error :', error);
           // Thêm lỗi NETWORK_ERROR nếu có exception
           await this.addChannelError(channel, ChannelErrorType.NETWORK_ERROR);
-        } finally {
-          // Luôn remove khỏi processing set
-          processingChannels.delete(processingKey);
         }
       }),
     );

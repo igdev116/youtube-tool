@@ -7,6 +7,7 @@ export interface TelegramMessageJob {
         url: string;
         channelId?: string;
         thumbnail: string;
+        jobId: string;
     };
 }
 export declare class TelegramQueueService implements OnModuleInit {

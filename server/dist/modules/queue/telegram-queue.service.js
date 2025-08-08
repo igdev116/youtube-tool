@@ -35,6 +35,7 @@ let TelegramQueueService = class TelegramQueueService {
         ];
         const selectedHandler = handlerNames[this.jobCounter % handlerNames.length];
         await this.telegramQueue.add(selectedHandler, jobData, {
+            jobId: jobData.video.jobId,
             delay: this.jobCounter * this.delay,
             attempts: 3,
             backoff: {
