@@ -216,6 +216,10 @@ export class YoutubeChannelService {
               { new: true },
             );
 
+            this.logger.warn(
+              `Kênh ${channel.channelId} đã có video mới: ${latestVideo.id}\nlastVideoId trước đó: ${channel.lastVideoId}`,
+            );
+
             // Chỉ gửi tin nhắn nếu thực sự update thành công
             if (updatedChannel && telegramGroupId) {
               // Push job vào queue ngay lập tức khi phát hiện video mới
