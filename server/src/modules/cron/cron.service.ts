@@ -11,7 +11,7 @@ export class CronService {
 
   @Cron('*/30 * * * * *') // mỗi 30 giây
   async handleYoutubeChannelCron() {
-    console.log('--------------------------------');
+    // console.log('--------------------------------');
 
     // Kiểm tra nếu đang xử lý thì bỏ qua
     if (this.isProcessing) {

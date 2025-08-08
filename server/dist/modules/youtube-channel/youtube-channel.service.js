@@ -171,9 +171,6 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
                         });
                     }
                 }
-                else if (!latestVideo) {
-                    await this.addChannelError(channel, youtube_channel_schema_1.ChannelErrorType.SHORT_NOT_FOUND);
-                }
             }
             catch (error) {
                 console.log('error :', error);

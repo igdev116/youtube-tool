@@ -35,7 +35,7 @@ export class TelegramQueueService implements OnModuleInit {
       'send-message-2',
       'send-message-3',
       'send-message-4',
-      'send-message-6',
+      'send-message-5',
     ];
 
     const selectedHandler = handlerNames[this.jobCounter % handlerNames.length];
@@ -49,7 +49,6 @@ export class TelegramQueueService implements OnModuleInit {
         delay: 2000,
       },
       removeOnComplete: false, // Tự động xóa job khi hoàn thành
-      removeOnFail: 3, // Giữ lại 3 job failed gần nhất
     });
 
     this.jobCounter++;

@@ -31,7 +31,7 @@ let TelegramQueueService = class TelegramQueueService {
             'send-message-2',
             'send-message-3',
             'send-message-4',
-            'send-message-6',
+            'send-message-5',
         ];
         const selectedHandler = handlerNames[this.jobCounter % handlerNames.length];
         await this.telegramQueue.add(selectedHandler, jobData, {
@@ -43,7 +43,6 @@ let TelegramQueueService = class TelegramQueueService {
                 delay: 2000,
             },
             removeOnComplete: false,
-            removeOnFail: 3,
         });
         this.jobCounter++;
     }

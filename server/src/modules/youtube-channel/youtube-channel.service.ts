@@ -230,13 +230,14 @@ export class YoutubeChannelService {
                 },
               });
             }
-          } else if (!latestVideo) {
-            // Nếu không lấy được video, thêm lỗi LINK_ERROR
-            await this.addChannelError(
-              channel,
-              ChannelErrorType.SHORT_NOT_FOUND,
-            );
           }
+          // else if (!latestVideo) {
+          //   // Nếu không lấy được video, thêm lỗi LINK_ERROR
+          //   await this.addChannelError(
+          //     channel,
+          //     ChannelErrorType.SHORT_NOT_FOUND,
+          //   );
+          // }
         } catch (error) {
           console.log('error :', error);
           // Thêm lỗi NETWORK_ERROR nếu có exception

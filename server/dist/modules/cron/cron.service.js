@@ -22,7 +22,6 @@ let CronService = CronService_1 = class CronService {
         this.youtubeChannelService = youtubeChannelService;
     }
     async handleYoutubeChannelCron() {
-        console.log('--------------------------------');
         if (this.isProcessing) {
             return;
         }
