@@ -217,7 +217,7 @@ export class YoutubeChannelService {
             );
 
             this.logger.warn(
-              `Kênh ${channel.channelId} đã có video mới: ${latestVideo.id}\nlastVideoId trước đó: ${channel.lastVideoId}`,
+              `Kênh ${channel.channelId} đã có video mới: ${latestVideo.id}. lastVideoId trước đó: ${channel.lastVideoId}`,
             );
 
             // Chỉ gửi tin nhắn nếu thực sự update thành công
@@ -230,7 +230,7 @@ export class YoutubeChannelService {
                   url: `https://www.youtube.com/watch?v=${latestVideo.id}`,
                   thumbnail: latestVideo.thumbnail,
                   channelId: channel.channelId,
-                  jobId: `${channel.channelId}-${userIdKey}`,
+                  jobId: `${channel.channelId}-${latestVideo.id}-${userIdKey}`,
                 },
               });
             }

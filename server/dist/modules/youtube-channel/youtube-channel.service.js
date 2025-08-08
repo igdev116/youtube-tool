@@ -159,7 +159,7 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
                             lastVideoAt: new Date(),
                         },
                     }, { new: true });
-                    this.logger.warn(`Kênh ${channel.channelId} đã có video mới: ${latestVideo.id}\nlastVideoId trước đó: ${channel.lastVideoId}`);
+                    this.logger.warn(`Kênh ${channel.channelId} đã có video mới: ${latestVideo.id}. lastVideoId trước đó: ${channel.lastVideoId}`);
                     if (updatedChannel && telegramGroupId) {
                         await this.telegramQueueService.addTelegramMessageJob({
                             groupId: telegramGroupId,
