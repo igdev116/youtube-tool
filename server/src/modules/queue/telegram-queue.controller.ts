@@ -23,23 +23,6 @@ export class TelegramQueueController {
     };
   }
 
-  @Post('test')
-  async addTestJob() {
-    await this.telegramQueueService.addTelegramMessageJob({
-      groupId: '-4943686852',
-      video: {
-        title: 'Test Telegram Job',
-        url: 'https://youtube.com/watch?v=test',
-        thumbnail: 'https://via.placeholder.com/300x200',
-        channelId: 'test-channel',
-      },
-    });
-    return {
-      success: true,
-      message: 'Đã thêm job test vào telegram queue',
-    };
-  }
-
   @Post('reset-counter')
   async resetCounter() {
     await this.telegramQueueService.resetJobCounter();

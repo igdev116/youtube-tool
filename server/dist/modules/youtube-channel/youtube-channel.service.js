@@ -123,12 +123,7 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
             .populate('user')
             .exec();
         const limit = (0, p_limit_1.default)(5);
-        const processingChannels = new Set();
         const tasks = activeChannels.map((channel) => limit(async () => {
-            if (processingChannels.has(channel.channelId)) {
-                return;
-            }
-            processingChannels.add(channel.channelId);
             try {
                 const url = `https://www.youtube.com/${channel.channelId}`;
                 const latestVideo = await (0, youtube_channel_utils_2.extractFirstVideoIdFromYt)(url);
@@ -173,9 +168,6 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
             catch (error) {
                 console.log('error :', error);
                 await this.addChannelError(channel, youtube_channel_schema_1.ChannelErrorType.NETWORK_ERROR);
-            }
-            finally {
-                processingChannels.delete(channel.channelId);
             }
         }));
         await Promise.all(tasks);

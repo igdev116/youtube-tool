@@ -16,10 +16,6 @@ export declare class TelegramQueueController {
         success: boolean;
         message: string;
     }>;
-    addTestJob(): Promise<{
-        success: boolean;
-        message: string;
-    }>;
     resetCounter(): Promise<{
         success: boolean;
         message: string;

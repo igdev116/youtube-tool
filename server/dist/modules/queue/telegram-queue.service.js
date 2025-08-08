@@ -24,6 +24,7 @@ let TelegramQueueService = class TelegramQueueService {
         console.log('📱 Telegram queue đã được khởi tạo');
     }
     jobCounter = 0;
+    delay = 0;
     async addTelegramMessageJob(jobData) {
         const handlerNames = [
             'send-message-1',
@@ -34,7 +35,7 @@ let TelegramQueueService = class TelegramQueueService {
         ];
         const selectedHandler = handlerNames[this.jobCounter % handlerNames.length];
         await this.telegramQueue.add(selectedHandler, jobData, {
-            delay: this.jobCounter * 0,
+            delay: this.jobCounter * this.delay,
             attempts: 3,
             backoff: {
                 type: 'exponential',

@@ -23,6 +23,7 @@ export class TelegramQueueService implements OnModuleInit {
   }
 
   private jobCounter = 0;
+  private delay = 0;
 
   async addTelegramMessageJob(jobData: TelegramMessageJob) {
     // console.log(`📊 Adding job - Counter: ${this.jobCounter}`);
@@ -39,7 +40,7 @@ export class TelegramQueueService implements OnModuleInit {
     const selectedHandler = handlerNames[this.jobCounter % handlerNames.length];
 
     await this.telegramQueue.add(selectedHandler, jobData, {
-      delay: this.jobCounter * 0, // Giảm từ 5000 xuống 2000ms
+      delay: this.jobCounter * this.delay, // Giảm từ 5000 xuống 2000ms
       attempts: 3, // Retry tối đa 3 lần nếu fail
       backoff: {
         type: 'exponential',

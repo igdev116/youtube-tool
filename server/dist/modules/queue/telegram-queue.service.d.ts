@@ -14,6 +14,7 @@ export declare class TelegramQueueService implements OnModuleInit {
     constructor(telegramQueue: Queue);
     onModuleInit(): void;
     private jobCounter;
+    private delay;
     addTelegramMessageJob(jobData: TelegramMessageJob): Promise<void>;
     resetJobCounter(): Promise<void>;
     getQueueStatus(): Promise<{

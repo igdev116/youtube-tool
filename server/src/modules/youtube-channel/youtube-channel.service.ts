@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { FilterQuery, Model } from 'mongoose';
+import { FilterQuery, Model, UpdateQuery, Types } from 'mongoose';
 import {
   YoutubeChannel,
   YoutubeChannelDocument,
@@ -28,31 +28,45 @@ export class YoutubeChannelService {
   ) {}
 
   /**
+   * Lấy userId từ ref có thể là ObjectId hoặc document đã populate
+   */
+  private getUserIdFromRef(userRef: Types.ObjectId | any): string {
+    if (userRef && typeof userRef === 'object') {
+      if ('_id' in userRef && userRef._id) {
+        return String(userRef._id);
+      }
+      if (typeof userRef.toString === 'function') {
+        return userRef.toString();
+      }
+    }
+    return String(userRef);
+  }
+
+  /**
    * Thêm lỗi vào channel và toggle isActive thành false nếu cần
    */
   private async addChannelError(
     channel: YoutubeChannelDocument,
     errorType: ChannelErrorType,
   ) {
-    const updateData: any = {};
+    const updateData: UpdateQuery<YoutubeChannelDocument> = {};
 
     // Chỉ thêm lỗi nếu chưa có
     const currentErrors = channel.errors || [];
     if (!currentErrors.includes(errorType)) {
-      updateData.$addToSet = { errors: errorType };
+      updateData.$addToSet = { errors: errorType } as any;
     }
 
     // Nếu là LINK_ERROR, toggle isActive thành false
     if (errorType === ChannelErrorType.LINK_ERROR) {
-      updateData.isActive = false;
-      // console.log(`❌ Channel ${channel.channelId} bị tắt do lỗi link`);
+      (updateData as any).isActive = false;
     }
 
     if (Object.keys(updateData).length > 0) {
-      await this.channelModel.updateOne({ _id: channel._id }, updateData);
-      // console.log(
-      //   `⚠️ Đã thêm lỗi ${errorType} cho channel ${channel.channelId}`,
-      // );
+      await this.channelModel.updateOne(
+        { _id: channel._id } as FilterQuery<YoutubeChannelDocument>,
+        updateData,
+      );
     }
   }
 
@@ -110,7 +124,7 @@ export class YoutubeChannelService {
   ) {
     const filter: FilterQuery<YoutubeChannelDocument> = { user: userId };
     if (keyword) {
-      filter.channelId = { $regex: keyword, $options: 'i' };
+      filter.channelId = { $regex: keyword, $options: 'i' } as any;
     }
     return paginateWithPage<YoutubeChannelDocument>(
       this.channelModel,
@@ -160,17 +174,19 @@ export class YoutubeChannelService {
       .populate('user')
       .exec();
 
-    const limit = pLimit(5); // Giảm từ 5 xuống 3 để tránh quá tải
-    const processingChannels = new Set<string>(); // Track channels đang xử lý
+    const limit = pLimit(3); // Giảm từ 5 xuống 3 để tránh quá tải
+    const processingChannels = new Set<string>(); // Track channels đang xử lý theo cặp channelId+userId
 
     const tasks = activeChannels.map((channel) =>
       limit(async () => {
-        // Kiểm tra channel đã được xử lý chưa
-        if (processingChannels.has(channel.channelId)) {
+        // Kiểm tra channel+user đã được xử lý chưa (vì 1 channel có thể thuộc nhiều user)
+        const userIdKey = this.getUserIdFromRef(channel.user);
+        const processingKey = `${channel.channelId}:${userIdKey}`;
+        if (processingChannels.has(processingKey)) {
           return;
         }
 
-        processingChannels.add(channel.channelId);
+        processingChannels.add(processingKey);
 
         try {
           const url = `https://www.youtube.com/${channel.channelId}`;
@@ -235,7 +251,7 @@ export class YoutubeChannelService {
           await this.addChannelError(channel, ChannelErrorType.NETWORK_ERROR);
         } finally {
           // Luôn remove khỏi processing set
-          processingChannels.delete(channel.channelId);
+          processingChannels.delete(processingKey);
         }
       }),
     );

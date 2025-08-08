@@ -31,21 +31,6 @@ let TelegramQueueController = class TelegramQueueController {
             message: 'Đã xóa tất cả jobs trong telegram queue',
         };
     }
-    async addTestJob() {
-        await this.telegramQueueService.addTelegramMessageJob({
-            groupId: '-4943686852',
-            video: {
-                title: 'Test Telegram Job',
-                url: 'https://youtube.com/watch?v=test',
-                thumbnail: 'https://via.placeholder.com/300x200',
-                channelId: 'test-channel',
-            },
-        });
-        return {
-            success: true,
-            message: 'Đã thêm job test vào telegram queue',
-        };
-    }
     async resetCounter() {
         await this.telegramQueueService.resetJobCounter();
         return {
@@ -67,12 +52,6 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], TelegramQueueController.prototype, "clearQueue", null);
-__decorate([
-    (0, common_1.Post)('test'),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", Promise)
-], TelegramQueueController.prototype, "addTestJob", null);
 __decorate([
     (0, common_1.Post)('reset-counter'),
     __metadata("design:type", Function),
