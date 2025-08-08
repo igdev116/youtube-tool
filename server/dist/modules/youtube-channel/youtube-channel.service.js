@@ -128,7 +128,6 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
         return await this.notifyAllChannelsNewVideo();
     }
     async notifyAllChannelsNewVideo() {
-        console.log('🔔 Bắt đầu kiểm tra video mới cho tất cả kênh');
         const activeChannels = await this.channelModel
             .find({ isActive: true })
             .populate('user')

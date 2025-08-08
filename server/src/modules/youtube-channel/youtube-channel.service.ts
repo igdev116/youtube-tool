@@ -167,7 +167,7 @@ export class YoutubeChannelService {
   }
 
   async notifyAllChannelsNewVideo() {
-    console.log('🔔 Bắt đầu kiểm tra video mới cho tất cả kênh');
+    // console.log('🔔 Bắt đầu kiểm tra video mới cho tất cả kênh');
 
     const activeChannels = await this.channelModel
       .find({ isActive: true })
