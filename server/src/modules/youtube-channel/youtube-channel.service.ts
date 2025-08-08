@@ -193,10 +193,6 @@ export class YoutubeChannelService {
               telegramGroupId = user.telegramGroupId;
             }
 
-            this.logger.debug(
-              `Kênh vừa phát hiện video mới ==> ${channel.channelId}`,
-            );
-
             // Sử dụng findOneAndUpdate để tránh race condition
             const updatedChannel = await this.channelModel.findOneAndUpdate(
               {
@@ -216,7 +212,7 @@ export class YoutubeChannelService {
               { new: true },
             );
 
-            this.logger.warn(
+            this.logger.debug(
               `Kênh ${channel.channelId} đã có video mới: ${latestVideo.id}. lastVideoId trước đó: ${channel.lastVideoId}`,
             );
 
