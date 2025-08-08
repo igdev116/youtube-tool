@@ -17,7 +17,7 @@ export class TelegramQueueProcessor1 {
     private readonly telegramQueueService: TelegramQueueService,
   ) {}
 
-  @Process('send-message-1')
+  @Process({ name: 'send-message-1', concurrency: 5 })
   async handleSendMessage(job: Job<TelegramMessageJob>) {
     try {
       await this.telegramBotService.sendNewVideoToGroup(
@@ -42,7 +42,7 @@ export class TelegramQueueProcessor2 {
     private readonly telegramQueueService: TelegramQueueService,
   ) {}
 
-  @Process('send-message-2')
+  @Process({ name: 'send-message-2', concurrency: 5 })
   async handleSendMessage(job: Job<TelegramMessageJob>) {
     try {
       await this.telegramBotService.sendNewVideoToGroup(
@@ -67,7 +67,7 @@ export class TelegramQueueProcessor3 {
     private readonly telegramQueueService: TelegramQueueService,
   ) {}
 
-  @Process('send-message-3')
+  @Process({ name: 'send-message-3', concurrency: 5 })
   async handleSendMessage(job: Job<TelegramMessageJob>) {
     try {
       await this.telegramBotService.sendNewVideoToGroup(
@@ -92,7 +92,7 @@ export class TelegramQueueProcessor4 {
     private readonly telegramQueueService: TelegramQueueService,
   ) {}
 
-  @Process('send-message-4')
+  @Process({ name: 'send-message-4', concurrency: 5 })
   async handleSendMessage(job: Job<TelegramMessageJob>) {
     try {
       await this.telegramBotService.sendNewVideoToGroup(
@@ -117,7 +117,7 @@ export class TelegramQueueProcessor5 {
     private readonly telegramQueueService: TelegramQueueService,
   ) {}
 
-  @Process('send-message-5')
+  @Process({ name: 'send-message-5', concurrency: 5 })
   async handleSendMessage(job: Job<TelegramMessageJob>) {
     try {
       await this.telegramBotService.sendNewVideoToGroup(

@@ -36,7 +36,7 @@ let TelegramQueueProcessor1 = TelegramQueueProcessor1_1 = class TelegramQueuePro
 };
 exports.TelegramQueueProcessor1 = TelegramQueueProcessor1;
 __decorate([
-    (0, bull_1.Process)('send-message-1'),
+    (0, bull_1.Process)({ name: 'send-message-1', concurrency: 5 }),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
@@ -68,7 +68,7 @@ let TelegramQueueProcessor2 = TelegramQueueProcessor2_1 = class TelegramQueuePro
 };
 exports.TelegramQueueProcessor2 = TelegramQueueProcessor2;
 __decorate([
-    (0, bull_1.Process)('send-message-2'),
+    (0, bull_1.Process)({ name: 'send-message-2', concurrency: 5 }),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
@@ -100,7 +100,7 @@ let TelegramQueueProcessor3 = TelegramQueueProcessor3_1 = class TelegramQueuePro
 };
 exports.TelegramQueueProcessor3 = TelegramQueueProcessor3;
 __decorate([
-    (0, bull_1.Process)('send-message-3'),
+    (0, bull_1.Process)({ name: 'send-message-3', concurrency: 5 }),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
@@ -132,7 +132,7 @@ let TelegramQueueProcessor4 = TelegramQueueProcessor4_1 = class TelegramQueuePro
 };
 exports.TelegramQueueProcessor4 = TelegramQueueProcessor4;
 __decorate([
-    (0, bull_1.Process)('send-message-4'),
+    (0, bull_1.Process)({ name: 'send-message-4', concurrency: 5 }),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
@@ -164,7 +164,7 @@ let TelegramQueueProcessor5 = TelegramQueueProcessor5_1 = class TelegramQueuePro
 };
 exports.TelegramQueueProcessor5 = TelegramQueueProcessor5;
 __decorate([
-    (0, bull_1.Process)('send-message-5'),
+    (0, bull_1.Process)({ name: 'send-message-5', concurrency: 5 }),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)

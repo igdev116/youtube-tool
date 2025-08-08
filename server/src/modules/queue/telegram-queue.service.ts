@@ -35,7 +35,7 @@ export class TelegramQueueService implements OnModuleInit {
       'send-message-2',
       'send-message-3',
       'send-message-4',
-      'send-message-5',
+      'send-message-6',
     ];
 
     const selectedHandler = handlerNames[this.jobCounter % handlerNames.length];
