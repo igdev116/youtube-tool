@@ -22,11 +22,8 @@ let TelegramBotService = class TelegramBotService {
         this.bot = bot;
     }
     async sendNewVideoToGroup(groupId, video) {
-        const text = `${video.title}\n${video.url}`;
         try {
-            await this.bot.telegram.sendPhoto(groupId, video.thumbnail, {
-                caption: text,
-            });
+            await this.bot.telegram.sendMessage(groupId, video.url);
         }
         catch (err) {
             console.error('Gửi Telegram thất bại', err?.message);

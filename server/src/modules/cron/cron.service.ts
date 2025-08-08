@@ -9,7 +9,7 @@ export class CronService {
 
   constructor(private readonly youtubeChannelService: YoutubeChannelService) {}
 
-  @Cron('0 */1 * * * *') // mỗi 1 phút
+  @Cron('*/30 * * * * *') // mỗi 30 giây
   async handleYoutubeChannelCron() {
     console.log('--------------------------------');
 

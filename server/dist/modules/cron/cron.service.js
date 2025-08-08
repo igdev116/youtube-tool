@@ -43,7 +43,7 @@ let CronService = CronService_1 = class CronService {
 };
 exports.CronService = CronService;
 __decorate([
-    (0, schedule_1.Cron)('0 */1 * * * *'),
+    (0, schedule_1.Cron)('*/30 * * * * *'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)

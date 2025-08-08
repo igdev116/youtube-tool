@@ -160,7 +160,7 @@ export class YoutubeChannelService {
       .populate('user')
       .exec();
 
-    const limit = pLimit(3); // Giảm từ 5 xuống 3 để tránh quá tải
+    const limit = pLimit(5); // Giảm từ 5 xuống 3 để tránh quá tải
     const processingChannels = new Set<string>(); // Track channels đang xử lý
 
     const tasks = activeChannels.map((channel) =>

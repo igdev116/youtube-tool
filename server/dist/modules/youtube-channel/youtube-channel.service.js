@@ -53,7 +53,7 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
     async addChannelsBulk(channels, userId) {
         const errorLinks = [];
         const docs = [];
-        const limit = (0, p_limit_1.default)(100);
+        const limit = (0, p_limit_1.default)(5);
         const tasks = channels.map((item) => limit(async () => {
             const channelId = await (0, youtube_channel_utils_1.extractChannelIdFromUrl)(item.link);
             if (!channelId) {
@@ -122,7 +122,7 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
             .find({ isActive: true })
             .populate('user')
             .exec();
-        const limit = (0, p_limit_1.default)(3);
+        const limit = (0, p_limit_1.default)(5);
         const processingChannels = new Set();
         const tasks = activeChannels.map((channel) => limit(async () => {
             if (processingChannels.has(channel.channelId)) {
