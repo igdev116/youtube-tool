@@ -15,11 +15,8 @@ export class TelegramBotService {
       thumbnail: string;
     },
   ) {
-    const text = `${video.title}\n${video.url}`;
     try {
-      await this.bot.telegram.sendPhoto(groupId, video.thumbnail, {
-        caption: text,
-      });
+      await this.bot.telegram.sendMessage(groupId, video.url);
     } catch (err: any) {
       // Có thể log lỗi hoặc xử lý retry nếu cần
       console.error('Gửi Telegram thất bại', err?.message);

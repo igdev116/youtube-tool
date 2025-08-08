@@ -9,6 +9,7 @@ export declare class YoutubeChannelService {
     private readonly userService;
     private readonly telegramBotService;
     private readonly telegramQueueService;
+    private readonly logger;
     constructor(channelModel: Model<YoutubeChannelDocument>, userService: UserService, telegramBotService: TelegramBotService, telegramQueueService: TelegramQueueService);
     private addChannelError;
     addChannelsBulk(channels: BulkChannelDto[], userId: string): Promise<{

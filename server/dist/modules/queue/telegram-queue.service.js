@@ -8,36 +8,40 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TelegramQueueService = void 0;
 const common_1 = require("@nestjs/common");
-const bullmq_1 = require("bullmq");
-const redis_connection_service_1 = require("./redis-connection.service");
+const bull_1 = require("@nestjs/bull");
 let TelegramQueueService = class TelegramQueueService {
-    redisConnectionService;
     telegramQueue;
-    constructor(redisConnectionService) {
-        this.redisConnectionService = redisConnectionService;
+    constructor(telegramQueue) {
+        this.telegramQueue = telegramQueue;
     }
     onModuleInit() {
-        this.telegramQueue = new bullmq_1.Queue('telegram-queue', {
-            connection: this.redisConnectionService.getConnectionConfig(),
-            defaultJobOptions: {
-                removeOnComplete: true,
-                removeOnFail: 3,
-            },
-        });
         console.log('📱 Telegram queue đã được khởi tạo');
     }
     jobCounter = 0;
     async addTelegramMessageJob(jobData) {
-        await this.telegramQueue.add('send-message', jobData, {
-            delay: this.jobCounter * 2000,
+        const handlerNames = [
+            'send-message-1',
+            'send-message-2',
+            'send-message-3',
+            'send-message-4',
+            'send-message-5',
+        ];
+        const selectedHandler = handlerNames[0];
+        await this.telegramQueue.add(selectedHandler, jobData, {
+            delay: this.jobCounter * 0,
             attempts: 3,
             backoff: {
                 type: 'exponential',
                 delay: 2000,
             },
+            removeOnComplete: true,
+            removeOnFail: 3,
         });
         this.jobCounter++;
     }
@@ -63,10 +67,10 @@ let TelegramQueueService = class TelegramQueueService {
     }
     async clearQueue() {
         try {
-            await this.telegramQueue.clean(0, 0, 'active');
-            await this.telegramQueue.clean(0, 0, 'wait');
-            await this.telegramQueue.clean(0, 0, 'completed');
-            await this.telegramQueue.clean(0, 0, 'failed');
+            await this.telegramQueue.clean(0, 'active');
+            await this.telegramQueue.clean(0, 'wait');
+            await this.telegramQueue.clean(0, 'completed');
+            await this.telegramQueue.clean(0, 'failed');
             await this.telegramQueue.obliterate({ force: true });
             this.jobCounter = 0;
             console.log('🧹 Đã xóa hoàn toàn telegram queue và tất cả keys trong Redis');
@@ -79,6 +83,7 @@ let TelegramQueueService = class TelegramQueueService {
 exports.TelegramQueueService = TelegramQueueService;
 exports.TelegramQueueService = TelegramQueueService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [redis_connection_service_1.RedisConnectionService])
+    __param(0, (0, bull_1.InjectQueue)('telegram-queue')),
+    __metadata("design:paramtypes", [Object])
 ], TelegramQueueService);
 //# sourceMappingURL=telegram-queue.service.js.map

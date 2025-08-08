@@ -1,6 +1,6 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
-import { Queue } from 'bullmq';
-import { RedisConnectionService } from './redis-connection.service';
+import { InjectQueue } from '@nestjs/bull';
+import { Queue } from 'bull';
 
 export interface TelegramMessageJob {
   groupId: string;
@@ -14,21 +14,11 @@ export interface TelegramMessageJob {
 
 @Injectable()
 export class TelegramQueueService implements OnModuleInit {
-  private telegramQueue: Queue;
-
   constructor(
-    private readonly redisConnectionService: RedisConnectionService,
+    @InjectQueue('telegram-queue') private readonly telegramQueue: Queue,
   ) {}
 
   onModuleInit() {
-    this.telegramQueue = new Queue('telegram-queue', {
-      connection: this.redisConnectionService.getConnectionConfig(),
-      defaultJobOptions: {
-        removeOnComplete: true, // Tự động xóa job khi hoàn thành
-        removeOnFail: 3, // Giữ lại 3 job failed gần nhất
-      },
-    });
-
     console.log('📱 Telegram queue đã được khởi tạo');
   }
 
@@ -37,13 +27,26 @@ export class TelegramQueueService implements OnModuleInit {
   async addTelegramMessageJob(jobData: TelegramMessageJob) {
     // console.log(`📊 Adding job - Counter: ${this.jobCounter}`);
 
-    await this.telegramQueue.add('send-message', jobData, {
-      delay: this.jobCounter * 2000, // Giảm từ 5000 xuống 2000ms
+    // Chọn handler dựa trên jobCounter để phân tán tải
+    const handlerNames = [
+      'send-message-1',
+      'send-message-2',
+      'send-message-3',
+      'send-message-4',
+      'send-message-5',
+    ];
+
+    const selectedHandler = handlerNames[this.jobCounter % handlerNames.length];
+
+    await this.telegramQueue.add(selectedHandler, jobData, {
+      delay: this.jobCounter * 0, // Giảm từ 5000 xuống 2000ms
       attempts: 3, // Retry tối đa 3 lần nếu fail
       backoff: {
         type: 'exponential',
         delay: 2000,
       },
+      removeOnComplete: true, // Tự động xóa job khi hoàn thành
+      removeOnFail: 3, // Giữ lại 3 job failed gần nhất
     });
 
     this.jobCounter++;
@@ -78,10 +81,10 @@ export class TelegramQueueService implements OnModuleInit {
   async clearQueue() {
     try {
       // Xóa tất cả jobs trong queue
-      await this.telegramQueue.clean(0, 0, 'active');
-      await this.telegramQueue.clean(0, 0, 'wait');
-      await this.telegramQueue.clean(0, 0, 'completed');
-      await this.telegramQueue.clean(0, 0, 'failed');
+      await this.telegramQueue.clean(0, 'active');
+      await this.telegramQueue.clean(0, 'wait');
+      await this.telegramQueue.clean(0, 'completed');
+      await this.telegramQueue.clean(0, 'failed');
 
       // Xóa toàn bộ queue và tất cả keys liên quan
       await this.telegramQueue.obliterate({ force: true });

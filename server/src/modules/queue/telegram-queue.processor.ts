@@ -1,47 +1,133 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { Worker, Job } from 'bullmq';
+import { Injectable, Logger } from '@nestjs/common';
+import { Process, Processor } from '@nestjs/bull';
+import { Job } from 'bull';
 import { TelegramBotService } from '../../telegram/telegram-bot.service';
 import {
   TelegramMessageJob,
   TelegramQueueService,
 } from './telegram-queue.service';
-import { RedisConnectionService } from './redis-connection.service';
 
 @Injectable()
-export class TelegramQueueProcessor implements OnModuleInit {
-  private readonly logger = new Logger(TelegramQueueProcessor.name);
-  private worker: Worker;
+@Processor('telegram-queue')
+export class TelegramQueueProcessor1 {
+  private readonly logger = new Logger(TelegramQueueProcessor1.name);
 
   constructor(
     private readonly telegramBotService: TelegramBotService,
     private readonly telegramQueueService: TelegramQueueService,
-    private readonly redisConnectionService: RedisConnectionService,
   ) {}
 
-  onModuleInit() {
-    this.worker = new Worker(
-      'telegram-queue',
-      async (job: Job<TelegramMessageJob>) => {
-        try {
-          // Gửi tin nhắn Telegram thật
-          await this.telegramBotService.sendNewVideoToGroup(
-            job.data.groupId,
-            job.data.video,
-          );
+  @Process('send-message-1')
+  async handleSendMessage(job: Job<TelegramMessageJob>) {
+    try {
+      await this.telegramBotService.sendNewVideoToGroup(
+        job.data.groupId,
+        job.data.video,
+      );
+      await this.telegramQueueService.resetJobCounter();
+    } catch (error) {
+      console.error(`❌ Lỗi gửi tin nhắn: ${job.id} - ${error.message}`);
+      throw error;
+    }
+  }
+}
 
-          // Kiểm tra và reset jobCounter nếu queue trống
-          await this.telegramQueueService.resetJobCounter();
-        } catch (error) {
-          console.error(`❌ Lỗi gửi tin nhắn: ${job.id} - ${error.message}`);
-          throw error; // Re-throw để Bull retry
-        }
-      },
-      {
-        connection: this.redisConnectionService.getConnectionConfig(),
-        concurrency: 1, // Chỉ xử lý 1 job tại một thời điểm
-      },
-    );
+@Injectable()
+@Processor('telegram-queue')
+export class TelegramQueueProcessor2 {
+  private readonly logger = new Logger(TelegramQueueProcessor2.name);
 
-    console.log('📱 Telegram queue processor đã được khởi tạo');
+  constructor(
+    private readonly telegramBotService: TelegramBotService,
+    private readonly telegramQueueService: TelegramQueueService,
+  ) {}
+
+  @Process('send-message-2')
+  async handleSendMessage(job: Job<TelegramMessageJob>) {
+    try {
+      await this.telegramBotService.sendNewVideoToGroup(
+        job.data.groupId,
+        job.data.video,
+      );
+      await this.telegramQueueService.resetJobCounter();
+    } catch (error) {
+      console.error(`❌ Lỗi gửi tin nhắn: ${job.id} - ${error.message}`);
+      throw error;
+    }
+  }
+}
+
+@Injectable()
+@Processor('telegram-queue')
+export class TelegramQueueProcessor3 {
+  private readonly logger = new Logger(TelegramQueueProcessor3.name);
+
+  constructor(
+    private readonly telegramBotService: TelegramBotService,
+    private readonly telegramQueueService: TelegramQueueService,
+  ) {}
+
+  @Process('send-message-3')
+  async handleSendMessage(job: Job<TelegramMessageJob>) {
+    try {
+      await this.telegramBotService.sendNewVideoToGroup(
+        job.data.groupId,
+        job.data.video,
+      );
+      await this.telegramQueueService.resetJobCounter();
+    } catch (error) {
+      console.error(`❌ Lỗi gửi tin nhắn: ${job.id} - ${error.message}`);
+      throw error;
+    }
+  }
+}
+
+@Injectable()
+@Processor('telegram-queue')
+export class TelegramQueueProcessor4 {
+  private readonly logger = new Logger(TelegramQueueProcessor4.name);
+
+  constructor(
+    private readonly telegramBotService: TelegramBotService,
+    private readonly telegramQueueService: TelegramQueueService,
+  ) {}
+
+  @Process('send-message-4')
+  async handleSendMessage(job: Job<TelegramMessageJob>) {
+    try {
+      await this.telegramBotService.sendNewVideoToGroup(
+        job.data.groupId,
+        job.data.video,
+      );
+      await this.telegramQueueService.resetJobCounter();
+    } catch (error) {
+      console.error(`❌ Lỗi gửi tin nhắn: ${job.id} - ${error.message}`);
+      throw error;
+    }
+  }
+}
+
+@Injectable()
+@Processor('telegram-queue')
+export class TelegramQueueProcessor5 {
+  private readonly logger = new Logger(TelegramQueueProcessor5.name);
+
+  constructor(
+    private readonly telegramBotService: TelegramBotService,
+    private readonly telegramQueueService: TelegramQueueService,
+  ) {}
+
+  @Process('send-message-5')
+  async handleSendMessage(job: Job<TelegramMessageJob>) {
+    try {
+      await this.telegramBotService.sendNewVideoToGroup(
+        job.data.groupId,
+        job.data.video,
+      );
+      await this.telegramQueueService.resetJobCounter();
+    } catch (error) {
+      console.error(`❌ Lỗi gửi tin nhắn: ${job.id} - ${error.message}`);
+      throw error;
+    }
   }
 }

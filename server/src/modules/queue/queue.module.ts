@@ -1,18 +1,51 @@
 import { Module } from '@nestjs/common';
-import { TelegramQueueProcessor } from './telegram-queue.processor';
+import { BullModule } from '@nestjs/bull';
+import {
+  TelegramQueueProcessor1,
+  TelegramQueueProcessor2,
+  TelegramQueueProcessor3,
+  TelegramQueueProcessor4,
+  TelegramQueueProcessor5,
+} from './telegram-queue.processor';
 import { TelegramModule } from '../../telegram/telegram.module';
 import { TelegramQueueService } from './telegram-queue.service';
 import { TelegramQueueController } from './telegram-queue.controller';
-import { RedisConnectionService } from './redis-connection.service';
 
 @Module({
-  imports: [TelegramModule],
+  imports: [
+    BullModule.forRoot({
+      redis:
+        process.env.NODE_ENV === 'production'
+          ? {
+              host: process.env.REDIS_HOST,
+              port: Number(process.env.REDIS_PORT),
+              password: process.env.REDIS_PASSWORD,
+              username: process.env.REDIS_USERNAME,
+              tls: {
+                rejectUnauthorized: false,
+              },
+            }
+          : {
+              host: 'localhost',
+              port: 6379,
+            },
+    }),
+    BullModule.registerQueue({
+      name: 'telegram-queue',
+    }),
+    TelegramModule,
+  ],
   providers: [
     TelegramQueueService,
-    TelegramQueueProcessor,
-    RedisConnectionService,
+    // 5 processor classes riêng biệt để đạt concurrency là 5
+    // Mỗi processor có handler name khác nhau để tránh conflict
+    TelegramQueueProcessor1,
+    TelegramQueueProcessor2,
+    TelegramQueueProcessor3,
+    TelegramQueueProcessor4,
+    TelegramQueueProcessor5,
   ],
-  exports: [TelegramQueueService, RedisConnectionService],
+  exports: [TelegramQueueService],
   controllers: [TelegramQueueController],
 })
 export class QueueModule {}

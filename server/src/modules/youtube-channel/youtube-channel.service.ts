@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { FilterQuery, Model } from 'mongoose';
 import {
@@ -17,6 +17,8 @@ import { TelegramQueueService } from '../queue/telegram-queue.service';
 
 @Injectable()
 export class YoutubeChannelService {
+  private readonly logger = new Logger(YoutubeChannelService.name);
+
   constructor(
     @InjectModel(YoutubeChannel.name)
     private readonly channelModel: Model<YoutubeChannelDocument>,
@@ -60,7 +62,7 @@ export class YoutubeChannelService {
   async addChannelsBulk(channels: BulkChannelDto[], userId: string) {
     const errorLinks: { link: string; reason: string }[] = [];
     const docs: YoutubeChannelDocument[] = [];
-    const limit = pLimit(100); // Giới hạn 5 promise song song
+    const limit = pLimit(5); // Giới hạn 5 promise song song
     const tasks = channels.map((item) =>
       limit(async () => {
         const channelId = await extractChannelIdFromUrl(item.link);
@@ -151,6 +153,8 @@ export class YoutubeChannelService {
   }
 
   async notifyAllChannelsNewVideo() {
+    console.log('🔔 Bắt đầu kiểm tra video mới cho tất cả kênh');
+
     const activeChannels = await this.channelModel
       .find({ isActive: true })
       .populate('user')
@@ -179,6 +183,10 @@ export class YoutubeChannelService {
             if (user && 'telegramGroupId' in user) {
               telegramGroupId = user.telegramGroupId;
             }
+
+            this.logger.debug(
+              `Kênh vừa phát hiện video mới ==> ${channel.channelId}`,
+            );
 
             // Sử dụng findOneAndUpdate để tránh race condition
             const updatedChannel = await this.channelModel.findOneAndUpdate(

@@ -1,5 +1,5 @@
 import { OnModuleInit } from '@nestjs/common';
-import { RedisConnectionService } from './redis-connection.service';
+import { Queue } from 'bull';
 export interface TelegramMessageJob {
     groupId: string;
     video: {
@@ -10,9 +10,8 @@ export interface TelegramMessageJob {
     };
 }
 export declare class TelegramQueueService implements OnModuleInit {
-    private readonly redisConnectionService;
-    private telegramQueue;
-    constructor(redisConnectionService: RedisConnectionService);
+    private readonly telegramQueue;
+    constructor(telegramQueue: Queue);
     onModuleInit(): void;
     private jobCounter;
     addTelegramMessageJob(jobData: TelegramMessageJob): Promise<void>;

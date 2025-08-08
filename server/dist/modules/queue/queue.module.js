@@ -8,23 +8,47 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.QueueModule = void 0;
 const common_1 = require("@nestjs/common");
+const bull_1 = require("@nestjs/bull");
 const telegram_queue_processor_1 = require("./telegram-queue.processor");
 const telegram_module_1 = require("../../telegram/telegram.module");
 const telegram_queue_service_1 = require("./telegram-queue.service");
 const telegram_queue_controller_1 = require("./telegram-queue.controller");
-const redis_connection_service_1 = require("./redis-connection.service");
 let QueueModule = class QueueModule {
 };
 exports.QueueModule = QueueModule;
 exports.QueueModule = QueueModule = __decorate([
     (0, common_1.Module)({
-        imports: [telegram_module_1.TelegramModule],
+        imports: [
+            bull_1.BullModule.forRoot({
+                redis: process.env.NODE_ENV === 'production'
+                    ? {
+                        host: process.env.REDIS_HOST,
+                        port: Number(process.env.REDIS_PORT),
+                        password: process.env.REDIS_PASSWORD,
+                        username: process.env.REDIS_USERNAME,
+                        tls: {
+                            rejectUnauthorized: false,
+                        },
+                    }
+                    : {
+                        host: 'localhost',
+                        port: 6379,
+                    },
+            }),
+            bull_1.BullModule.registerQueue({
+                name: 'telegram-queue',
+            }),
+            telegram_module_1.TelegramModule,
+        ],
         providers: [
             telegram_queue_service_1.TelegramQueueService,
-            telegram_queue_processor_1.TelegramQueueProcessor,
-            redis_connection_service_1.RedisConnectionService,
+            telegram_queue_processor_1.TelegramQueueProcessor1,
+            telegram_queue_processor_1.TelegramQueueProcessor2,
+            telegram_queue_processor_1.TelegramQueueProcessor3,
+            telegram_queue_processor_1.TelegramQueueProcessor4,
+            telegram_queue_processor_1.TelegramQueueProcessor5,
         ],
-        exports: [telegram_queue_service_1.TelegramQueueService, redis_connection_service_1.RedisConnectionService],
+        exports: [telegram_queue_service_1.TelegramQueueService],
         controllers: [telegram_queue_controller_1.TelegramQueueController],
     })
 ], QueueModule);

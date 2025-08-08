@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var YoutubeChannelService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.YoutubeChannelService = void 0;
 const common_1 = require("@nestjs/common");
@@ -24,11 +25,12 @@ const user_service_1 = require("../../user/user.service");
 const telegram_bot_service_1 = require("../../telegram/telegram-bot.service");
 const p_limit_1 = require("p-limit");
 const telegram_queue_service_1 = require("../queue/telegram-queue.service");
-let YoutubeChannelService = class YoutubeChannelService {
+let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelService {
     channelModel;
     userService;
     telegramBotService;
     telegramQueueService;
+    logger = new common_1.Logger(YoutubeChannelService_1.name);
     constructor(channelModel, userService, telegramBotService, telegramQueueService) {
         this.channelModel = channelModel;
         this.userService = userService;
@@ -115,6 +117,7 @@ let YoutubeChannelService = class YoutubeChannelService {
         return await this.notifyAllChannelsNewVideo();
     }
     async notifyAllChannelsNewVideo() {
+        console.log('🔔 Bắt đầu kiểm tra video mới cho tất cả kênh');
         const activeChannels = await this.channelModel
             .find({ isActive: true })
             .populate('user')
@@ -135,6 +138,7 @@ let YoutubeChannelService = class YoutubeChannelService {
                     if (user && 'telegramGroupId' in user) {
                         telegramGroupId = user.telegramGroupId;
                     }
+                    this.logger.debug(`Kênh vừa phát hiện video mới ==> ${channel.channelId}`);
                     const updatedChannel = await this.channelModel.findOneAndUpdate({
                         _id: channel._id,
                         $or: [
@@ -178,7 +182,7 @@ let YoutubeChannelService = class YoutubeChannelService {
     }
 };
 exports.YoutubeChannelService = YoutubeChannelService;
-exports.YoutubeChannelService = YoutubeChannelService = __decorate([
+exports.YoutubeChannelService = YoutubeChannelService = YoutubeChannelService_1 = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, mongoose_1.InjectModel)(youtube_channel_schema_1.YoutubeChannel.name)),
     __metadata("design:paramtypes", [mongoose_2.Model,
