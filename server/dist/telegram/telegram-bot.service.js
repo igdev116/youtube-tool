@@ -22,8 +22,22 @@ let TelegramBotService = class TelegramBotService {
         this.bot = bot;
     }
     async sendNewVideoToGroup(groupId, video) {
+        const cleanedTitle = video.title
+            .replace(/(^|\s)#[^\s#]+/g, ' ')
+            .replace(/\s{2,}/g, ' ')
+            .trim();
+        const tiktokSearchUrl = `https://www.tiktok.com/search?q=${encodeURIComponent(cleanedTitle)}`;
+        const escapeHtml = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const caption = [
+            `🎬 ${escapeHtml(cleanedTitle)}`,
+            `🔎 <a href="${tiktokSearchUrl}">Tìm trên TikTok</a>`,
+            `🔗 Youtube: ${video.url}`,
+        ].join('\n');
         try {
-            await this.bot.telegram.sendMessage(groupId, video.url);
+            await this.bot.telegram.sendPhoto(groupId, video.thumbnail, {
+                caption,
+                parse_mode: 'HTML',
+            });
         }
         catch (err) {
             console.error('Gửi Telegram thất bại', err?.message);
