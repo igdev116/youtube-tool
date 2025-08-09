@@ -16,23 +16,37 @@ exports.TelegramBotService = void 0;
 const common_1 = require("@nestjs/common");
 const nestjs_telegraf_1 = require("nestjs-telegraf");
 const telegraf_1 = require("telegraf");
+const dayjs = require("dayjs");
 let TelegramBotService = class TelegramBotService {
     bot;
     constructor(bot) {
         this.bot = bot;
     }
     async sendNewVideoToGroup(groupId, video) {
-        const cleanedTitle = video.title
+        const decodeHtmlEntities = (s) => s
+            .replace(/&quot;/g, '"')
+            .replace(/&#39;/g, "'")
+            .replace(/&amp;/g, '&')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>');
+        const escapeHtml = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const decodedTitle = decodeHtmlEntities(video.title);
+        const cleanedTitle = decodedTitle
             .replace(/(^|\s)#[^\s#]+/g, ' ')
             .replace(/\s{2,}/g, ' ')
             .trim();
         const tiktokSearchUrl = `https://www.tiktok.com/search?q=${encodeURIComponent(cleanedTitle)}`;
-        const escapeHtml = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const publishedText = video.publishedAt
+            ? dayjs(video.publishedAt).format('HH:mm:ss DD/MM/YYYY')
+            : undefined;
         const caption = [
             `🎬 ${escapeHtml(cleanedTitle)}`,
+            publishedText ? `🕒 ${escapeHtml(publishedText)}` : undefined,
             `🔎 <a href="${tiktokSearchUrl}">Tìm trên TikTok</a>`,
-            `🔗 Youtube: ${video.url}`,
-        ].join('\n');
+            `🔗 Youtube: ${escapeHtml(video.url)}`,
+        ]
+            .filter(Boolean)
+            .join('\n');
         try {
             await this.bot.telegram.sendPhoto(groupId, video.thumbnail, {
                 caption,

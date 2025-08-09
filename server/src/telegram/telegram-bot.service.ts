@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectBot } from 'nestjs-telegraf';
 import { Telegraf } from 'telegraf';
+import * as dayjs from 'dayjs';
 
 @Injectable()
 export class TelegramBotService {
@@ -13,10 +14,25 @@ export class TelegramBotService {
       url: string;
       channelId?: string;
       thumbnail: string;
+      publishedAt?: string; // ISO string
     },
   ) {
-    // Loại bỏ hashtag (#tag) và chuẩn hóa khoảng trắng
-    const cleanedTitle = video.title
+    // Decode HTML entities để hiển thị đúng ký tự đặc biệt (", ', &, <, >)
+    const decodeHtmlEntities = (s: string) =>
+      s
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>');
+
+    // Escape cho HTML caption an toàn
+    const escapeHtml = (s: string) =>
+      s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+    // Loại bỏ hashtag (#tag) và chuẩn hóa khoảng trắng trên tiêu đề đã decode
+    const decodedTitle = decodeHtmlEntities(video.title);
+    const cleanedTitle = decodedTitle
       .replace(/(^|\s)#[^\s#]+/g, ' ')
       .replace(/\s{2,}/g, ' ')
       .trim();
@@ -25,15 +41,18 @@ export class TelegramBotService {
       cleanedTitle,
     )}`;
 
-    // Escape cho HTML caption an toàn
-    const escapeHtml = (s: string) =>
-      s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const publishedText = video.publishedAt
+      ? dayjs(video.publishedAt).format('HH:mm:ss DD/MM/YYYY')
+      : undefined;
 
     const caption = [
       `🎬 ${escapeHtml(cleanedTitle)}`,
+      publishedText ? `🕒 ${escapeHtml(publishedText)}` : undefined,
       `🔎 <a href="${tiktokSearchUrl}">Tìm trên TikTok</a>`,
-      `🔗 Youtube: ${video.url}`,
-    ].join('\n');
+      `🔗 Youtube: ${escapeHtml(video.url)}`,
+    ]
+      .filter(Boolean)
+      .join('\n');
 
     try {
       await this.bot.telegram.sendPhoto(groupId, video.thumbnail, {

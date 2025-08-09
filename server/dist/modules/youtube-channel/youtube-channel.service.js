@@ -25,6 +25,7 @@ const user_service_1 = require("../../user/user.service");
 const telegram_bot_service_1 = require("../../telegram/telegram-bot.service");
 const p_limit_1 = require("p-limit");
 const telegram_queue_service_1 = require("../queue/telegram-queue.service");
+const dayjs = require("dayjs");
 let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelService {
     channelModel;
     userService;
@@ -81,11 +82,14 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
             }
             try {
                 let latestVideoId;
+                let latestPublishedAt;
                 try {
-                    const url = `https://www.youtube.com/${channelId}`;
-                    const latestVideo = await (0, youtube_channel_utils_2.extractFirstVideoIdFromYt)(url);
+                    const latestVideo = await (0, youtube_channel_utils_2.extractFirstVideoFromYt)(channelId);
                     if (latestVideo && latestVideo.id) {
                         latestVideoId = latestVideo.id;
+                        latestPublishedAt = latestVideo.publishedAt
+                            ? new Date(latestVideo.publishedAt)
+                            : undefined;
                     }
                 }
                 catch {
@@ -95,7 +99,10 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
                     isActive: item.isActive ?? true,
                     user: userId,
                     ...(latestVideoId
-                        ? { lastVideoId: latestVideoId, lastVideoAt: new Date() }
+                        ? {
+                            lastVideoId: latestVideoId,
+                            lastVideoAt: latestPublishedAt ?? new Date(),
+                        }
                         : {}),
                 });
                 docs.push(doc);
@@ -148,28 +155,26 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
         const tasks = activeChannels.map(async (channel) => {
             const userIdKey = this.getUserIdFromRef(channel.user);
             try {
-                const url = `https://www.youtube.com/${channel.channelId}`;
-                const latestVideo = await (0, youtube_channel_utils_2.extractFirstVideoIdFromYt)(url);
-                if (latestVideo && latestVideo.id !== channel.lastVideoId) {
+                const latestVideo = await (0, youtube_channel_utils_2.extractFirstVideoFromYt)(channel.channelId);
+                if (!latestVideo)
+                    return;
+                const isNewByTime = !channel.lastVideoAt
+                    ? true
+                    : dayjs(latestVideo.publishedAt).isAfter(dayjs(channel.lastVideoAt));
+                if (isNewByTime) {
+                    console.log('isNewByTime :', isNewByTime);
                     let telegramGroupId;
                     const user = channel.user;
                     if (user && 'telegramGroupId' in user) {
                         telegramGroupId = user.telegramGroupId;
                     }
-                    const updatedChannel = await this.channelModel.findOneAndUpdate({
-                        _id: channel._id,
-                        $or: [
-                            { lastVideoId: { $exists: false } },
-                            { lastVideoId: null },
-                            { lastVideoId: { $ne: latestVideo.id } },
-                        ],
-                    }, {
+                    const updatedChannel = await this.channelModel.findOneAndUpdate({ _id: channel._id }, {
                         $set: {
                             lastVideoId: latestVideo.id,
-                            lastVideoAt: new Date(),
+                            lastVideoAt: latestVideo.publishedAt,
                         },
                     }, { new: true });
-                    this.logger.debug(`Kênh ${channel.channelId} đã có video mới: ${latestVideo.id}. lastVideoId trước đó: ${channel.lastVideoId}`);
+                    this.logger.debug(`Kênh ${channel.channelId} mới: ${latestVideo.id} (published: ${latestVideo.publishedAt}) | lastVideoAt trước đó: ${channel.lastVideoAt?.toISOString() || 'n/a'}`);
                     if (updatedChannel && telegramGroupId) {
                         await this.telegramQueueService.addTelegramMessageJob({
                             groupId: telegramGroupId,
@@ -179,6 +184,7 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
                                 thumbnail: latestVideo.thumbnail,
                                 channelId: channel.channelId,
                                 jobId: `${channel.channelId}/${latestVideo.id}/${userIdKey}`,
+                                publishedAt: latestVideo.publishedAt,
                             },
                         });
                     }

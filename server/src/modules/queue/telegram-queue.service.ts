@@ -10,6 +10,7 @@ export interface TelegramMessageJob {
     channelId?: string;
     thumbnail: string;
     jobId: string;
+    publishedAt?: string; // ISO string
   };
 }
 
@@ -96,7 +97,7 @@ export class TelegramQueueService implements OnModuleInit {
       console.log(
         '🧹 Đã xóa hoàn toàn telegram queue và tất cả keys trong Redis',
       );
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Lỗi khi clear queue:', error.message);
     }
   }

@@ -9,11 +9,12 @@ import {
 import { extractChannelIdFromUrl } from './youtube-channel.utils';
 import { BulkChannelDto } from './dto/bulk-channel.dto';
 import { paginateWithPage } from '../../utils/pagination.util';
-import { extractFirstVideoIdFromYt } from './youtube-channel.utils';
+import { extractFirstVideoFromYt } from './youtube-channel.utils';
 import { UserService } from '../../user/user.service';
 import { TelegramBotService } from '../../telegram/telegram-bot.service';
 import pLimit from 'p-limit';
 import { TelegramQueueService } from '../queue/telegram-queue.service';
+import * as dayjs from 'dayjs';
 
 @Injectable()
 export class YoutubeChannelService {
@@ -80,6 +81,7 @@ export class YoutubeChannelService {
 
     const tasks = channels.map((item) =>
       limit(async () => {
+        // Gọi HTML kênh và trích xuất channelId từ RSS link
         const channelId = await extractChannelIdFromUrl(item.link);
         if (!channelId) {
           errorLinks.push({ link: item.link, reason: 'không hợp lệ' });
@@ -98,13 +100,16 @@ export class YoutubeChannelService {
         }
 
         try {
-          // Lấy video mới nhất trước khi tạo, để lưu trực tiếp vào document
+          // Lấy video mới nhất từ RSS trước khi tạo
           let latestVideoId: string | undefined;
+          let latestPublishedAt: Date | undefined;
           try {
-            const url = `https://www.youtube.com/${channelId}`;
-            const latestVideo = await extractFirstVideoIdFromYt(url);
+            const latestVideo = await extractFirstVideoFromYt(channelId);
             if (latestVideo && latestVideo.id) {
               latestVideoId = latestVideo.id;
+              latestPublishedAt = latestVideo.publishedAt
+                ? new Date(latestVideo.publishedAt)
+                : undefined;
             }
           } catch {
             // Bỏ qua nếu không lấy được video đầu tiên
@@ -115,7 +120,10 @@ export class YoutubeChannelService {
             isActive: item.isActive ?? true,
             user: userId,
             ...(latestVideoId
-              ? { lastVideoId: latestVideoId, lastVideoAt: new Date() }
+              ? {
+                  lastVideoId: latestVideoId,
+                  lastVideoAt: latestPublishedAt ?? new Date(),
+                }
               : {}),
           });
           docs.push(doc);
@@ -198,12 +206,20 @@ export class YoutubeChannelService {
       const userIdKey = this.getUserIdFromRef(channel.user);
 
       try {
-        const url = `https://www.youtube.com/${channel.channelId}`;
-        const latestVideo = await extractFirstVideoIdFromYt(url);
+        // Dùng RSS thay vì ytInitialData
+        const latestVideo = await extractFirstVideoFromYt(channel.channelId);
 
-        if (latestVideo && latestVideo.id !== channel.lastVideoId) {
+        if (!latestVideo) return;
+
+        // So sánh bằng dayjs: publishedAt (ISO string) > lastVideoAt (Date)
+        const isNewByTime = !channel.lastVideoAt
+          ? true
+          : dayjs(latestVideo.publishedAt).isAfter(dayjs(channel.lastVideoAt));
+
+        if (isNewByTime) {
+          console.log('isNewByTime :', isNewByTime);
           let telegramGroupId: string | undefined;
-          const user = channel.user;
+          const user = channel.user as any;
 
           if (user && 'telegramGroupId' in user) {
             telegramGroupId = user.telegramGroupId;
@@ -211,30 +227,22 @@ export class YoutubeChannelService {
 
           // Sử dụng findOneAndUpdate để tránh race condition
           const updatedChannel = await this.channelModel.findOneAndUpdate(
-            {
-              _id: channel._id,
-              $or: [
-                { lastVideoId: { $exists: false } },
-                { lastVideoId: null },
-                { lastVideoId: { $ne: latestVideo.id } },
-              ],
-            },
+            { _id: channel._id },
             {
               $set: {
                 lastVideoId: latestVideo.id,
-                lastVideoAt: new Date(),
+                lastVideoAt: latestVideo.publishedAt,
               },
             },
             { new: true },
           );
 
           this.logger.debug(
-            `Kênh ${channel.channelId} đã có video mới: ${latestVideo.id}. lastVideoId trước đó: ${channel.lastVideoId}`,
+            `Kênh ${channel.channelId} mới: ${latestVideo.id} (published: ${latestVideo.publishedAt}) | lastVideoAt trước đó: ${channel.lastVideoAt?.toISOString() || 'n/a'}`,
           );
 
           // Chỉ gửi tin nhắn nếu thực sự update thành công
           if (updatedChannel && telegramGroupId) {
-            // Push job vào queue ngay lập tức khi phát hiện video mới
             await this.telegramQueueService.addTelegramMessageJob({
               groupId: telegramGroupId,
               video: {
@@ -243,17 +251,11 @@ export class YoutubeChannelService {
                 thumbnail: latestVideo.thumbnail,
                 channelId: channel.channelId,
                 jobId: `${channel.channelId}/${latestVideo.id}/${userIdKey}`,
+                publishedAt: latestVideo.publishedAt,
               },
             });
           }
         }
-        // else if (!latestVideo) {
-        //   // Nếu không lấy được video, thêm lỗi LINK_ERROR
-        //   await this.addChannelError(
-        //     channel,
-        //     ChannelErrorType.SHORT_NOT_FOUND,
-        //   );
-        // }
       } catch (error) {
         console.log('error :', error);
         // Thêm lỗi NETWORK_ERROR nếu có exception

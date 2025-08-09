@@ -1,63 +1,58 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.extractFirstVideoIdFromYt = void 0;
-exports.getYtInitialDataFromUrl = getYtInitialDataFromUrl;
+exports.extractFirstVideoFromYt = void 0;
 exports.extractChannelIdFromUrl = extractChannelIdFromUrl;
 const axios_1 = require("axios");
-async function getYtInitialDataFromUrl(url) {
-    if (!url)
-        return null;
+async function extractChannelIdFromUrl(url) {
     try {
-        const res = await axios_1.default.get(url);
-        const html = res.data;
-        const match = html.match(/var ytInitialData = (\{.*?\});/s);
-        if (!match)
-            return null;
-        const jsonStr = match[1];
-        return JSON.parse(jsonStr);
+        const res = await axios_1.default.get(url, {
+            headers: { 'Cache-Control': 'no-cache' },
+        });
+        const html = String(res.data || '');
+        const m = html.match(/feeds\/videos\.xml\?channel_id=([A-Za-z0-9_-]+)/);
+        if (m && m[1])
+            return m[1];
+        return null;
     }
     catch {
         return null;
     }
 }
-async function extractChannelIdFromUrl(url) {
-    const data = await getYtInitialDataFromUrl(url);
-    const vanityUrl = data?.metadata?.channelMetadataRenderer?.vanityChannelUrl;
-    if (typeof vanityUrl === 'string' && vanityUrl.includes('youtube.com/')) {
-        const afterDomain = vanityUrl.split('youtube.com/')[1];
-        return decodeURI(afterDomain);
-    }
-    return null;
-}
-const extractFirstVideoIdFromYt = async (url, type = 'short') => {
-    const data = await getYtInitialDataFromUrl(type === 'video' ? url : url + '/shorts');
+const extractFirstVideoFromYt = async (channelId) => {
+    if (!channelId)
+        return null;
+    const feedUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`;
     try {
-        if (type === 'video') {
-            const firstVideo = data.contents.twoColumnBrowseResultsRenderer.tabs[0].tabRenderer.content
-                .sectionListRenderer.contents[1].itemSectionRenderer.contents[0]
-                .shelfRenderer.content.horizontalListRenderer.items[0]
-                .gridVideoRenderer;
-            return {
-                id: firstVideo.videoId,
-                thumbnail: firstVideo.thumbnail.thumbnails[firstVideo.thumbnail.thumbnails.length - 1].url,
-                title: firstVideo.title.simpleText,
-            };
-        }
-        else {
-            const firstVideo = data.contents.twoColumnBrowseResultsRenderer.tabs.find((tab) => tab.tabRenderer.title === 'Shorts').tabRenderer.content.richGridRenderer.contents[0].richItemRenderer
-                .content.shortsLockupViewModel.onTap.innertubeCommand.reelWatchEndpoint;
-            return {
-                id: firstVideo.videoId,
-                thumbnail: firstVideo.thumbnail.thumbnails[firstVideo.thumbnail.thumbnails.length - 1].url,
-                title: data.contents.twoColumnBrowseResultsRenderer.tabs.find((tab) => tab.tabRenderer.title === 'Shorts').tabRenderer.content.richGridRenderer.contents[0].richItemRenderer
-                    .content.shortsLockupViewModel.overlayMetadata.primaryText.content,
-            };
-        }
+        const res = await axios_1.default.get(feedUrl, {
+            headers: {
+                'Cache-Control': 'no-cache',
+            },
+        });
+        const xml = String(res.data || '');
+        const entryMatch = xml.match(/<entry[\s\S]*?<\/entry>/);
+        if (!entryMatch)
+            return null;
+        const entry = entryMatch[0];
+        const idMatch = entry.match(/<yt:videoId>([^<]+)<\/yt:videoId>/);
+        const id = idMatch ? idMatch[1] : null;
+        const titleMatch = entry.match(/<title>([^<]+)<\/title>/);
+        const title = titleMatch ? titleMatch[1] : '';
+        const thumbMatch = entry.match(/<media:thumbnail[^>]*url="([^"]+)"/);
+        const thumbnail = thumbMatch
+            ? thumbMatch[1]
+            : id
+                ? `https://i.ytimg.com/vi/${id}/hqdefault.jpg`
+                : '';
+        const publishedMatch = entry.match(/<published>([^<]+)<\/published>/);
+        const publishedAt = publishedMatch ? publishedMatch[1] : '';
+        if (!id)
+            return null;
+        return { id, thumbnail, title, publishedAt };
     }
     catch (error) {
-        console.log(`URL lỗi ${url} - ${error.message}`);
+        console.log(`RSS lỗi ${feedUrl} - ${error?.message}`);
         return null;
     }
 };
-exports.extractFirstVideoIdFromYt = extractFirstVideoIdFromYt;
+exports.extractFirstVideoFromYt = extractFirstVideoFromYt;
 //# sourceMappingURL=youtube-channel.utils.js.map
