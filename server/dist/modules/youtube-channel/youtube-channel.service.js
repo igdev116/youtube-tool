@@ -145,8 +145,7 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
             .find({ isActive: true })
             .populate('user')
             .exec();
-        const limit = (0, p_limit_1.default)(5);
-        const tasks = activeChannels.map((channel) => limit(async () => {
+        const tasks = activeChannels.map((channel) => async () => {
             const userIdKey = this.getUserIdFromRef(channel.user);
             try {
                 const url = `https://www.youtube.com/${channel.channelId}`;
@@ -189,7 +188,7 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
                 console.log('error :', error);
                 await this.addChannelError(channel, youtube_channel_schema_1.ChannelErrorType.NETWORK_ERROR);
             }
-        }));
+        });
         await Promise.all(tasks);
     }
 };

@@ -192,76 +192,74 @@ export class YoutubeChannelService {
       .populate('user')
       .exec();
 
-    const limit = pLimit(5); // Giảm từ 5 xuống 3 để tránh quá tải
+    // const limit = pLimit(5); // Giảm từ 5 xuống 3 để tránh quá tải
 
-    const tasks = activeChannels.map((channel) =>
-      limit(async () => {
-        const userIdKey = this.getUserIdFromRef(channel.user);
+    const tasks = activeChannels.map((channel) => async () => {
+      const userIdKey = this.getUserIdFromRef(channel.user);
 
-        try {
-          const url = `https://www.youtube.com/${channel.channelId}`;
-          const latestVideo = await extractFirstVideoIdFromYt(url);
+      try {
+        const url = `https://www.youtube.com/${channel.channelId}`;
+        const latestVideo = await extractFirstVideoIdFromYt(url);
 
-          if (latestVideo && latestVideo.id !== channel.lastVideoId) {
-            let telegramGroupId: string | undefined;
-            const user = channel.user;
+        if (latestVideo && latestVideo.id !== channel.lastVideoId) {
+          let telegramGroupId: string | undefined;
+          const user = channel.user;
 
-            if (user && 'telegramGroupId' in user) {
-              telegramGroupId = user.telegramGroupId;
-            }
-
-            // Sử dụng findOneAndUpdate để tránh race condition
-            const updatedChannel = await this.channelModel.findOneAndUpdate(
-              {
-                _id: channel._id,
-                $or: [
-                  { lastVideoId: { $exists: false } },
-                  { lastVideoId: null },
-                  { lastVideoId: { $ne: latestVideo.id } },
-                ],
-              },
-              {
-                $set: {
-                  lastVideoId: latestVideo.id,
-                  lastVideoAt: new Date(),
-                },
-              },
-              { new: true },
-            );
-
-            this.logger.debug(
-              `Kênh ${channel.channelId} đã có video mới: ${latestVideo.id}. lastVideoId trước đó: ${channel.lastVideoId}`,
-            );
-
-            // Chỉ gửi tin nhắn nếu thực sự update thành công
-            if (updatedChannel && telegramGroupId) {
-              // Push job vào queue ngay lập tức khi phát hiện video mới
-              await this.telegramQueueService.addTelegramMessageJob({
-                groupId: telegramGroupId,
-                video: {
-                  title: latestVideo.title || '',
-                  url: `https://www.youtube.com/watch?v=${latestVideo.id}`,
-                  thumbnail: latestVideo.thumbnail,
-                  channelId: channel.channelId,
-                  jobId: `${channel.channelId}/${latestVideo.id}/${userIdKey}`,
-                },
-              });
-            }
+          if (user && 'telegramGroupId' in user) {
+            telegramGroupId = user.telegramGroupId;
           }
-          // else if (!latestVideo) {
-          //   // Nếu không lấy được video, thêm lỗi LINK_ERROR
-          //   await this.addChannelError(
-          //     channel,
-          //     ChannelErrorType.SHORT_NOT_FOUND,
-          //   );
-          // }
-        } catch (error) {
-          console.log('error :', error);
-          // Thêm lỗi NETWORK_ERROR nếu có exception
-          await this.addChannelError(channel, ChannelErrorType.NETWORK_ERROR);
+
+          // Sử dụng findOneAndUpdate để tránh race condition
+          const updatedChannel = await this.channelModel.findOneAndUpdate(
+            {
+              _id: channel._id,
+              $or: [
+                { lastVideoId: { $exists: false } },
+                { lastVideoId: null },
+                { lastVideoId: { $ne: latestVideo.id } },
+              ],
+            },
+            {
+              $set: {
+                lastVideoId: latestVideo.id,
+                lastVideoAt: new Date(),
+              },
+            },
+            { new: true },
+          );
+
+          this.logger.debug(
+            `Kênh ${channel.channelId} đã có video mới: ${latestVideo.id}. lastVideoId trước đó: ${channel.lastVideoId}`,
+          );
+
+          // Chỉ gửi tin nhắn nếu thực sự update thành công
+          if (updatedChannel && telegramGroupId) {
+            // Push job vào queue ngay lập tức khi phát hiện video mới
+            await this.telegramQueueService.addTelegramMessageJob({
+              groupId: telegramGroupId,
+              video: {
+                title: latestVideo.title || '',
+                url: `https://www.youtube.com/watch?v=${latestVideo.id}`,
+                thumbnail: latestVideo.thumbnail,
+                channelId: channel.channelId,
+                jobId: `${channel.channelId}/${latestVideo.id}/${userIdKey}`,
+              },
+            });
+          }
         }
-      }),
-    );
+        // else if (!latestVideo) {
+        //   // Nếu không lấy được video, thêm lỗi LINK_ERROR
+        //   await this.addChannelError(
+        //     channel,
+        //     ChannelErrorType.SHORT_NOT_FOUND,
+        //   );
+        // }
+      } catch (error) {
+        console.log('error :', error);
+        // Thêm lỗi NETWORK_ERROR nếu có exception
+        await this.addChannelError(channel, ChannelErrorType.NETWORK_ERROR);
+      }
+    });
 
     await Promise.all(tasks);
   }
