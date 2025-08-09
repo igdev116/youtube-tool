@@ -64,8 +64,7 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
     async addChannelsBulk(channels, userId) {
         const errorLinks = [];
         const docs = [];
-        const limit = (0, p_limit_1.default)(5);
-        const tasks = channels.map((item) => limit(async () => {
+        const tasks = channels.map((item) => async () => {
             const channelId = await (0, youtube_channel_utils_1.extractChannelIdFromUrl)(item.link);
             if (!channelId) {
                 errorLinks.push({ link: item.link, reason: 'không hợp lệ' });
@@ -90,7 +89,7 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
             catch {
                 errorLinks.push({ link: item.link, reason: 'lỗi khi lưu vào DB' });
             }
-        }));
+        });
         await Promise.all(tasks);
         let message = '';
         if (errorLinks.length > 0) {

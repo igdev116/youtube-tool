@@ -50,7 +50,6 @@ let TelegramQueueService = class TelegramQueueService {
         const waiting = await this.telegramQueue.getWaiting();
         if (waiting.length === 0) {
             this.jobCounter = 0;
-            console.log('🔄 Reset jobCounter về 0 vì không còn job waiting');
         }
     }
     async getQueueStatus() {

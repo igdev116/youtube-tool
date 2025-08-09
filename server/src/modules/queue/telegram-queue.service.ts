@@ -61,7 +61,6 @@ export class TelegramQueueService implements OnModuleInit {
     // Nếu không còn job nào đang chờ, reset counter
     if (waiting.length === 0) {
       this.jobCounter = 0;
-      console.log('🔄 Reset jobCounter về 0 vì không còn job waiting');
     }
   }
 

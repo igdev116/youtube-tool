@@ -76,38 +76,36 @@ export class YoutubeChannelService {
   async addChannelsBulk(channels: BulkChannelDto[], userId: string) {
     const errorLinks: { link: string; reason: string }[] = [];
     const docs: YoutubeChannelDocument[] = [];
-    const limit = pLimit(5); // Giới hạn 5 promise song song
-    const tasks = channels.map((item) =>
-      limit(async () => {
-        const channelId = await extractChannelIdFromUrl(item.link);
-        if (!channelId) {
-          errorLinks.push({ link: item.link, reason: 'không hợp lệ' });
-          return;
-        }
+    // const limit = pLimit(5); // Giới hạn 5 promise song song
+    const tasks = channels.map((item) => async () => {
+      const channelId = await extractChannelIdFromUrl(item.link);
+      if (!channelId) {
+        errorLinks.push({ link: item.link, reason: 'không hợp lệ' });
+        return;
+      }
 
-        // Kiểm tra xem channelId đã tồn tại với user này chưa
-        const existingChannel = await this.channelModel.findOne({
+      // Kiểm tra xem channelId đã tồn tại với user này chưa
+      const existingChannel = await this.channelModel.findOne({
+        channelId,
+        user: userId,
+      });
+
+      if (existingChannel) {
+        errorLinks.push({ link: item.link, reason: 'đã tồn tại' });
+        return;
+      }
+
+      try {
+        const doc = await this.channelModel.create({
           channelId,
+          isActive: item.isActive ?? true,
           user: userId,
         });
-
-        if (existingChannel) {
-          errorLinks.push({ link: item.link, reason: 'đã tồn tại' });
-          return;
-        }
-
-        try {
-          const doc = await this.channelModel.create({
-            channelId,
-            isActive: item.isActive ?? true,
-            user: userId,
-          });
-          docs.push(doc);
-        } catch {
-          errorLinks.push({ link: item.link, reason: 'lỗi khi lưu vào DB' });
-        }
-      }),
-    );
+        docs.push(doc);
+      } catch {
+        errorLinks.push({ link: item.link, reason: 'lỗi khi lưu vào DB' });
+      }
+    });
     await Promise.all(tasks);
     let message = '';
     if (errorLinks.length > 0) {
@@ -178,7 +176,6 @@ export class YoutubeChannelService {
 
     const tasks = activeChannels.map((channel) =>
       limit(async () => {
-        // Kiểm tra channel+user đã được xử lý chưa (vì 1 channel có thể thuộc nhiều user)
         const userIdKey = this.getUserIdFromRef(channel.user);
 
         try {
