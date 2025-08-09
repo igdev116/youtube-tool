@@ -194,7 +194,7 @@ export class YoutubeChannelService {
 
     // const limit = pLimit(5); // Giảm từ 5 xuống 3 để tránh quá tải
 
-    const tasks = activeChannels.map((channel) => async () => {
+    const tasks = activeChannels.map(async (channel) => {
       const userIdKey = this.getUserIdFromRef(channel.user);
 
       try {
@@ -260,6 +260,8 @@ export class YoutubeChannelService {
         await this.addChannelError(channel, ChannelErrorType.NETWORK_ERROR);
       }
     });
+
+    console.log('tasks :', tasks.length);
 
     await Promise.all(tasks);
   }
