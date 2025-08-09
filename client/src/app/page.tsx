@@ -148,21 +148,24 @@ const HomePage = () => {
       ...item,
       link: item.link ? decodeURI(item.link) : '',
     }));
+
     addChannelsMutation.mutate(decodedChannels, {
       onSuccess: (res) => {
         if (res.success) {
           toastSuccess('Thêm kênh thành công!');
-          form.resetFields();
-          setOpen(false);
-          // Reset về trang 1 và refetch data
-          setCurrentPage(1);
-          invalidateChannels();
         } else {
           toastError(res.message || 'Thêm kênh thất bại!');
         }
       },
       onError: (err: any) => {
         toastError(err?.response?.data?.message || 'Thêm kênh thất bại!');
+      },
+      onSettled: () => {
+        // Reset về trang 1 và refetch data
+        form.resetFields();
+        setCurrentPage(1);
+        invalidateChannels();
+        setOpen(false);
       },
     });
   };
@@ -199,7 +202,6 @@ const HomePage = () => {
       form.setFieldsValue({ channels });
       setExcelLoading(false);
       setChannelCount(channels.length);
-      setTimeout(scrollToBottom, 100);
     };
     reader.readAsBinaryString(file);
   };
