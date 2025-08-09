@@ -64,7 +64,8 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
     async addChannelsBulk(channels, userId) {
         const errorLinks = [];
         const docs = [];
-        const tasks = channels.map((item) => async () => {
+        const limit = (0, p_limit_1.default)(5);
+        const tasks = channels.map((item) => limit(async () => {
             const channelId = await (0, youtube_channel_utils_1.extractChannelIdFromUrl)(item.link);
             if (!channelId) {
                 errorLinks.push({ link: item.link, reason: 'không hợp lệ' });
@@ -79,17 +80,30 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
                 return;
             }
             try {
+                let latestVideoId;
+                try {
+                    const url = `https://www.youtube.com/${channelId}`;
+                    const latestVideo = await (0, youtube_channel_utils_2.extractFirstVideoIdFromYt)(url);
+                    if (latestVideo && latestVideo.id) {
+                        latestVideoId = latestVideo.id;
+                    }
+                }
+                catch {
+                }
                 const doc = await this.channelModel.create({
                     channelId,
                     isActive: item.isActive ?? true,
                     user: userId,
+                    ...(latestVideoId
+                        ? { lastVideoId: latestVideoId, lastVideoAt: new Date() }
+                        : {}),
                 });
                 docs.push(doc);
             }
             catch {
                 errorLinks.push({ link: item.link, reason: 'lỗi khi lưu vào DB' });
             }
-        });
+        }));
         await Promise.all(tasks);
         let message = '';
         if (errorLinks.length > 0) {

@@ -76,37 +76,57 @@ export class YoutubeChannelService {
   async addChannelsBulk(channels: BulkChannelDto[], userId: string) {
     const errorLinks: { link: string; reason: string }[] = [];
     const docs: YoutubeChannelDocument[] = [];
-    // const limit = pLimit(5); // Giới hạn 5 promise song song
-    const tasks = channels.map((item) => async () => {
-      const channelId = await extractChannelIdFromUrl(item.link);
-      if (!channelId) {
-        errorLinks.push({ link: item.link, reason: 'không hợp lệ' });
-        return;
-      }
+    const limit = pLimit(5); // Giới hạn 5 promise song song
 
-      // Kiểm tra xem channelId đã tồn tại với user này chưa
-      const existingChannel = await this.channelModel.findOne({
-        channelId,
-        user: userId,
-      });
+    const tasks = channels.map((item) =>
+      limit(async () => {
+        const channelId = await extractChannelIdFromUrl(item.link);
+        if (!channelId) {
+          errorLinks.push({ link: item.link, reason: 'không hợp lệ' });
+          return;
+        }
 
-      if (existingChannel) {
-        errorLinks.push({ link: item.link, reason: 'đã tồn tại' });
-        return;
-      }
-
-      try {
-        const doc = await this.channelModel.create({
+        // Kiểm tra xem channelId đã tồn tại với user này chưa
+        const existingChannel = await this.channelModel.findOne({
           channelId,
-          isActive: item.isActive ?? true,
           user: userId,
         });
-        docs.push(doc);
-      } catch {
-        errorLinks.push({ link: item.link, reason: 'lỗi khi lưu vào DB' });
-      }
-    });
+
+        if (existingChannel) {
+          errorLinks.push({ link: item.link, reason: 'đã tồn tại' });
+          return;
+        }
+
+        try {
+          // Lấy video mới nhất trước khi tạo, để lưu trực tiếp vào document
+          let latestVideoId: string | undefined;
+          try {
+            const url = `https://www.youtube.com/${channelId}`;
+            const latestVideo = await extractFirstVideoIdFromYt(url);
+            if (latestVideo && latestVideo.id) {
+              latestVideoId = latestVideo.id;
+            }
+          } catch {
+            // Bỏ qua nếu không lấy được video đầu tiên
+          }
+
+          const doc = await this.channelModel.create({
+            channelId,
+            isActive: item.isActive ?? true,
+            user: userId,
+            ...(latestVideoId
+              ? { lastVideoId: latestVideoId, lastVideoAt: new Date() }
+              : {}),
+          });
+          docs.push(doc);
+        } catch {
+          errorLinks.push({ link: item.link, reason: 'lỗi khi lưu vào DB' });
+        }
+      }),
+    );
+
     await Promise.all(tasks);
+
     let message = '';
     if (errorLinks.length > 0) {
       message = errorLinks.map((e) => `Link ${e.link} ${e.reason}`).join(', ');
