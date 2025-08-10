@@ -2,6 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { InjectBot } from 'nestjs-telegraf';
 import { Telegraf } from 'telegraf';
 import * as dayjs from 'dayjs';
+import * as utc from 'dayjs/plugin/utc';
+import * as timezone from 'dayjs/plugin/timezone';
+
+// Enable timezone handling
+(dayjs as any).extend(utc);
+(dayjs as any).extend(timezone);
 
 @Injectable()
 export class TelegramBotService {
@@ -14,7 +20,7 @@ export class TelegramBotService {
       url: string;
       channelId?: string;
       thumbnail: string;
-      publishedAt?: string; // ISO string
+      publishedAt?: string; // ISO string (UTC)
     },
   ) {
     // Decode HTML entities để hiển thị đúng ký tự đặc biệt (", ', &, <, >)
@@ -41,8 +47,12 @@ export class TelegramBotService {
       cleanedTitle,
     )}`;
 
+    // Convert sang giờ Việt Nam (UTC+7)
     const publishedText = video.publishedAt
-      ? dayjs(video.publishedAt).format('HH:mm:ss DD/MM/YYYY')
+      ? (dayjs as any)
+          .utc(video.publishedAt)
+          .tz('Asia/Ho_Chi_Minh')
+          .format('HH:mm:ss DD/MM/YYYY')
       : undefined;
 
     const caption = [

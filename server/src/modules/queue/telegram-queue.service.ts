@@ -49,7 +49,7 @@ export class TelegramQueueService implements OnModuleInit {
         type: 'exponential',
         delay: 2000,
       },
-      removeOnComplete: false, // Tự động xóa job khi hoàn thành
+      removeOnComplete: true, // Tự động xóa job khi hoàn thành
     });
 
     this.jobCounter++;

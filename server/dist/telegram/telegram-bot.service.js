@@ -17,6 +17,10 @@ const common_1 = require("@nestjs/common");
 const nestjs_telegraf_1 = require("nestjs-telegraf");
 const telegraf_1 = require("telegraf");
 const dayjs = require("dayjs");
+const utc = require("dayjs/plugin/utc");
+const timezone = require("dayjs/plugin/timezone");
+dayjs.extend(utc);
+dayjs.extend(timezone);
 let TelegramBotService = class TelegramBotService {
     bot;
     constructor(bot) {
@@ -37,7 +41,10 @@ let TelegramBotService = class TelegramBotService {
             .trim();
         const tiktokSearchUrl = `https://www.tiktok.com/search?q=${encodeURIComponent(cleanedTitle)}`;
         const publishedText = video.publishedAt
-            ? dayjs(video.publishedAt).format('HH:mm:ss DD/MM/YYYY')
+            ? dayjs
+                .utc(video.publishedAt)
+                .tz('Asia/Ho_Chi_Minh')
+                .format('HH:mm:ss DD/MM/YYYY')
             : undefined;
         const caption = [
             `🎬 ${escapeHtml(cleanedTitle)}`,

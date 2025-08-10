@@ -42,7 +42,7 @@ let TelegramQueueService = class TelegramQueueService {
                 type: 'exponential',
                 delay: 2000,
             },
-            removeOnComplete: false,
+            removeOnComplete: true,
         });
         this.jobCounter++;
     }
