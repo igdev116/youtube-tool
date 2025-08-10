@@ -1,9 +1,36 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.extractFirstVideoFromYt = void 0;
+exports.getYtInitialDataFromUrl = getYtInitialDataFromUrl;
 exports.extractChannelIdFromUrl = extractChannelIdFromUrl;
+exports.extractXmlChannelIdFromUrl = extractXmlChannelIdFromUrl;
 const axios_1 = require("axios");
+async function getYtInitialDataFromUrl(url) {
+    if (!url)
+        return null;
+    try {
+        const res = await axios_1.default.get(url);
+        const html = res.data;
+        const match = html.match(/var ytInitialData = (\{.*?\});/s);
+        if (!match)
+            return null;
+        const jsonStr = match[1];
+        return JSON.parse(jsonStr);
+    }
+    catch {
+        return null;
+    }
+}
 async function extractChannelIdFromUrl(url) {
+    const data = await getYtInitialDataFromUrl(url);
+    const vanityUrl = data?.metadata?.channelMetadataRenderer?.vanityChannelUrl;
+    if (typeof vanityUrl === 'string' && vanityUrl.includes('youtube.com/')) {
+        const afterDomain = vanityUrl.split('youtube.com/')[1];
+        return decodeURI(afterDomain);
+    }
+    return null;
+}
+async function extractXmlChannelIdFromUrl(url) {
     try {
         const res = await axios_1.default.get(url, {
             headers: { 'Cache-Control': 'no-cache' },
@@ -18,10 +45,10 @@ async function extractChannelIdFromUrl(url) {
         return null;
     }
 }
-const extractFirstVideoFromYt = async (channelId) => {
-    if (!channelId)
+const extractFirstVideoFromYt = async (xmlChannelId) => {
+    if (!xmlChannelId)
         return null;
-    const feedUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`;
+    const feedUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${xmlChannelId}`;
     try {
         const res = await axios_1.default.get(feedUrl, {
             headers: {

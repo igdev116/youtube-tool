@@ -36,24 +36,17 @@ let TelegramBotService = class TelegramBotService {
         const escapeHtml = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
         const decodedTitle = decodeHtmlEntities(video.title);
         const cleanedTitle = decodedTitle
-            .replace(/(^|\s)#[^\s#]+/g, ' ')
+            .replace(/#[^\s#]+/g, ' ')
             .replace(/\s{2,}/g, ' ')
             .trim();
         const tiktokSearchUrl = `https://www.tiktok.com/search?q=${encodeURIComponent(cleanedTitle)}`;
-        const publishedText = video.publishedAt
-            ? dayjs
-                .utc(video.publishedAt)
-                .tz('Asia/Ho_Chi_Minh')
-                .format('HH:mm:ss DD/MM/YYYY')
-            : undefined;
+        const publishedText = dayjs(video.publishedAt).format('HH:mm:ss DD/MM/YYYY');
         const caption = [
             `🎬 ${escapeHtml(cleanedTitle)}`,
-            publishedText ? `🕒 ${escapeHtml(publishedText)}` : undefined,
+            `🕒 ${escapeHtml(publishedText)}`,
             `🔎 <a href="${tiktokSearchUrl}">Tìm trên TikTok</a>`,
             `🔗 Youtube: ${escapeHtml(video.url)}`,
-        ]
-            .filter(Boolean)
-            .join('\n');
+        ].join('\n');
         try {
             await this.bot.telegram.sendPhoto(groupId, video.thumbnail, {
                 caption,

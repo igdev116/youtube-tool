@@ -322,7 +322,7 @@ const HomePage = () => {
           );
         }
 
-        return dayjs(lastVideoAt).format('DD/MM/YY');
+        return dayjs(lastVideoAt).format('HH:mm DD/MM/YY');
       },
     },
     {

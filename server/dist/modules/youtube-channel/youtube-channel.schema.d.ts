@@ -12,8 +12,9 @@ export declare enum ChannelErrorType {
 }
 export declare class YoutubeChannel {
     channelId: string;
-    lastVideoId?: string;
-    lastVideoAt?: Date;
+    xmlChannelId: string;
+    lastVideoId: string;
+    lastVideoAt: Date;
     user: Types.ObjectId | User;
     isActive: boolean;
     errors: ChannelErrorType[];

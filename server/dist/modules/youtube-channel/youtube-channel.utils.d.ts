@@ -1,5 +1,7 @@
+export declare function getYtInitialDataFromUrl(url: string): Promise<any | null>;
 export declare function extractChannelIdFromUrl(url: string): Promise<string | null>;
-export declare const extractFirstVideoFromYt: (channelId: string) => Promise<{
+export declare function extractXmlChannelIdFromUrl(url: string): Promise<string | null>;
+export declare const extractFirstVideoFromYt: (xmlChannelId: string) => Promise<{
     id: string;
     thumbnail: string;
     title: string;

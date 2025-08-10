@@ -26,6 +26,10 @@ const telegram_bot_service_1 = require("../../telegram/telegram-bot.service");
 const p_limit_1 = require("p-limit");
 const telegram_queue_service_1 = require("../queue/telegram-queue.service");
 const dayjs = require("dayjs");
+const utc = require("dayjs/plugin/utc");
+const timezone = require("dayjs/plugin/timezone");
+dayjs.extend(utc);
+dayjs.extend(timezone);
 let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelService {
     channelModel;
     userService;
@@ -67,11 +71,12 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
         const docs = [];
         const limit = (0, p_limit_1.default)(5);
         const tasks = channels.map((item) => limit(async () => {
-            const channelId = await (0, youtube_channel_utils_1.extractChannelIdFromUrl)(item.link);
-            if (!channelId) {
+            const xmlChannelId = await (0, youtube_channel_utils_1.extractXmlChannelIdFromUrl)(item.link);
+            if (!xmlChannelId) {
                 errorLinks.push({ link: item.link, reason: 'không hợp lệ' });
                 return;
             }
+            const channelId = await (0, youtube_channel_utils_1.extractChannelIdFromUrl)(item.link);
             const existingChannel = await this.channelModel.findOne({
                 channelId,
                 user: userId,
@@ -82,13 +87,16 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
             }
             try {
                 let latestVideoId;
-                let latestPublishedAt;
+                let latestPublishedAtDate;
                 try {
-                    const latestVideo = await (0, youtube_channel_utils_2.extractFirstVideoFromYt)(channelId);
+                    const latestVideo = await (0, youtube_channel_utils_2.extractFirstVideoFromYt)(xmlChannelId);
                     if (latestVideo && latestVideo.id) {
                         latestVideoId = latestVideo.id;
-                        latestPublishedAt = latestVideo.publishedAt
-                            ? new Date(latestVideo.publishedAt)
+                        latestPublishedAtDate = latestVideo.publishedAt
+                            ? dayjs
+                                .utc(latestVideo.publishedAt)
+                                .tz('Asia/Ho_Chi_Minh')
+                                .toDate()
                             : undefined;
                     }
                 }
@@ -96,12 +104,13 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
                 }
                 const doc = await this.channelModel.create({
                     channelId,
+                    xmlChannelId,
                     isActive: item.isActive ?? true,
                     user: userId,
                     ...(latestVideoId
                         ? {
                             lastVideoId: latestVideoId,
-                            lastVideoAt: latestPublishedAt ?? new Date(),
+                            lastVideoAt: latestPublishedAtDate ?? new Date(),
                         }
                         : {}),
                 });
@@ -155,14 +164,13 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
         const tasks = activeChannels.map(async (channel) => {
             const userIdKey = this.getUserIdFromRef(channel.user);
             try {
-                const latestVideo = await (0, youtube_channel_utils_2.extractFirstVideoFromYt)(channel.channelId);
+                const latestVideo = await (0, youtube_channel_utils_2.extractFirstVideoFromYt)(channel.xmlChannelId);
                 if (!latestVideo)
                     return;
                 const isNewByTime = !channel.lastVideoAt
                     ? true
                     : dayjs(latestVideo.publishedAt).isAfter(dayjs(channel.lastVideoAt));
                 if (isNewByTime) {
-                    console.log('isNewByTime :', isNewByTime);
                     let telegramGroupId;
                     const user = channel.user;
                     if (user && 'telegramGroupId' in user) {
@@ -171,10 +179,12 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
                     const updatedChannel = await this.channelModel.findOneAndUpdate({ _id: channel._id }, {
                         $set: {
                             lastVideoId: latestVideo.id,
-                            lastVideoAt: latestVideo.publishedAt,
+                            lastVideoAt: dayjs
+                                .utc(latestVideo.publishedAt)
+                                .tz('Asia/Ho_Chi_Minh')
+                                .toDate(),
                         },
                     }, { new: true });
-                    this.logger.debug(`Kênh ${channel.channelId} mới: ${latestVideo.id} (published: ${latestVideo.publishedAt}) | lastVideoAt trước đó: ${channel.lastVideoAt?.toISOString() || 'n/a'}`);
                     if (updatedChannel && telegramGroupId) {
                         await this.telegramQueueService.addTelegramMessageJob({
                             groupId: telegramGroupId,
@@ -184,18 +194,18 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
                                 thumbnail: latestVideo.thumbnail,
                                 channelId: channel.channelId,
                                 jobId: `${channel.channelId}/${latestVideo.id}/${userIdKey}`,
-                                publishedAt: latestVideo.publishedAt,
+                                publishedAt: updatedChannel.lastVideoAt.toISOString(),
                             },
                         });
                     }
                 }
             }
             catch (error) {
-                console.log('error :', error);
+                const err = error;
+                console.log('error :', err.message);
                 await this.addChannelError(channel, youtube_channel_schema_1.ChannelErrorType.NETWORK_ERROR);
             }
         });
-        console.log('tasks :', tasks.length);
         await Promise.all(tasks);
     }
 };

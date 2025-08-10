@@ -1,9 +1,39 @@
 import axios from 'axios';
 
-/**
- * Lấy channelId (dạng UC...) từ HTML kênh bằng link RSS feeds/videos.xml
- */
+export async function getYtInitialDataFromUrl(
+  url: string,
+): Promise<any | null> {
+  if (!url) return null;
+  try {
+    const res = await axios.get(url);
+    const html = res.data as string;
+    // Tìm ytInitialData
+    const match = html.match(/var ytInitialData = (\{.*?\});/s);
+    if (!match) return null;
+    const jsonStr = match[1];
+    return JSON.parse(jsonStr);
+  } catch {
+    return null;
+  }
+}
+
 export async function extractChannelIdFromUrl(
+  url: string,
+): Promise<string | null> {
+  const data = await getYtInitialDataFromUrl(url);
+  // Lấy vanityChannelUrl
+  const vanityUrl = data?.metadata?.channelMetadataRenderer?.vanityChannelUrl;
+  if (typeof vanityUrl === 'string' && vanityUrl.includes('youtube.com/')) {
+    const afterDomain = vanityUrl.split('youtube.com/')[1];
+    return decodeURI(afterDomain);
+  }
+  return null;
+}
+
+/**
+ * Lấy xmlChannelId (dạng UC...) từ HTML kênh bằng link RSS feeds/videos.xml
+ */
+export async function extractXmlChannelIdFromUrl(
   url: string,
 ): Promise<string | null> {
   try {
@@ -24,15 +54,15 @@ export async function extractChannelIdFromUrl(
  * Trả về { id, thumbnail, title, publishedAt } hoặc null
  */
 export const extractFirstVideoFromYt = async (
-  channelId: string,
+  xmlChannelId: string,
 ): Promise<{
   id: string;
   thumbnail: string;
   title: string;
   publishedAt: string;
 } | null> => {
-  if (!channelId) return null;
-  const feedUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`;
+  if (!xmlChannelId) return null;
+  const feedUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${xmlChannelId}`;
   try {
     const res = await axios.get(feedUrl, {
       headers: {

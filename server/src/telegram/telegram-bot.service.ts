@@ -6,8 +6,8 @@ import * as utc from 'dayjs/plugin/utc';
 import * as timezone from 'dayjs/plugin/timezone';
 
 // Enable timezone handling
-(dayjs as any).extend(utc);
-(dayjs as any).extend(timezone);
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 @Injectable()
 export class TelegramBotService {
@@ -20,7 +20,7 @@ export class TelegramBotService {
       url: string;
       channelId?: string;
       thumbnail: string;
-      publishedAt?: string; // ISO string (UTC)
+      publishedAt: string; // ISO string (đã luôn có)
     },
   ) {
     // Decode HTML entities để hiển thị đúng ký tự đặc biệt (", ', &, <, >)
@@ -36,10 +36,10 @@ export class TelegramBotService {
     const escapeHtml = (s: string) =>
       s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-    // Loại bỏ hashtag (#tag) và chuẩn hóa khoảng trắng trên tiêu đề đã decode
+    // Loại bỏ hashtag (ở đầu, ở giữa dính liền cuối từ, hay có khoảng trắng)
     const decodedTitle = decodeHtmlEntities(video.title);
     const cleanedTitle = decodedTitle
-      .replace(/(^|\s)#[^\s#]+/g, ' ')
+      .replace(/#[^\s#]+/g, ' ')
       .replace(/\s{2,}/g, ' ')
       .trim();
 
@@ -47,22 +47,17 @@ export class TelegramBotService {
       cleanedTitle,
     )}`;
 
-    // Convert sang giờ Việt Nam (UTC+7)
-    const publishedText = video.publishedAt
-      ? (dayjs as any)
-          .utc(video.publishedAt)
-          .tz('Asia/Ho_Chi_Minh')
-          .format('HH:mm:ss DD/MM/YYYY')
-      : undefined;
+    // Chỉ format trực tiếp, không convert UTC/tz nữa
+    const publishedText = dayjs(video.publishedAt).format(
+      'HH:mm:ss DD/MM/YYYY',
+    );
 
     const caption = [
       `🎬 ${escapeHtml(cleanedTitle)}`,
-      publishedText ? `🕒 ${escapeHtml(publishedText)}` : undefined,
+      `🕒 ${escapeHtml(publishedText)}`,
       `🔎 <a href="${tiktokSearchUrl}">Tìm trên TikTok</a>`,
       `🔗 Youtube: ${escapeHtml(video.url)}`,
-    ]
-      .filter(Boolean)
-      .join('\n');
+    ].join('\n');
 
     try {
       await this.bot.telegram.sendPhoto(groupId, video.thumbnail, {

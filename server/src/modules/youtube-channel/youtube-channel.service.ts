@@ -6,7 +6,10 @@ import {
   YoutubeChannelDocument,
   ChannelErrorType,
 } from './youtube-channel.schema';
-import { extractChannelIdFromUrl } from './youtube-channel.utils';
+import {
+  extractXmlChannelIdFromUrl,
+  extractChannelIdFromUrl,
+} from './youtube-channel.utils';
 import { BulkChannelDto } from './dto/bulk-channel.dto';
 import { paginateWithPage } from '../../utils/pagination.util';
 import { extractFirstVideoFromYt } from './youtube-channel.utils';
@@ -15,6 +18,11 @@ import { TelegramBotService } from '../../telegram/telegram-bot.service';
 import pLimit from 'p-limit';
 import { TelegramQueueService } from '../queue/telegram-queue.service';
 import * as dayjs from 'dayjs';
+import * as utc from 'dayjs/plugin/utc';
+import * as timezone from 'dayjs/plugin/timezone';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 @Injectable()
 export class YoutubeChannelService {
@@ -28,9 +36,6 @@ export class YoutubeChannelService {
     private readonly telegramQueueService: TelegramQueueService,
   ) {}
 
-  /**
-   * Lấy userId từ ref có thể là ObjectId hoặc document đã populate
-   */
   private getUserIdFromRef(userRef: Types.ObjectId | any): string {
     if (userRef && typeof userRef === 'object') {
       if ('_id' in userRef && userRef._id) {
@@ -43,26 +48,18 @@ export class YoutubeChannelService {
     return String(userRef);
   }
 
-  /**
-   * Thêm lỗi vào channel và toggle isActive thành false nếu cần
-   */
   private async addChannelError(
     channel: YoutubeChannelDocument,
     errorType: ChannelErrorType,
   ) {
     const updateData: UpdateQuery<YoutubeChannelDocument> = {};
-
-    // Chỉ thêm lỗi nếu chưa có
     const currentErrors = channel.errors || [];
     if (!currentErrors.includes(errorType)) {
       updateData.$addToSet = { errors: errorType } as any;
     }
-
-    // Nếu là LINK_ERROR, toggle isActive thành false
     if (errorType === ChannelErrorType.LINK_ERROR) {
       (updateData as any).isActive = false;
     }
-
     if (Object.keys(updateData).length > 0) {
       await this.channelModel.updateOne(
         { _id: channel._id } as FilterQuery<YoutubeChannelDocument>,
@@ -71,58 +68,56 @@ export class YoutubeChannelService {
     }
   }
 
-  /**
-   * Nhận mảng object { link, isActive, userId }, extract channelId, kiểm tra hợp lệ, nếu có lỗi trả về message, nếu hợp lệ mới lưu vào DB
-   */
   async addChannelsBulk(channels: BulkChannelDto[], userId: string) {
     const errorLinks: { link: string; reason: string }[] = [];
     const docs: YoutubeChannelDocument[] = [];
-    const limit = pLimit(5); // Giới hạn 5 promise song song
+    const limit = pLimit(5);
 
     const tasks = channels.map((item) =>
       limit(async () => {
-        // Gọi HTML kênh và trích xuất channelId từ RSS link
-        const channelId = await extractChannelIdFromUrl(item.link);
-        if (!channelId) {
+        const xmlChannelId = await extractXmlChannelIdFromUrl(item.link);
+        if (!xmlChannelId) {
           errorLinks.push({ link: item.link, reason: 'không hợp lệ' });
           return;
         }
+        const channelId = await extractChannelIdFromUrl(item.link);
 
-        // Kiểm tra xem channelId đã tồn tại với user này chưa
         const existingChannel = await this.channelModel.findOne({
           channelId,
           user: userId,
         });
-
         if (existingChannel) {
           errorLinks.push({ link: item.link, reason: 'đã tồn tại' });
           return;
         }
 
         try {
-          // Lấy video mới nhất từ RSS trước khi tạo
           let latestVideoId: string | undefined;
-          let latestPublishedAt: Date | undefined;
+          let latestPublishedAtDate: Date | undefined;
           try {
-            const latestVideo = await extractFirstVideoFromYt(channelId);
+            const latestVideo = await extractFirstVideoFromYt(xmlChannelId);
             if (latestVideo && latestVideo.id) {
               latestVideoId = latestVideo.id;
-              latestPublishedAt = latestVideo.publishedAt
-                ? new Date(latestVideo.publishedAt)
+              latestPublishedAtDate = latestVideo.publishedAt
+                ? dayjs
+                    .utc(latestVideo.publishedAt)
+                    .tz('Asia/Ho_Chi_Minh')
+                    .toDate()
                 : undefined;
             }
           } catch {
-            // Bỏ qua nếu không lấy được video đầu tiên
+            // ignore
           }
 
           const doc = await this.channelModel.create({
             channelId,
+            xmlChannelId,
             isActive: item.isActive ?? true,
             user: userId,
             ...(latestVideoId
               ? {
                   lastVideoId: latestVideoId,
-                  lastVideoAt: latestPublishedAt ?? new Date(),
+                  lastVideoAt: latestPublishedAtDate ?? new Date(),
                 }
               : {}),
           });
@@ -185,63 +180,47 @@ export class YoutubeChannelService {
     return channel;
   }
 
-  /**
-   * Kiểm tra ngay 1 kênh có video mới không, trả về thông tin video mới nếu có
-   */
   async testCheckNewVideo() {
     return await this.notifyAllChannelsNewVideo();
   }
 
   async notifyAllChannelsNewVideo() {
-    // console.log('🔔 Bắt đầu kiểm tra video mới cho tất cả kênh');
-
     const activeChannels = await this.channelModel
       .find({ isActive: true })
       .populate('user')
       .exec();
 
-    // const limit = pLimit(5); // Giảm từ 5 xuống 3 để tránh quá tải
-
     const tasks = activeChannels.map(async (channel) => {
       const userIdKey = this.getUserIdFromRef(channel.user);
-
       try {
-        // Dùng RSS thay vì ytInitialData
-        const latestVideo = await extractFirstVideoFromYt(channel.channelId);
-
+        const latestVideo = await extractFirstVideoFromYt(channel.xmlChannelId);
         if (!latestVideo) return;
 
-        // So sánh bằng dayjs: publishedAt (ISO string) > lastVideoAt (Date)
         const isNewByTime = !channel.lastVideoAt
           ? true
           : dayjs(latestVideo.publishedAt).isAfter(dayjs(channel.lastVideoAt));
 
         if (isNewByTime) {
-          console.log('isNewByTime :', isNewByTime);
           let telegramGroupId: string | undefined;
           const user = channel.user as any;
-
           if (user && 'telegramGroupId' in user) {
             telegramGroupId = user.telegramGroupId;
           }
 
-          // Sử dụng findOneAndUpdate để tránh race condition
           const updatedChannel = await this.channelModel.findOneAndUpdate(
             { _id: channel._id },
             {
               $set: {
                 lastVideoId: latestVideo.id,
-                lastVideoAt: latestVideo.publishedAt,
+                lastVideoAt: dayjs
+                  .utc(latestVideo.publishedAt)
+                  .tz('Asia/Ho_Chi_Minh')
+                  .toDate(),
               },
             },
             { new: true },
           );
 
-          this.logger.debug(
-            `Kênh ${channel.channelId} mới: ${latestVideo.id} (published: ${latestVideo.publishedAt}) | lastVideoAt trước đó: ${channel.lastVideoAt?.toISOString() || 'n/a'}`,
-          );
-
-          // Chỉ gửi tin nhắn nếu thực sự update thành công
           if (updatedChannel && telegramGroupId) {
             await this.telegramQueueService.addTelegramMessageJob({
               groupId: telegramGroupId,
@@ -251,19 +230,17 @@ export class YoutubeChannelService {
                 thumbnail: latestVideo.thumbnail,
                 channelId: channel.channelId,
                 jobId: `${channel.channelId}/${latestVideo.id}/${userIdKey}`,
-                publishedAt: latestVideo.publishedAt,
+                publishedAt: updatedChannel.lastVideoAt.toISOString(),
               },
             });
           }
         }
       } catch (error) {
-        console.log('error :', error);
-        // Thêm lỗi NETWORK_ERROR nếu có exception
+        const err = error as Error;
+        console.log('error :', err.message);
         await this.addChannelError(channel, ChannelErrorType.NETWORK_ERROR);
       }
     });
-
-    console.log('tasks :', tasks.length);
 
     await Promise.all(tasks);
   }

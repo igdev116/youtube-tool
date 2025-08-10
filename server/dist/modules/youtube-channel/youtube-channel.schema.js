@@ -23,6 +23,7 @@ var ChannelErrorType;
 })(ChannelErrorType || (exports.ChannelErrorType = ChannelErrorType = {}));
 let YoutubeChannel = class YoutubeChannel {
     channelId;
+    xmlChannelId;
     lastVideoId;
     lastVideoAt;
     user;
@@ -35,11 +36,15 @@ __decorate([
     __metadata("design:type", String)
 ], YoutubeChannel.prototype, "channelId", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ required: false }),
+    (0, mongoose_1.Prop)({ required: true }),
+    __metadata("design:type", String)
+], YoutubeChannel.prototype, "xmlChannelId", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", String)
 ], YoutubeChannel.prototype, "lastVideoId", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: Date, required: false }),
+    (0, mongoose_1.Prop)({ type: Date, required: true }),
     __metadata("design:type", Date)
 ], YoutubeChannel.prototype, "lastVideoAt", void 0);
 __decorate([

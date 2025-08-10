@@ -18,11 +18,14 @@ export class YoutubeChannel {
   @Prop({ required: true, unique: true })
   channelId: string;
 
-  @Prop({ required: false })
-  lastVideoId?: string;
+  @Prop({ required: true })
+  xmlChannelId: string;
 
-  @Prop({ type: Date, required: false })
-  lastVideoAt?: Date;
+  @Prop({ required: true })
+  lastVideoId: string;
+
+  @Prop({ type: Date, required: true })
+  lastVideoAt: Date;
 
   @Prop({ type: Types.ObjectId, ref: User.name, required: true })
   user: Types.ObjectId | User;

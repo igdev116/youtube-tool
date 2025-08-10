@@ -10,7 +10,7 @@ export interface TelegramMessageJob {
     channelId?: string;
     thumbnail: string;
     jobId: string;
-    publishedAt?: string; // ISO string
+    publishedAt: string; // ISO string
   };
 }
 
