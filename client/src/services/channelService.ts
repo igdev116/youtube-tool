@@ -17,4 +17,6 @@ export const channelService = {
     axiosInstance.delete(`/channel/${channelId}`),
   toggleChannel: (channelId: string): Promise<BaseResponse<ChannelListItem>> =>
     axiosInstance.patch(`/channel/${channelId}/toggle`),
+  deleteAllChannels: (): Promise<BaseResponse<any>> =>
+    axiosInstance.delete('/channel/all'),
 };

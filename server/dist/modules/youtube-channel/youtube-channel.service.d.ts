@@ -29,4 +29,7 @@ export declare class YoutubeChannelService {
     }> & {
         __v: number;
     }) | null>;
+    deleteAllUserChannels(userId: string): Promise<{
+        deletedCount: number;
+    }>;
 }

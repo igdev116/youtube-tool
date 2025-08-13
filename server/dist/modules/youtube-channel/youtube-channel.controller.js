@@ -21,10 +21,10 @@ let YoutubeChannelController = class YoutubeChannelController {
     constructor(channelService) {
         this.channelService = channelService;
     }
-    async addChannelsBulk(body, req) {
+    addChannelsBulk(body, req) {
         const user = req.user;
         const userId = user.sub;
-        const result = await this.channelService.addChannelsBulk(body, userId);
+        const result = this.channelService.addChannelsBulk(body, userId);
         if (result.error) {
             return {
                 success: false,
@@ -51,6 +51,17 @@ let YoutubeChannelController = class YoutubeChannelController {
             statusCode: 200,
             message: 'Lấy danh sách kênh thành công',
             result: pagingResult.result,
+        };
+    }
+    async deleteAllUserChannels(req) {
+        const user = req.user;
+        const userId = user.sub;
+        const { deletedCount } = await this.channelService.deleteAllUserChannels(userId);
+        return {
+            success: true,
+            statusCode: 200,
+            message: `Đã xoá ${deletedCount} kênh của bạn`,
+            result: { deletedCount },
         };
     }
     async deleteChannel(id, req) {
@@ -100,7 +111,7 @@ __decorate([
     __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Array, Object]),
-    __metadata("design:returntype", Promise)
+    __metadata("design:returntype", Object)
 ], YoutubeChannelController.prototype, "addChannelsBulk", null);
 __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
@@ -113,6 +124,14 @@ __decorate([
     __metadata("design:paramtypes", [Object, String, String, String]),
     __metadata("design:returntype", Promise)
 ], YoutubeChannelController.prototype, "getUserChannels", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.Delete)('all'),
+    __param(0, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], YoutubeChannelController.prototype, "deleteAllUserChannels", null);
 __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Delete)(':id'),

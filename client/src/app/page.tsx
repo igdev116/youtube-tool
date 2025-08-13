@@ -47,6 +47,7 @@ const HomePage = () => {
     toggleChannelMutation,
     invalidateChannels,
     deleteMultipleChannels,
+    deleteAllChannels,
   } = useChannelService();
 
   // Pagination state
@@ -475,6 +476,30 @@ const HomePage = () => {
             <span className='text-primary'>({total} kênh)</span>
           </h2>
           <div className='flex gap-2'>
+            <Button
+              danger
+              onClick={() => {
+                Modal.confirm({
+                  title: 'Xoá toàn bộ kênh',
+                  content:
+                    'Bạn có chắc chắn muốn xoá TẤT CẢ kênh của bạn? Hành động này không thể hoàn tác.',
+                  okText: 'Xoá hết',
+                  okType: 'danger',
+                  cancelText: 'Hủy',
+                  onOk: async () => {
+                    try {
+                      await deleteAllChannels();
+                      toastSuccess('Đã xoá toàn bộ kênh của bạn!');
+                      setSelectedRowKeys([]);
+                      setSelectedRows([]);
+                    } catch (e) {
+                      toastError('Có lỗi xảy ra khi xoá toàn bộ kênh!');
+                    }
+                  },
+                });
+              }}>
+              Xoá toàn bộ
+            </Button>
             {selectedRowKeys.length > 0 && (
               <Button
                 danger

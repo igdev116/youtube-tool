@@ -35,6 +35,11 @@ export function useChannelService() {
     invalidateChannels();
   };
 
+  const deleteAllChannels = async () => {
+    await channelService.deleteAllChannels();
+    invalidateChannels();
+  };
+
   return {
     addChannelsMutation,
     deleteChannelMutation,
@@ -42,5 +47,6 @@ export function useChannelService() {
     useQueryGetListChannels,
     invalidateChannels,
     deleteMultipleChannels,
+    deleteAllChannels,
   };
 }

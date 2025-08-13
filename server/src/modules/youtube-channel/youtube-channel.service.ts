@@ -194,4 +194,37 @@ export class YoutubeChannelService {
 
     return channel;
   }
+
+  async deleteAllUserChannels(userId: string) {
+    // Lấy danh sách xmlChannelId trước khi xoá để xử lý unsubscribe nếu cần
+    const userChannels = await this.channelModel
+      .find({ user: userId }, { xmlChannelId: 1 })
+      .lean()
+      .exec();
+    const xmlIds = Array.from(
+      new Set(
+        (userChannels || []).map((c: any) => c.xmlChannelId).filter(Boolean),
+      ),
+    );
+
+    const result = await this.channelModel.deleteMany({ user: userId });
+
+    // Với mỗi xmlChannelId, nếu không còn ai theo dõi nữa thì unsubscribe
+    for (const xmlId of xmlIds) {
+      try {
+        const remaining = await this.channelModel.countDocuments({
+          xmlChannelId: xmlId,
+        });
+        if (remaining === 0) {
+          const topicUrl = `${YT_FEED_BASE}?channel_id=${xmlId}`;
+          const callbackUrl = `${process.env.APP_URL}/websub/youtube/callback`;
+          await this.websubService.unsubscribeCallback(topicUrl, callbackUrl);
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    return { deletedCount: result.deletedCount ?? 0 };
+  }
 }

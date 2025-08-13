@@ -157,6 +157,29 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
         await channel.save();
         return channel;
     }
+    async deleteAllUserChannels(userId) {
+        const userChannels = await this.channelModel
+            .find({ user: userId }, { xmlChannelId: 1 })
+            .lean()
+            .exec();
+        const xmlIds = Array.from(new Set((userChannels || []).map((c) => c.xmlChannelId).filter(Boolean)));
+        const result = await this.channelModel.deleteMany({ user: userId });
+        for (const xmlId of xmlIds) {
+            try {
+                const remaining = await this.channelModel.countDocuments({
+                    xmlChannelId: xmlId,
+                });
+                if (remaining === 0) {
+                    const topicUrl = `${constants_1.YT_FEED_BASE}?channel_id=${xmlId}`;
+                    const callbackUrl = `${process.env.APP_URL}/websub/youtube/callback`;
+                    await this.websubService.unsubscribeCallback(topicUrl, callbackUrl);
+                }
+            }
+            catch {
+            }
+        }
+        return { deletedCount: result.deletedCount ?? 0 };
+    }
 };
 exports.YoutubeChannelService = YoutubeChannelService;
 exports.YoutubeChannelService = YoutubeChannelService = YoutubeChannelService_1 = __decorate([

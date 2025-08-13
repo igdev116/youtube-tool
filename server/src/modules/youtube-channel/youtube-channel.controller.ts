@@ -28,13 +28,13 @@ export class YoutubeChannelController {
 
   @UseGuards(JwtAuthGuard)
   @Post('bulk')
-  async addChannelsBulk(
+  addChannelsBulk(
     @Body() body: BulkChannelDto[],
     @Req() req: Request,
-  ): Promise<BaseResponse<any>> {
+  ): BaseResponse<any> {
     const user = req.user as JwtUser;
     const userId = user.sub;
-    const result = await this.channelService.addChannelsBulk(body, userId);
+    const result = this.channelService.addChannelsBulk(body, userId);
     if (result.error) {
       return {
         success: false,
@@ -75,6 +75,21 @@ export class YoutubeChannelController {
       statusCode: 200,
       message: 'Lấy danh sách kênh thành công',
       result: pagingResult.result,
+    };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('all')
+  async deleteAllUserChannels(@Req() req: Request): Promise<BaseResponse<any>> {
+    const user = req.user as JwtUser;
+    const userId = user.sub;
+    const { deletedCount } =
+      await this.channelService.deleteAllUserChannels(userId);
+    return {
+      success: true,
+      statusCode: 200,
+      message: `Đã xoá ${deletedCount} kênh của bạn`,
+      result: { deletedCount },
     };
   }
 
