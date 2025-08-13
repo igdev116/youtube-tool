@@ -126,10 +126,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                             className='px-2 py-2 text-sm'
                             message={
                               <span className='font-semibold'>
-                                Thông tin của bạn luôn được bảo mật
+                                Thông tin của bạn được bảo mật tuyệt đối
                               </span>
                             }
-                            description='Bot Token và nhóm Telegram chỉ được dùng để gửi tin nhắn từ tài khoản của bạn. Dữ liệu được bảo vệ và không chia sẻ với bên thứ ba.'
+                            description='Mọi dữ liệu chỉ dùng cho mục đích gửi tin nhắn, luôn được bảo vệ và không bao giờ chia sẻ cho bên thứ ba.'
                           />
                         </div>
                       )}
