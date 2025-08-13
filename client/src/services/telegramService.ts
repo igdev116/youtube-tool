@@ -8,4 +8,6 @@ export interface TelegramGroupParam {
 export const telegramService = {
   updateGroup: (params: TelegramGroupParam): Promise<BaseResponse<any>> =>
     axiosInstance.post('/telegram/update-group', params),
+  updateBotToken: (params: { botToken: string }): Promise<BaseResponse<any>> =>
+    axiosInstance.post('/telegram/update-bot-token', params),
 };

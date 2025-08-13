@@ -35,6 +35,9 @@ let UserService = class UserService {
     async getProfile(userId) {
         return this.userModel.findById(userId).select('-password');
     }
+    async updateBotToken(userId, botToken) {
+        return this.userModel.findByIdAndUpdate(userId, { botToken }, { new: true });
+    }
 };
 exports.UserService = UserService;
 exports.UserService = UserService = __decorate([

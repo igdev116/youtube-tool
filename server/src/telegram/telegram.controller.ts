@@ -38,4 +38,24 @@ export class TelegramController {
       result: updated,
     };
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('update-bot-token')
+  async updateBotToken(
+    @Body() body: { botToken: string },
+    @Req() req: Request,
+  ) {
+    const user = req.user as JwtUser;
+    const userId = user.sub;
+    const updated = await this.telegramService.updateBotToken(
+      userId,
+      body.botToken,
+    );
+    return {
+      success: true,
+      statusCode: 200,
+      message: 'Cập nhật bot token thành công',
+      result: updated,
+    };
+  }
 }

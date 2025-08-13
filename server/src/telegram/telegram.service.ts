@@ -8,4 +8,8 @@ export class TelegramService {
   async updateTelegramGroupId(userId: string, groupId: string) {
     return this.userService.updateTelegramGroupId(userId, groupId);
   }
+
+  async updateBotToken(userId: string, botToken: string) {
+    return this.userService.updateBotToken(userId, botToken);
+  }
 }

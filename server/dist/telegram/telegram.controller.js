@@ -42,6 +42,17 @@ let TelegramController = class TelegramController {
             result: updated,
         };
     }
+    async updateBotToken(body, req) {
+        const user = req.user;
+        const userId = user.sub;
+        const updated = await this.telegramService.updateBotToken(userId, body.botToken);
+        return {
+            success: true,
+            statusCode: 200,
+            message: 'Cập nhật bot token thành công',
+            result: updated,
+        };
+    }
 };
 exports.TelegramController = TelegramController;
 __decorate([
@@ -53,6 +64,15 @@ __decorate([
     __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
 ], TelegramController.prototype, "updateGroup", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.Post)('update-bot-token'),
+    __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], TelegramController.prototype, "updateBotToken", null);
 exports.TelegramController = TelegramController = __decorate([
     (0, common_1.Controller)('telegram'),
     __metadata("design:paramtypes", [telegram_service_1.TelegramService])

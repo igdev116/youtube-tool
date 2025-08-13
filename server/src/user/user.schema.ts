@@ -13,6 +13,9 @@ export class User {
 
   @Prop({ required: false })
   telegramGroupId: string;
+
+  @Prop({ required: false })
+  botToken: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

@@ -7,4 +7,9 @@ export declare class TelegramService {
     }> & {
         __v: number;
     }) | null>;
+    updateBotToken(userId: string, botToken: string): Promise<(import("mongoose").Document<unknown, {}, import("../user/user.schema").UserDocument, {}> & import("../user/user.schema").User & import("mongoose").Document<unknown, any, any, Record<string, any>> & Required<{
+        _id: unknown;
+    }> & {
+        __v: number;
+    }) | null>;
 }

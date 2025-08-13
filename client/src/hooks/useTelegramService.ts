@@ -6,7 +6,12 @@ export function useTelegramService() {
     mutationFn: telegramService.updateGroup,
   });
 
+  const updateBotTokenMutation = useMutation({
+    mutationFn: telegramService.updateBotToken,
+  });
+
   return {
     updateGroupMutation,
+    updateBotTokenMutation,
   };
 }

@@ -20,6 +20,9 @@ let TelegramService = class TelegramService {
     async updateTelegramGroupId(userId, groupId) {
         return this.userService.updateTelegramGroupId(userId, groupId);
     }
+    async updateBotToken(userId, botToken) {
+        return this.userService.updateBotToken(userId, botToken);
+    }
 };
 exports.TelegramService = TelegramService;
 exports.TelegramService = TelegramService = __decorate([

@@ -27,4 +27,12 @@ export class UserService {
   async getProfile(userId: string) {
     return this.userModel.findById(userId).select('-password');
   }
+
+  async updateBotToken(userId: string, botToken: string) {
+    return this.userModel.findByIdAndUpdate(
+      userId,
+      { botToken },
+      { new: true },
+    );
+  }
 }
