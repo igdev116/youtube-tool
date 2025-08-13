@@ -36,19 +36,24 @@ let TelegramBotService = class TelegramBotService {
             .replace(/&lt;/g, '<')
             .replace(/&gt;/g, '>');
         const escapeHtml = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-        const decodedTitle = decodeHtmlEntities(video.title);
-        const cleanedTitle = decodedTitle
+        const rawTitle = (video.title || '').trim();
+        const decodedTitle = decodeHtmlEntities(rawTitle);
+        const cleaned = decodedTitle
             .replace(/#[^\s#]+/g, ' ')
             .replace(/\s{2,}/g, ' ')
             .trim();
-        const tiktokSearchUrl = `https://www.tiktok.com/search?q=${encodeURIComponent(cleanedTitle)}`;
+        const hasTitle = cleaned.length > 0;
+        const displayTitle = hasTitle ? cleaned : 'Không có tiêu đề';
         const publishedText = dayjs(video.publishedAt).format('HH:mm:ss DD/MM/YYYY');
-        const caption = [
-            `🎬 ${escapeHtml(cleanedTitle)}`,
-            `🕒 ${escapeHtml(publishedText)}`,
-            `🔎 <a href="${tiktokSearchUrl}">Tìm trên TikTok</a>`,
-            `🔗 Youtube: ${escapeHtml(video.url)}`,
-        ].join('\n');
+        const captionParts = [];
+        captionParts.push(`🎬 ${escapeHtml(displayTitle)}`);
+        captionParts.push(`🕒 ${escapeHtml(publishedText)}`);
+        if (hasTitle) {
+            const tiktokSearchUrl = `https://www.tiktok.com/search?q=${encodeURIComponent(cleaned)}`;
+            captionParts.push(`🔎 <a href="${tiktokSearchUrl}">Tìm trên TikTok</a>`);
+        }
+        captionParts.push(`🔗 Youtube: ${escapeHtml(video.url)}`);
+        const caption = captionParts.join('\n');
         try {
             await this.bot.telegram.sendMessage(groupId, caption, {
                 parse_mode: 'HTML',

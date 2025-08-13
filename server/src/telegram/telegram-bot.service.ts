@@ -38,28 +38,36 @@ export class TelegramBotService {
     const escapeHtml = (s: string) =>
       s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-    // Loại bỏ hashtag (ở đầu, ở giữa dính liền cuối từ, hay có khoảng trắng)
-    const decodedTitle = decodeHtmlEntities(video.title);
-    const cleanedTitle = decodedTitle
+    // Xử lý tiêu đề (fallback nếu không có)
+    const rawTitle = (video.title || '').trim();
+    const decodedTitle = decodeHtmlEntities(rawTitle);
+    const cleaned = decodedTitle
       .replace(/#[^\s#]+/g, ' ')
       .replace(/\s{2,}/g, ' ')
       .trim();
-
-    const tiktokSearchUrl = `https://www.tiktok.com/search?q=${encodeURIComponent(
-      cleanedTitle,
-    )}`;
+    const hasTitle = cleaned.length > 0;
+    const displayTitle = hasTitle ? cleaned : 'Không có tiêu đề';
 
     // Chỉ format trực tiếp, không convert UTC/tz nữa
     const publishedText = dayjs(video.publishedAt).format(
       'HH:mm:ss DD/MM/YYYY',
     );
 
-    const caption = [
-      `🎬 ${escapeHtml(cleanedTitle)}`,
-      `🕒 ${escapeHtml(publishedText)}`,
-      `🔎 <a href="${tiktokSearchUrl}">Tìm trên TikTok</a>`,
-      `🔗 Youtube: ${escapeHtml(video.url)}`,
-    ].join('\n');
+    const captionParts: string[] = [];
+    captionParts.push(`🎬 ${escapeHtml(displayTitle)}`);
+    captionParts.push(`🕒 ${escapeHtml(publishedText)}`);
+
+    // Chỉ hiển thị tìm TikTok khi có tiêu đề
+    if (hasTitle) {
+      const tiktokSearchUrl = `https://www.tiktok.com/search?q=${encodeURIComponent(
+        cleaned,
+      )}`;
+      captionParts.push(`🔎 <a href="${tiktokSearchUrl}">Tìm trên TikTok</a>`);
+    }
+
+    captionParts.push(`🔗 Youtube: ${escapeHtml(video.url)}`);
+
+    const caption = captionParts.join('\n');
 
     try {
       await this.bot.telegram.sendMessage(groupId, caption, {
