@@ -53,9 +53,6 @@ let YoutubeChannelController = class YoutubeChannelController {
             result: pagingResult.result,
         };
     }
-    async testCheckNewVideo() {
-        return this.channelService.testCheckNewVideo();
-    }
     async deleteChannel(id, req) {
         const user = req.user;
         const userId = user.sub;
@@ -116,13 +113,6 @@ __decorate([
     __metadata("design:paramtypes", [Object, String, String, String]),
     __metadata("design:returntype", Promise)
 ], YoutubeChannelController.prototype, "getUserChannels", null);
-__decorate([
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
-    (0, common_1.Get)('test-check-new-video'),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", Promise)
-], YoutubeChannelController.prototype, "testCheckNewVideo", null);
 __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Delete)(':id'),

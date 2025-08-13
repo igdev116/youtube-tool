@@ -79,12 +79,6 @@ export class YoutubeChannelController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get('test-check-new-video')
-  async testCheckNewVideo() {
-    return this.channelService.testCheckNewVideo();
-  }
-
-  @UseGuards(JwtAuthGuard)
   @Delete(':id')
   async deleteChannel(
     @Param('id') id: string,

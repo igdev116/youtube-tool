@@ -21,37 +21,21 @@ const youtube_channel_schema_1 = require("./youtube-channel.schema");
 const youtube_channel_utils_1 = require("./youtube-channel.utils");
 const pagination_util_1 = require("../../utils/pagination.util");
 const youtube_channel_utils_2 = require("./youtube-channel.utils");
-const user_service_1 = require("../../user/user.service");
-const telegram_bot_service_1 = require("../../telegram/telegram-bot.service");
 const p_limit_1 = require("p-limit");
-const telegram_queue_service_1 = require("../queue/telegram-queue.service");
 const dayjs = require("dayjs");
 const utc = require("dayjs/plugin/utc");
 const timezone = require("dayjs/plugin/timezone");
+const youtube_websub_service_1 = require("../websub/youtube-websub.service");
+const constants_1 = require("../../constants");
 dayjs.extend(utc);
 dayjs.extend(timezone);
 let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelService {
     channelModel;
-    userService;
-    telegramBotService;
-    telegramQueueService;
+    websubService;
     logger = new common_1.Logger(YoutubeChannelService_1.name);
-    constructor(channelModel, userService, telegramBotService, telegramQueueService) {
+    constructor(channelModel, websubService) {
         this.channelModel = channelModel;
-        this.userService = userService;
-        this.telegramBotService = telegramBotService;
-        this.telegramQueueService = telegramQueueService;
-    }
-    getUserIdFromRef(userRef) {
-        if (userRef && typeof userRef === 'object') {
-            if ('_id' in userRef && userRef._id) {
-                return String(userRef._id);
-            }
-            if (typeof userRef.toString === 'function') {
-                return userRef.toString();
-            }
-        }
-        return String(userRef);
+        this.websubService = websubService;
     }
     async addChannelError(channel, errorType) {
         const updateData = {};
@@ -115,6 +99,9 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
                         : {}),
                 });
                 docs.push(doc);
+                const topicUrl = `${constants_1.YT_FEED_BASE}?channel_id=${xmlChannelId}`;
+                const callbackUrl = `${process.env.APP_URL}/websub/youtube/callback`;
+                void this.websubService.subscribeCallback(topicUrl, callbackUrl);
             }
             catch {
                 errorLinks.push({ link: item.link, reason: 'lỗi khi lưu vào DB' });
@@ -153,69 +140,12 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
         await channel.save();
         return channel;
     }
-    async testCheckNewVideo() {
-        return await this.notifyAllChannelsNewVideo();
-    }
-    async notifyAllChannelsNewVideo() {
-        const activeChannels = await this.channelModel
-            .find({ isActive: true })
-            .populate('user')
-            .exec();
-        const tasks = activeChannels.map(async (channel) => {
-            const userIdKey = this.getUserIdFromRef(channel.user);
-            try {
-                const latestVideo = await (0, youtube_channel_utils_2.extractFirstVideoFromYt)(channel.xmlChannelId);
-                if (!latestVideo)
-                    return;
-                const isNewByTime = !channel.lastVideoAt
-                    ? true
-                    : dayjs(latestVideo.publishedAt).isAfter(dayjs(channel.lastVideoAt));
-                if (isNewByTime) {
-                    let telegramGroupId;
-                    const user = channel.user;
-                    if (user && 'telegramGroupId' in user) {
-                        telegramGroupId = user.telegramGroupId;
-                    }
-                    const updatedChannel = await this.channelModel.findOneAndUpdate({ _id: channel._id }, {
-                        $set: {
-                            lastVideoId: latestVideo.id,
-                            lastVideoAt: dayjs
-                                .utc(latestVideo.publishedAt)
-                                .tz('Asia/Ho_Chi_Minh')
-                                .toDate(),
-                        },
-                    }, { new: true });
-                    if (updatedChannel && telegramGroupId) {
-                        await this.telegramQueueService.addTelegramMessageJob({
-                            groupId: telegramGroupId,
-                            video: {
-                                title: latestVideo.title || '',
-                                url: `https://www.youtube.com/watch?v=${latestVideo.id}`,
-                                thumbnail: latestVideo.thumbnail,
-                                channelId: channel.channelId,
-                                jobId: `${channel.channelId}/${latestVideo.id}/${userIdKey}`,
-                                publishedAt: updatedChannel.lastVideoAt.toISOString(),
-                            },
-                        });
-                    }
-                }
-            }
-            catch (error) {
-                const err = error;
-                console.log('error :', err.message);
-                await this.addChannelError(channel, youtube_channel_schema_1.ChannelErrorType.NETWORK_ERROR);
-            }
-        });
-        await Promise.all(tasks);
-    }
 };
 exports.YoutubeChannelService = YoutubeChannelService;
 exports.YoutubeChannelService = YoutubeChannelService = YoutubeChannelService_1 = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, mongoose_1.InjectModel)(youtube_channel_schema_1.YoutubeChannel.name)),
     __metadata("design:paramtypes", [mongoose_2.Model,
-        user_service_1.UserService,
-        telegram_bot_service_1.TelegramBotService,
-        telegram_queue_service_1.TelegramQueueService])
+        youtube_websub_service_1.YoutubeWebsubService])
 ], YoutubeChannelService);
 //# sourceMappingURL=youtube-channel.service.js.map

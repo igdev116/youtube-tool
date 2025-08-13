@@ -16,9 +16,8 @@ const user_module_1 = require("./user/user.module");
 const auth_module_1 = require("./auth/auth.module");
 const youtube_channel_module_1 = require("./modules/youtube-channel/youtube-channel.module");
 const telegram_module_1 = require("./telegram/telegram.module");
-const cron_module_1 = require("./modules/cron/cron.module");
-const queue_module_1 = require("./modules/queue/queue.module");
 const admin_module_1 = require("./modules/admin/admin.module");
+const youtube_websub_module_1 = require("./modules/websub/youtube-websub.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -35,9 +34,8 @@ exports.AppModule = AppModule = __decorate([
             auth_module_1.AuthModule,
             youtube_channel_module_1.YoutubeChannelModule,
             telegram_module_1.TelegramModule,
-            cron_module_1.CronModule,
-            queue_module_1.QueueModule,
             admin_module_1.AdminModule,
+            youtube_websub_module_1.YoutubeWebsubModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],

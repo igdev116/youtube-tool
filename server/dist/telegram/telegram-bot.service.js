@@ -27,6 +27,8 @@ let TelegramBotService = class TelegramBotService {
         this.bot = bot;
     }
     async sendNewVideoToGroup(groupId, video) {
+        console.log('video :', video);
+        console.log('groupId :', groupId);
         const decodeHtmlEntities = (s) => s
             .replace(/&quot;/g, '"')
             .replace(/&#39;/g, "'")
@@ -48,13 +50,12 @@ let TelegramBotService = class TelegramBotService {
             `🔗 Youtube: ${escapeHtml(video.url)}`,
         ].join('\n');
         try {
-            await this.bot.telegram.sendPhoto(groupId, video.thumbnail, {
-                caption,
+            await this.bot.telegram.sendMessage(groupId, caption, {
                 parse_mode: 'HTML',
             });
         }
-        catch (err) {
-            console.error('Gửi Telegram thất bại', err?.message);
+        catch (error) {
+            console.log('error :', error);
         }
     }
 };

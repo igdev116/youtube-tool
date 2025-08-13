@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { FilterQuery, Model, UpdateQuery, Types } from 'mongoose';
+import { FilterQuery, Model, UpdateQuery } from 'mongoose';
 import {
   YoutubeChannel,
   YoutubeChannelDocument,
@@ -13,13 +13,12 @@ import {
 import { BulkChannelDto } from './dto/bulk-channel.dto';
 import { paginateWithPage } from '../../utils/pagination.util';
 import { extractFirstVideoFromYt } from './youtube-channel.utils';
-import { UserService } from '../../user/user.service';
-import { TelegramBotService } from '../../telegram/telegram-bot.service';
 import pLimit from 'p-limit';
-import { TelegramQueueService } from '../queue/telegram-queue.service';
 import * as dayjs from 'dayjs';
 import * as utc from 'dayjs/plugin/utc';
 import * as timezone from 'dayjs/plugin/timezone';
+import { YoutubeWebsubService } from '../websub/youtube-websub.service';
+import { YT_FEED_BASE } from '../../constants';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -31,22 +30,8 @@ export class YoutubeChannelService {
   constructor(
     @InjectModel(YoutubeChannel.name)
     private readonly channelModel: Model<YoutubeChannelDocument>,
-    private readonly userService: UserService,
-    private readonly telegramBotService: TelegramBotService,
-    private readonly telegramQueueService: TelegramQueueService,
+    private readonly websubService: YoutubeWebsubService,
   ) {}
-
-  private getUserIdFromRef(userRef: Types.ObjectId | any): string {
-    if (userRef && typeof userRef === 'object') {
-      if ('_id' in userRef && userRef._id) {
-        return String(userRef._id);
-      }
-      if (typeof userRef.toString === 'function') {
-        return userRef.toString();
-      }
-    }
-    return String(userRef);
-  }
 
   private async addChannelError(
     channel: YoutubeChannelDocument,
@@ -122,6 +107,11 @@ export class YoutubeChannelService {
               : {}),
           });
           docs.push(doc);
+
+          // Subscribe WebSub ngay sau khi tạo
+          const topicUrl = `${YT_FEED_BASE}?channel_id=${xmlChannelId}`;
+          const callbackUrl = `${process.env.APP_URL}/websub/youtube/callback`;
+          void this.websubService.subscribeCallback(topicUrl, callbackUrl);
         } catch {
           errorLinks.push({ link: item.link, reason: 'lỗi khi lưu vào DB' });
         }
@@ -178,70 +168,5 @@ export class YoutubeChannelService {
     await channel.save();
 
     return channel;
-  }
-
-  async testCheckNewVideo() {
-    return await this.notifyAllChannelsNewVideo();
-  }
-
-  async notifyAllChannelsNewVideo() {
-    const activeChannels = await this.channelModel
-      .find({ isActive: true })
-      .populate('user')
-      .exec();
-
-    const tasks = activeChannels.map(async (channel) => {
-      const userIdKey = this.getUserIdFromRef(channel.user);
-      try {
-        const latestVideo = await extractFirstVideoFromYt(channel.xmlChannelId);
-        if (!latestVideo) return;
-
-        const isNewByTime = !channel.lastVideoAt
-          ? true
-          : dayjs(latestVideo.publishedAt).isAfter(dayjs(channel.lastVideoAt));
-
-        if (isNewByTime) {
-          let telegramGroupId: string | undefined;
-          const user = channel.user as any;
-          if (user && 'telegramGroupId' in user) {
-            telegramGroupId = user.telegramGroupId;
-          }
-
-          const updatedChannel = await this.channelModel.findOneAndUpdate(
-            { _id: channel._id },
-            {
-              $set: {
-                lastVideoId: latestVideo.id,
-                lastVideoAt: dayjs
-                  .utc(latestVideo.publishedAt)
-                  .tz('Asia/Ho_Chi_Minh')
-                  .toDate(),
-              },
-            },
-            { new: true },
-          );
-
-          if (updatedChannel && telegramGroupId) {
-            await this.telegramQueueService.addTelegramMessageJob({
-              groupId: telegramGroupId,
-              video: {
-                title: latestVideo.title || '',
-                url: `https://www.youtube.com/watch?v=${latestVideo.id}`,
-                thumbnail: latestVideo.thumbnail,
-                channelId: channel.channelId,
-                jobId: `${channel.channelId}/${latestVideo.id}/${userIdKey}`,
-                publishedAt: updatedChannel.lastVideoAt.toISOString(),
-              },
-            });
-          }
-        }
-      } catch (error) {
-        const err = error as Error;
-        console.log('error :', err.message);
-        await this.addChannelError(channel, ChannelErrorType.NETWORK_ERROR);
-      }
-    });
-
-    await Promise.all(tasks);
   }
 }

@@ -6,31 +6,27 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.YoutubeChannelModule = void 0;
+exports.YoutubeWebsubModule = void 0;
 const common_1 = require("@nestjs/common");
+const youtube_websub_controller_1 = require("./youtube-websub.controller");
+const youtube_websub_service_1 = require("./youtube-websub.service");
 const mongoose_1 = require("@nestjs/mongoose");
-const youtube_channel_schema_1 = require("./youtube-channel.schema");
-const youtube_channel_service_1 = require("./youtube-channel.service");
-const youtube_channel_controller_1 = require("./youtube-channel.controller");
-const user_module_1 = require("../../user/user.module");
+const youtube_channel_schema_1 = require("../youtube-channel/youtube-channel.schema");
 const telegram_module_1 = require("../../telegram/telegram.module");
-const youtube_websub_module_1 = require("../websub/youtube-websub.module");
-let YoutubeChannelModule = class YoutubeChannelModule {
+let YoutubeWebsubModule = class YoutubeWebsubModule {
 };
-exports.YoutubeChannelModule = YoutubeChannelModule;
-exports.YoutubeChannelModule = YoutubeChannelModule = __decorate([
+exports.YoutubeWebsubModule = YoutubeWebsubModule;
+exports.YoutubeWebsubModule = YoutubeWebsubModule = __decorate([
     (0, common_1.Module)({
         imports: [
             mongoose_1.MongooseModule.forFeature([
                 { name: youtube_channel_schema_1.YoutubeChannel.name, schema: youtube_channel_schema_1.YoutubeChannelSchema },
             ]),
-            user_module_1.UserModule,
             telegram_module_1.TelegramModule,
-            youtube_websub_module_1.YoutubeWebsubModule,
         ],
-        providers: [youtube_channel_service_1.YoutubeChannelService],
-        exports: [youtube_channel_service_1.YoutubeChannelService],
-        controllers: [youtube_channel_controller_1.YoutubeChannelController],
+        controllers: [youtube_websub_controller_1.YoutubeWebsubController],
+        providers: [youtube_websub_service_1.YoutubeWebsubService],
+        exports: [youtube_websub_service_1.YoutubeWebsubService],
     })
-], YoutubeChannelModule);
-//# sourceMappingURL=youtube-channel.module.js.map
+], YoutubeWebsubModule);
+//# sourceMappingURL=youtube-websub.module.js.map

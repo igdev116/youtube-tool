@@ -3,8 +3,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 require("dotenv/config");
 const core_1 = require("@nestjs/core");
 const app_module_1 = require("./app.module");
+const bodyParser = require("body-parser");
 async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
+    app.use(bodyParser.text({
+        type: ['application/atom+xml', 'application/xml', 'text/xml'],
+        limit: '1mb',
+    }));
     app.enableCors({
         origin: process.env.APP_URL || 'http://localhost:3000',
         credentials: true,

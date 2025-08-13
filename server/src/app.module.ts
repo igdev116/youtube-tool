@@ -7,9 +7,8 @@ import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { YoutubeChannelModule } from './modules/youtube-channel/youtube-channel.module';
 import { TelegramModule } from './telegram/telegram.module';
-import { CronModule } from './modules/cron/cron.module';
-import { QueueModule } from './modules/queue/queue.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { YoutubeWebsubModule } from './modules/websub/youtube-websub.module';
 
 @Module({
   imports: [
@@ -25,9 +24,8 @@ import { AdminModule } from './modules/admin/admin.module';
     AuthModule,
     YoutubeChannelModule,
     TelegramModule,
-    CronModule,
-    QueueModule,
     AdminModule,
+    YoutubeWebsubModule,
   ],
   controllers: [AppController],
   providers: [AppService],

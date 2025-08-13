@@ -23,6 +23,8 @@ export class TelegramBotService {
       publishedAt: string; // ISO string (đã luôn có)
     },
   ) {
+    console.log('video :', video);
+    console.log('groupId :', groupId);
     // Decode HTML entities để hiển thị đúng ký tự đặc biệt (", ', &, <, >)
     const decodeHtmlEntities = (s: string) =>
       s
@@ -60,13 +62,11 @@ export class TelegramBotService {
     ].join('\n');
 
     try {
-      await this.bot.telegram.sendPhoto(groupId, video.thumbnail, {
-        caption,
+      await this.bot.telegram.sendMessage(groupId, caption, {
         parse_mode: 'HTML',
       });
-    } catch (err: any) {
-      // Có thể log lỗi hoặc xử lý retry nếu cần
-      console.error('Gửi Telegram thất bại', err?.message);
+    } catch (error) {
+      console.log('error :', error);
     }
   }
 }
