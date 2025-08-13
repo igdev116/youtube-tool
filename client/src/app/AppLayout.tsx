@@ -4,7 +4,7 @@ import { Nunito_Sans } from 'next/font/google';
 import React from 'react';
 import Providers from './providers';
 import ProfileProvider from './profile-provider';
-import { Layout, Menu, ConfigProvider } from 'antd';
+import { Layout, Menu, ConfigProvider, Alert } from 'antd';
 import { HomeOutlined, PlusCircleOutlined } from '@ant-design/icons';
 import { LogoutOutlined } from '@ant-design/icons';
 import { usePathname, useRouter } from 'next/navigation';
@@ -119,6 +119,22 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   <Content
                     className={`min-h-screen ${shouldShowSidebar ? 'bg-gray-50' : 'bg-white'}`}>
                     <div className={shouldShowSidebar ? 'pb-8' : ''}>
+                      {shouldShowSidebar && (
+                        <div className='mx-auto px-4 pt-4'>
+                          <Alert
+                            type='warning'
+                            showIcon
+                            closable
+                            className='px-4 py-3'
+                            message={
+                              <span className='font-semibold'>
+                                Thông tin của bạn được bảo mật
+                              </span>
+                            }
+                            description='Bot Token và nhóm Telegram chỉ được dùng để gửi tin nhắn từ tài khoản của bạn. Dữ liệu được bảo vệ và không chia sẻ với bên thứ ba.'
+                          />
+                        </div>
+                      )}
                       {renderContent()}
                     </div>
                   </Content>

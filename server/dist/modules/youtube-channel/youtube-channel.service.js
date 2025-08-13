@@ -109,7 +109,7 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
                         }),
                 });
                 const topicUrl = `${constants_1.YT_FEED_BASE}?channel_id=${xmlChannelId}`;
-                const callbackUrl = `${process.env.APP_URL}/websub/youtube/callback`;
+                const callbackUrl = `${process.env.API_URL}/websub/youtube/callback`;
                 await this.websubService.subscribeCallback(topicUrl, callbackUrl);
             }
             catch {
@@ -136,7 +136,7 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
                 });
                 if (remaining === 0) {
                     const topicUrl = `${constants_1.YT_FEED_BASE}?channel_id=${deleted.xmlChannelId}`;
-                    const callbackUrl = `${process.env.APP_URL}/websub/youtube/callback`;
+                    const callbackUrl = `${process.env.API_URL}/websub/youtube/callback`;
                     await this.websubService.unsubscribeCallback(topicUrl, callbackUrl);
                 }
             }
@@ -171,7 +171,7 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
                 });
                 if (remaining === 0) {
                     const topicUrl = `${constants_1.YT_FEED_BASE}?channel_id=${xmlId}`;
-                    const callbackUrl = `${process.env.APP_URL}/websub/youtube/callback`;
+                    const callbackUrl = `${process.env.API_URL}/websub/youtube/callback`;
                     await this.websubService.unsubscribeCallback(topicUrl, callbackUrl);
                 }
             }

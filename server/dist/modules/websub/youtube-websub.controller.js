@@ -32,13 +32,13 @@ let YoutubeWebsubController = YoutubeWebsubController_1 = class YoutubeWebsubCon
     }
     async subscribe(body) {
         const topicUrl = `${constants_1.YT_FEED_BASE}?channel_id=${body.xmlChannelId}`;
-        const callbackUrl = body.callbackUrl || `${process.env.APP_URL}/websub/youtube/callback`;
+        const callbackUrl = body.callbackUrl || `${process.env.API_URL}/websub/youtube/callback`;
         const status = await this.service.subscribeCallback(topicUrl, callbackUrl);
         return { success: status >= 200 && status < 300, status };
     }
     async unsubscribe(body) {
         const topicUrl = `${constants_1.YT_FEED_BASE}?channel_id=${body.xmlChannelId}`;
-        const callbackUrl = body.callbackUrl || `${process.env.APP_URL}/websub/youtube/callback`;
+        const callbackUrl = body.callbackUrl || `${process.env.API_URL}/websub/youtube/callback`;
         const status = await this.service.unsubscribeCallback(topicUrl, callbackUrl);
         return { success: status >= 200 && status < 300, status };
     }
