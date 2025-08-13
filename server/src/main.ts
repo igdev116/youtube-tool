@@ -15,7 +15,7 @@ async function bootstrap() {
   );
 
   app.enableCors({
-    origin: 'https://youtube-tool-0nad.onrender.com' || 'http://localhost:3000',
+    origin: 'https://youtube-tool-lovat.vercel.app' || 'http://localhost:3000',
     credentials: true,
   });
   const port = process.env.PORT ?? 4000;
