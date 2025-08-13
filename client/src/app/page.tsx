@@ -62,7 +62,7 @@ const HomePage = () => {
   const [search, setSearch] = React.useState('');
   const [keyword, setKeyword] = React.useState('');
   const [sort, setSort] = React.useState<ChannelSortKey>(
-    ChannelSortKey.NEWEST_CHANNEL
+    ChannelSortKey.NEWEST_UPLOAD
   );
 
   // Selected rows state

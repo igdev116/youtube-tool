@@ -34,8 +34,13 @@ let TelegramBotService = class TelegramBotService {
             .trim();
         const hasTitle = cleaned.length > 0;
         const displayTitle = hasTitle ? cleaned : 'Không có tiêu đề';
-        const publishedText = dayjs(video.publishedAt).format('HH:mm:ss DD/MM/YYYY');
+        const publishedText = dayjs
+            .utc(video.publishedAt)
+            .tz('Asia/Ho_Chi_Minh')
+            .format('HH:mm:ss DD/MM/YYYY');
         const captionParts = [];
+        captionParts.push(`${escapeHtml(video.url)}`);
+        captionParts.push('');
         if (video.channelName || video.channelId) {
             const href = video.channelUrl
                 ? video.channelUrl
@@ -48,11 +53,11 @@ let TelegramBotService = class TelegramBotService {
         }
         captionParts.push(`🎬 ${escapeHtml(displayTitle)}`);
         captionParts.push(`🕒 ${escapeHtml(publishedText)}`);
+        captionParts.push('');
         if (hasTitle) {
             const tiktokSearchUrl = `https://www.tiktok.com/search?q=${encodeURIComponent(cleaned)}`;
             captionParts.push(`🔎 <a href="${tiktokSearchUrl}">Tìm trên TikTok</a>`);
         }
-        captionParts.push(`🔗 Youtube: ${escapeHtml(video.url)}`);
         const caption = captionParts.join('\n');
         try {
             const apiUrl = (0, constants_1.TELEGRAM_SEND_MESSAGE_URL)(botToken);
@@ -60,6 +65,7 @@ let TelegramBotService = class TelegramBotService {
                 chat_id: groupId,
                 text: caption,
                 parse_mode: 'HTML',
+                disable_web_page_preview: false,
             });
         }
         catch (error) {

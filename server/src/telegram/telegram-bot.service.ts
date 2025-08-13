@@ -49,13 +49,18 @@ export class TelegramBotService {
     const hasTitle = cleaned.length > 0;
     const displayTitle = hasTitle ? cleaned : 'Không có tiêu đề';
 
-    // Chỉ format trực tiếp, không convert UTC/tz nữa
-    const publishedText = dayjs(video.publishedAt).format(
-      'HH:mm:ss DD/MM/YYYY',
-    );
+    // Bảo đảm hiển thị đúng giờ Việt Nam ngay cả khi input là ISO dạng Z (UTC)
+    const publishedText = dayjs
+      .utc(video.publishedAt)
+      .tz('Asia/Ho_Chi_Minh')
+      .format('HH:mm:ss DD/MM/YYYY');
 
+    // Ưu tiên preview YouTube: đặt link YouTube lên đầu và để riêng 1 dòng
     const captionParts: string[] = [];
-    // Kênh in đậm ở đầu (ưu tiên tên kênh)
+    captionParts.push(`${escapeHtml(video.url)}`);
+    captionParts.push('');
+
+    // Kênh in đậm (ưu tiên tên kênh)
     if (video.channelName || video.channelId) {
       const href = video.channelUrl
         ? video.channelUrl
@@ -68,18 +73,20 @@ export class TelegramBotService {
         href ? `📺 <a href="${escapeHtml(href)}">${bold}</a>` : `📺 ${bold}`,
       );
     }
+
     captionParts.push(`🎬 ${escapeHtml(displayTitle)}`);
     captionParts.push(`🕒 ${escapeHtml(publishedText)}`);
 
-    // Chỉ hiển thị tìm TikTok khi có tiêu đề
+    // Dòng trống để dễ đọc
+    captionParts.push('');
+
+    // Chỉ hiển thị tìm TikTok khi có tiêu đề (giữ dạng anchor để hạn chế preview ngoài ý muốn)
     if (hasTitle) {
       const tiktokSearchUrl = `https://www.tiktok.com/search?q=${encodeURIComponent(
         cleaned,
       )}`;
       captionParts.push(`🔎 <a href="${tiktokSearchUrl}">Tìm trên TikTok</a>`);
     }
-
-    captionParts.push(`🔗 Youtube: ${escapeHtml(video.url)}`);
 
     const caption = captionParts.join('\n');
 
@@ -89,6 +96,7 @@ export class TelegramBotService {
         chat_id: groupId,
         text: caption,
         parse_mode: 'HTML',
+        disable_web_page_preview: false,
       });
     } catch (error) {
       console.log('error :', error);
