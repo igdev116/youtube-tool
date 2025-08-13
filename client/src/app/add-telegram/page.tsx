@@ -17,6 +17,14 @@ const AddTelegramPage = () => {
   const [isEditingToken, setIsEditingToken] = useState(false);
   const profile = useUserStore((s) => s.profile);
 
+  const maskToken = React.useCallback((token?: string | null) => {
+    if (!token) return '';
+    if (token.length <= 3) return token;
+    const last3 = token.slice(-3);
+    const stars = '*'.repeat(token.length - 3);
+    return `${stars}${last3}`;
+  }, []);
+
   React.useEffect(() => {
     if (profile?.telegramGroupId) {
       setTelegramGroup(profile.telegramGroupId);
@@ -66,6 +74,12 @@ const AddTelegramPage = () => {
     e.preventDefault();
     if (!botToken) {
       toastError('Vui lòng nhập Bot Token!');
+      return;
+    }
+    // Không gọi API nếu không thay đổi
+    if (botToken === (profile?.botToken || '')) {
+      setIsEditingToken(false);
+      setBotToken('');
       return;
     }
     updateBotTokenMutation.mutate(
@@ -156,45 +170,51 @@ const AddTelegramPage = () => {
         <form
           onSubmit={handleUpdateBotToken}
           className='flex items-center gap-2 justify-center'>
-          <Input.Password
-            placeholder={
-              !isEditingToken && profile?.botToken
-                ? '******** (đã lưu)'
-                : 'Bot Token Telegram'
-            }
-            value={isEditingToken ? botToken : ''}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setBotToken(e.target.value)
-            }
-            className='h-10 min-w-80'
-            visibilityToggle={isEditingToken}
-            disabled={updateBotTokenMutation.isPending || !isEditingToken}
-          />
           {!isEditingToken ? (
-            <Button
-              type='primary'
-              className='h-10'
-              onClick={() => setIsEditingToken(true)}
-              disabled={updateBotTokenMutation.isPending}>
-              {profile?.botToken ? 'Chỉnh sửa' : 'Cập nhật'}
-            </Button>
-          ) : (
-            <div className='flex items-center gap-1.5'>
+            <>
+              <Input
+                className='h-10 min-w-80'
+                value={maskToken(profile?.botToken)}
+                readOnly
+                disabled
+              />
               <Button
                 type='primary'
-                htmlType='submit'
                 className='h-10'
-                loading={updateBotTokenMutation.isPending}
+                onClick={() => {
+                  setIsEditingToken(true);
+                  setBotToken(profile?.botToken || '');
+                }}
                 disabled={updateBotTokenMutation.isPending}>
-                OK
+                {profile?.botToken ? 'Chỉnh sửa' : 'Cập nhật'}
               </Button>
-              <Button
-                className='h-10'
-                onClick={handleCancelBotToken}
-                disabled={updateBotTokenMutation.isPending}>
-                Hủy
-              </Button>
-            </div>
+            </>
+          ) : (
+            <>
+              <Input
+                className='h-10 min-w-80'
+                value={botToken}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setBotToken(e.target.value)
+                }
+              />
+              <div className='flex items-center gap-1.5'>
+                <Button
+                  type='primary'
+                  htmlType='submit'
+                  className='h-10'
+                  loading={updateBotTokenMutation.isPending}
+                  disabled={updateBotTokenMutation.isPending}>
+                  OK
+                </Button>
+                <Button
+                  className='h-10'
+                  onClick={handleCancelBotToken}
+                  disabled={updateBotTokenMutation.isPending}>
+                  Hủy
+                </Button>
+              </div>
+            </>
           )}
         </form>
         <p className='text-gray-500 text-center mt-3 text-sm'>
