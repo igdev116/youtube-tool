@@ -11,4 +11,5 @@ export declare class YoutubeWebsubService {
     private extractNsTag;
     handleNotification(xml: string): Promise<void>;
     subscribeCallback(topicUrl: string, callbackUrl: string): Promise<number>;
+    unsubscribeCallback(topicUrl: string, callbackUrl: string): Promise<number>;
 }

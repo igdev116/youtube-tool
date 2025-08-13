@@ -50,14 +50,22 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
             await this.channelModel.updateOne({ _id: channel._id }, updateData);
         }
     }
-    async addChannelsBulk(channels, userId) {
-        const errorLinks = [];
-        const docs = [];
-        const limit = (0, p_limit_1.default)(5);
+    addChannelsBulk(channels, userId) {
+        setTimeout(() => {
+            void this.processChannelsBulk(channels, userId).catch(() => undefined);
+        }, 0);
+        return {
+            error: false,
+            message: 'Đã nhận danh sách, hệ thống sẽ xử lý nền',
+            docs: [],
+        };
+    }
+    async processChannelsBulk(channels, userId) {
+        const maxConcurrency = Number(process.env.BULK_CONCURRENCY || 3);
+        const limit = (0, p_limit_1.default)(Math.max(1, maxConcurrency));
         const tasks = channels.map((item) => limit(async () => {
             const xmlChannelId = await (0, youtube_channel_utils_1.extractXmlChannelIdFromUrl)(item.link);
             if (!xmlChannelId) {
-                errorLinks.push({ link: item.link, reason: 'không hợp lệ' });
                 return;
             }
             const channelId = await (0, youtube_channel_utils_1.extractChannelIdFromUrl)(item.link);
@@ -66,27 +74,26 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
                 user: userId,
             });
             if (existingChannel) {
-                errorLinks.push({ link: item.link, reason: 'đã tồn tại' });
                 return;
             }
+            let latestVideoId;
+            let latestPublishedAtDate;
             try {
-                let latestVideoId;
-                let latestPublishedAtDate;
-                try {
-                    const latestVideo = await (0, youtube_channel_utils_2.extractFirstVideoFromYt)(xmlChannelId);
-                    if (latestVideo && latestVideo.id) {
-                        latestVideoId = latestVideo.id;
-                        latestPublishedAtDate = latestVideo.publishedAt
-                            ? dayjs
-                                .utc(latestVideo.publishedAt)
-                                .tz('Asia/Ho_Chi_Minh')
-                                .toDate()
-                            : undefined;
-                    }
+                const latestVideo = await (0, youtube_channel_utils_2.extractFirstVideoFromYt)(xmlChannelId);
+                if (latestVideo && latestVideo.id) {
+                    latestVideoId = latestVideo.id;
+                    latestPublishedAtDate = latestVideo.publishedAt
+                        ? dayjs
+                            .utc(latestVideo.publishedAt)
+                            .tz('Asia/Ho_Chi_Minh')
+                            .toDate()
+                        : undefined;
                 }
-                catch {
-                }
-                const doc = await this.channelModel.create({
+            }
+            catch {
+            }
+            try {
+                await this.channelModel.create({
                     channelId,
                     xmlChannelId,
                     isActive: item.isActive ?? true,
@@ -96,23 +103,19 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
                             lastVideoId: latestVideoId,
                             lastVideoAt: latestPublishedAtDate ?? new Date(),
                         }
-                        : {}),
+                        : {
+                            lastVideoId: 'INIT',
+                            lastVideoAt: new Date(0),
+                        }),
                 });
-                docs.push(doc);
                 const topicUrl = `${constants_1.YT_FEED_BASE}?channel_id=${xmlChannelId}`;
                 const callbackUrl = `${process.env.APP_URL}/websub/youtube/callback`;
-                void this.websubService.subscribeCallback(topicUrl, callbackUrl);
+                await this.websubService.subscribeCallback(topicUrl, callbackUrl);
             }
             catch {
-                errorLinks.push({ link: item.link, reason: 'lỗi khi lưu vào DB' });
             }
         }));
         await Promise.all(tasks);
-        let message = '';
-        if (errorLinks.length > 0) {
-            message = errorLinks.map((e) => `Link ${e.link} ${e.reason}`).join(', ');
-        }
-        return { error: errorLinks.length > 0, message, docs };
     }
     async getUserChannelsWithPagination(userId, page, limit, keyword) {
         const filter = { user: userId };
@@ -126,6 +129,20 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
             _id: id,
             user: userId,
         });
+        if (deleted) {
+            try {
+                const remaining = await this.channelModel.countDocuments({
+                    xmlChannelId: deleted.xmlChannelId,
+                });
+                if (remaining === 0) {
+                    const topicUrl = `${constants_1.YT_FEED_BASE}?channel_id=${deleted.xmlChannelId}`;
+                    const callbackUrl = `${process.env.APP_URL}/websub/youtube/callback`;
+                    await this.websubService.unsubscribeCallback(topicUrl, callbackUrl);
+                }
+            }
+            catch {
+            }
+        }
         return deleted;
     }
     async toggleChannelActive(userId, id) {

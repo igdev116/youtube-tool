@@ -70,7 +70,8 @@ let YoutubeWebsubService = YoutubeWebsubService_1 = class YoutubeWebsubService {
                 for (const ch of channels) {
                     const user = ch.user;
                     const groupId = user?.telegramGroupId;
-                    if (!groupId)
+                    const botToken = user?.botToken;
+                    if (!groupId || !botToken)
                         continue;
                     try {
                         await this.telegramBotService.sendNewVideoToGroup(groupId, {
@@ -79,7 +80,7 @@ let YoutubeWebsubService = YoutubeWebsubService_1 = class YoutubeWebsubService {
                             channelId: ch.channelId,
                             thumbnail,
                             publishedAt,
-                        });
+                        }, botToken);
                         await this.channelModel.updateOne({ _id: ch._id }, {
                             $set: {
                                 lastVideoId: videoId,
@@ -102,6 +103,18 @@ let YoutubeWebsubService = YoutubeWebsubService_1 = class YoutubeWebsubService {
     async subscribeCallback(topicUrl, callbackUrl) {
         const form = new URLSearchParams();
         form.append('hub.mode', 'subscribe');
+        form.append('hub.topic', topicUrl);
+        form.append('hub.callback', callbackUrl);
+        form.append('hub.verify', 'sync');
+        form.append('hub.verify_token', 'test-token');
+        const res = await axios_1.default.post(constants_1.HUB_SUBSCRIBE_URL, form, {
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        });
+        return res.status;
+    }
+    async unsubscribeCallback(topicUrl, callbackUrl) {
+        const form = new URLSearchParams();
+        form.append('hub.mode', 'unsubscribe');
         form.append('hub.topic', topicUrl);
         form.append('hub.callback', callbackUrl);
         form.append('hub.verify', 'sync');

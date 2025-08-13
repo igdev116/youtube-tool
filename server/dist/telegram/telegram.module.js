@@ -12,18 +12,12 @@ const telegram_controller_1 = require("./telegram.controller");
 const telegram_service_1 = require("./telegram.service");
 const user_module_1 = require("../user/user.module");
 const telegram_bot_service_1 = require("./telegram-bot.service");
-const nestjs_telegraf_1 = require("nestjs-telegraf");
 let TelegramModule = class TelegramModule {
 };
 exports.TelegramModule = TelegramModule;
 exports.TelegramModule = TelegramModule = __decorate([
     (0, common_1.Module)({
-        imports: [
-            user_module_1.UserModule,
-            nestjs_telegraf_1.TelegrafModule.forRoot({
-                token: process.env.TELEGRAM_BOT_TOKEN || '',
-            }),
-        ],
+        imports: [user_module_1.UserModule],
         providers: [telegram_service_1.TelegramService, telegram_bot_service_1.TelegramBotService],
         exports: [telegram_service_1.TelegramService, telegram_bot_service_1.TelegramBotService],
         controllers: [telegram_controller_1.TelegramController],

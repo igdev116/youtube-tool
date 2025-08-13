@@ -16,6 +16,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.YoutubeWebsubController = void 0;
 const common_1 = require("@nestjs/common");
 const youtube_websub_service_1 = require("./youtube-websub.service");
+const constants_1 = require("../../constants");
 let YoutubeWebsubController = YoutubeWebsubController_1 = class YoutubeWebsubController {
     service;
     logger = new common_1.Logger(YoutubeWebsubController_1.name);
@@ -30,9 +31,15 @@ let YoutubeWebsubController = YoutubeWebsubController_1 = class YoutubeWebsubCon
         return 'ok';
     }
     async subscribe(body) {
-        const topicUrl = `https://www.youtube.com/xml/feeds/videos.xml?channel_id=${body.xmlChannelId}`;
+        const topicUrl = `${constants_1.YT_FEED_BASE}?channel_id=${body.xmlChannelId}`;
         const callbackUrl = body.callbackUrl || `${process.env.APP_URL}/websub/youtube/callback`;
         const status = await this.service.subscribeCallback(topicUrl, callbackUrl);
+        return { success: status >= 200 && status < 300, status };
+    }
+    async unsubscribe(body) {
+        const topicUrl = `${constants_1.YT_FEED_BASE}?channel_id=${body.xmlChannelId}`;
+        const callbackUrl = body.callbackUrl || `${process.env.APP_URL}/websub/youtube/callback`;
+        const status = await this.service.unsubscribeCallback(topicUrl, callbackUrl);
         return { success: status >= 200 && status < 300, status };
     }
 };
@@ -58,6 +65,13 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], YoutubeWebsubController.prototype, "subscribe", null);
+__decorate([
+    (0, common_1.Post)('unsubscribe'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], YoutubeWebsubController.prototype, "unsubscribe", null);
 exports.YoutubeWebsubController = YoutubeWebsubController = YoutubeWebsubController_1 = __decorate([
     (0, common_1.Controller)('websub/youtube'),
     __metadata("design:paramtypes", [youtube_websub_service_1.YoutubeWebsubService])

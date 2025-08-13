@@ -53,16 +53,30 @@ export class YoutubeChannelService {
     }
   }
 
-  async addChannelsBulk(channels: BulkChannelDto[], userId: string) {
-    const errorLinks: { link: string; reason: string }[] = [];
-    const docs: YoutubeChannelDocument[] = [];
-    const limit = pLimit(5);
+  // Không cần await vì xử lý nền; để tránh cảnh báo linter cho async không await, giữ nguyên dạng sync
+  addChannelsBulk(channels: BulkChannelDto[], userId: string) {
+    // Đẩy xử lý sang nền để tránh timeout/giới hạn tài nguyên (Render)
+    setTimeout(() => {
+      void this.processChannelsBulk(channels, userId).catch(() => undefined);
+    }, 0);
+    return {
+      error: false,
+      message: 'Đã nhận danh sách, hệ thống sẽ xử lý nền',
+      docs: [],
+    };
+  }
+
+  private async processChannelsBulk(
+    channels: BulkChannelDto[],
+    userId: string,
+  ) {
+    const maxConcurrency = Number(process.env.BULK_CONCURRENCY || 3);
+    const limit = pLimit(Math.max(1, maxConcurrency));
 
     const tasks = channels.map((item) =>
       limit(async () => {
         const xmlChannelId = await extractXmlChannelIdFromUrl(item.link);
         if (!xmlChannelId) {
-          errorLinks.push({ link: item.link, reason: 'không hợp lệ' });
           return;
         }
         const channelId = await extractChannelIdFromUrl(item.link);
@@ -72,29 +86,28 @@ export class YoutubeChannelService {
           user: userId,
         });
         if (existingChannel) {
-          errorLinks.push({ link: item.link, reason: 'đã tồn tại' });
           return;
         }
 
+        let latestVideoId: string | undefined;
+        let latestPublishedAtDate: Date | undefined;
         try {
-          let latestVideoId: string | undefined;
-          let latestPublishedAtDate: Date | undefined;
-          try {
-            const latestVideo = await extractFirstVideoFromYt(xmlChannelId);
-            if (latestVideo && latestVideo.id) {
-              latestVideoId = latestVideo.id;
-              latestPublishedAtDate = latestVideo.publishedAt
-                ? dayjs
-                    .utc(latestVideo.publishedAt)
-                    .tz('Asia/Ho_Chi_Minh')
-                    .toDate()
-                : undefined;
-            }
-          } catch {
-            // ignore
+          const latestVideo = await extractFirstVideoFromYt(xmlChannelId);
+          if (latestVideo && latestVideo.id) {
+            latestVideoId = latestVideo.id;
+            latestPublishedAtDate = latestVideo.publishedAt
+              ? dayjs
+                  .utc(latestVideo.publishedAt)
+                  .tz('Asia/Ho_Chi_Minh')
+                  .toDate()
+              : undefined;
           }
+        } catch {
+          // ignore rss error
+        }
 
-          const doc = await this.channelModel.create({
+        try {
+          await this.channelModel.create({
             channelId,
             xmlChannelId,
             isActive: item.isActive ?? true,
@@ -104,27 +117,23 @@ export class YoutubeChannelService {
                   lastVideoId: latestVideoId,
                   lastVideoAt: latestPublishedAtDate ?? new Date(),
                 }
-              : {}),
+              : {
+                  // Fallback để thoả điều kiện required nếu RSS tạm thời lỗi
+                  lastVideoId: 'INIT',
+                  lastVideoAt: new Date(0),
+                }),
           });
-          docs.push(doc);
 
-          // Subscribe WebSub ngay sau khi tạo
           const topicUrl = `${YT_FEED_BASE}?channel_id=${xmlChannelId}`;
           const callbackUrl = `${process.env.APP_URL}/websub/youtube/callback`;
-          void this.websubService.subscribeCallback(topicUrl, callbackUrl);
+          await this.websubService.subscribeCallback(topicUrl, callbackUrl);
         } catch {
-          errorLinks.push({ link: item.link, reason: 'lỗi khi lưu vào DB' });
+          // ignore create/subscribe error
         }
       }),
     );
 
     await Promise.all(tasks);
-
-    let message = '';
-    if (errorLinks.length > 0) {
-      message = errorLinks.map((e) => `Link ${e.link} ${e.reason}`).join(', ');
-    }
-    return { error: errorLinks.length > 0, message, docs };
   }
 
   async getUserChannelsWithPagination(
@@ -151,6 +160,22 @@ export class YoutubeChannelService {
       _id: id,
       user: userId,
     });
+
+    if (deleted) {
+      try {
+        const remaining = await this.channelModel.countDocuments({
+          xmlChannelId: deleted.xmlChannelId,
+        });
+        if (remaining === 0) {
+          const topicUrl = `${YT_FEED_BASE}?channel_id=${deleted.xmlChannelId}`;
+          const callbackUrl = `${process.env.APP_URL}/websub/youtube/callback`;
+          await this.websubService.unsubscribeCallback(topicUrl, callbackUrl);
+        }
+      } catch {
+        // ignore unsubscribe errors
+      }
+    }
+
     return deleted;
   }
 

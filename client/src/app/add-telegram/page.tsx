@@ -101,7 +101,7 @@ const AddTelegramPage = () => {
         </Title>
         <form
           onSubmit={handleUpdateGroup}
-          className='flex items-center gap-1.5 justify-center'>
+          className='flex items-center gap-2 justify-center'>
           <Input
             placeholder='ID group Telegram'
             value={
@@ -126,7 +126,7 @@ const AddTelegramPage = () => {
               {profile?.telegramGroupId ? 'Chỉnh sửa' : 'Cập nhật'}
             </Button>
           ) : (
-            <>
+            <div className='flex items-center gap-1.5'>
               <Button
                 type='primary'
                 htmlType='submit'
@@ -141,7 +141,7 @@ const AddTelegramPage = () => {
                 disabled={updateGroupMutation.isPending}>
                 Hủy
               </Button>
-            </>
+            </div>
           )}
         </form>
       </div>
@@ -154,7 +154,7 @@ const AddTelegramPage = () => {
         </Title>
         <form
           onSubmit={handleUpdateBotToken}
-          className='flex items-center gap-1.5 justify-center'>
+          className='flex items-center gap-2 justify-center'>
           <Input.Password
             placeholder='Bot Token Telegram'
             value={botToken}
@@ -174,7 +174,7 @@ const AddTelegramPage = () => {
               {profile?.botToken ? 'Chỉnh sửa' : 'Cập nhật'}
             </Button>
           ) : (
-            <>
+            <div className='flex items-center gap-1.5'>
               <Button
                 type='primary'
                 htmlType='submit'
@@ -189,7 +189,7 @@ const AddTelegramPage = () => {
                 disabled={updateBotTokenMutation.isPending}>
                 Hủy
               </Button>
-            </>
+            </div>
           )}
         </form>
         <p className='text-gray-500 text-center mt-3 text-sm'>

@@ -16,7 +16,6 @@
     "lint": "eslint \"{src,apps,libs}/**/*.ts\" --fix"
   },
   "dependencies": {
-    
     "@nestjs/common": "^11.1.5",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.1.5",
@@ -24,26 +23,20 @@
     "@nestjs/mongoose": "^11.0.3",
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.0.1",
-    
     "@types/axios": "^0.14.4",
-    
     "@types/passport-jwt": "^4.0.1",
     "axios": "^1.11.0",
-    
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
     "dayjs": "^1.11.13",
     "dotenv": "^17.0.0",
-    
     "mongoose": "^8.16.4",
-    "nestjs-telegraf": "^2.9.1",
     "node-telegram-bot-api": "^0.66.0",
     "p-limit": "^6.2.0",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1",
-    "telegraf": "^4.16.3"
+    "rxjs": "^7.8.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",

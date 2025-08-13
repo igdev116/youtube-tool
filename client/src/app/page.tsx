@@ -31,6 +31,11 @@ import * as XLSX from 'xlsx';
 import dayjs from 'dayjs';
 import debounce from 'lodash/debounce';
 import { TOOLTIP_MESSAGES } from '../constants';
+import relativeTime from 'dayjs/plugin/relativeTime';
+import 'dayjs/locale/vi';
+
+dayjs.extend(relativeTime);
+dayjs.locale('vi');
 
 const { Link } = Typography;
 
@@ -322,7 +327,13 @@ const HomePage = () => {
           );
         }
 
-        return dayjs(lastVideoAt).format('HH:mm DD/MM/YY');
+        const dt = dayjs(lastVideoAt);
+        return (
+          <div className='flex flex-col leading-tight'>
+            <span>{dt.format('HH:mm DD/MM/YY')}</span>
+            <span className='mt-1 text-xs text-gray-500'>({dt.fromNow()})</span>
+          </div>
+        );
       },
     },
     {

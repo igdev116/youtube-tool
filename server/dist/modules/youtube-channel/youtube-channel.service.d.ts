@@ -8,11 +8,12 @@ export declare class YoutubeChannelService {
     private readonly logger;
     constructor(channelModel: Model<YoutubeChannelDocument>, websubService: YoutubeWebsubService);
     private addChannelError;
-    addChannelsBulk(channels: BulkChannelDto[], userId: string): Promise<{
+    addChannelsBulk(channels: BulkChannelDto[], userId: string): {
         error: boolean;
         message: string;
-        docs: YoutubeChannelDocument[];
-    }>;
+        docs: never[];
+    };
+    private processChannelsBulk;
     getUserChannelsWithPagination(userId: string, page: number, limit: number, keyword?: string): Promise<import("../../types/common.type").PagingResponseV2<YoutubeChannelDocument>>;
     deleteChannelById(userId: string, id: string): Promise<(import("mongoose").Document<unknown, {}, YoutubeChannelDocument, {}> & YoutubeChannel & import("mongoose").Document<unknown, any, any, Record<string, any>> & {
         user: import("mongoose").Types.ObjectId | import("../../user/user.schema").User;

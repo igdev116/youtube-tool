@@ -77,17 +77,22 @@ export class YoutubeWebsubService {
         for (const ch of channels) {
           const user = ch.user as User;
           const groupId = user?.telegramGroupId;
-          if (!groupId) continue;
+          const botToken = user?.botToken;
+          if (!groupId || !botToken) continue;
 
           try {
-            // Gửi ngay telegram
-            await this.telegramBotService.sendNewVideoToGroup(groupId, {
-              title,
-              url: `${YT_WATCH_BASE}${videoId}`,
-              channelId: ch.channelId,
-              thumbnail,
-              publishedAt,
-            });
+            // Gửi ngay telegram bằng bot token của user
+            await this.telegramBotService.sendNewVideoToGroup(
+              groupId,
+              {
+                title,
+                url: `${YT_WATCH_BASE}${videoId}`,
+                channelId: ch.channelId,
+                thumbnail,
+                publishedAt,
+              },
+              botToken,
+            );
 
             // Chỉ update DB khi gửi thành công
             await this.channelModel.updateOne(
@@ -115,6 +120,21 @@ export class YoutubeWebsubService {
   async subscribeCallback(topicUrl: string, callbackUrl: string) {
     const form = new URLSearchParams();
     form.append('hub.mode', 'subscribe');
+    form.append('hub.topic', topicUrl);
+    form.append('hub.callback', callbackUrl);
+    form.append('hub.verify', 'sync');
+    form.append('hub.verify_token', 'test-token');
+
+    const res = await axios.post(HUB_SUBSCRIBE_URL, form, {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    });
+    return res.status;
+  }
+
+  // Helper: hủy đăng ký (unsubscribe) khỏi topic
+  async unsubscribeCallback(topicUrl: string, callbackUrl: string) {
+    const form = new URLSearchParams();
+    form.append('hub.mode', 'unsubscribe');
     form.append('hub.topic', topicUrl);
     form.append('hub.callback', callbackUrl);
     form.append('hub.verify', 'sync');

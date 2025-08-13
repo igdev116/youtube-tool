@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { InjectBot } from 'nestjs-telegraf';
-import { Telegraf } from 'telegraf';
+import axios from 'axios';
+import { TELEGRAM_SEND_MESSAGE_URL } from '../constants';
 import * as dayjs from 'dayjs';
 import * as utc from 'dayjs/plugin/utc';
 import * as timezone from 'dayjs/plugin/timezone';
@@ -11,8 +11,6 @@ dayjs.extend(timezone);
 
 @Injectable()
 export class TelegramBotService {
-  constructor(@InjectBot() private readonly bot: Telegraf) {}
-
   async sendNewVideoToGroup(
     groupId: string,
     video: {
@@ -22,6 +20,7 @@ export class TelegramBotService {
       thumbnail: string;
       publishedAt: string; // ISO string (đã luôn có)
     },
+    botToken: string,
   ) {
     console.log('video :', video);
     console.log('groupId :', groupId);
@@ -70,7 +69,10 @@ export class TelegramBotService {
     const caption = captionParts.join('\n');
 
     try {
-      await this.bot.telegram.sendMessage(groupId, caption, {
+      const apiUrl = TELEGRAM_SEND_MESSAGE_URL(botToken);
+      await axios.post(apiUrl, {
+        chat_id: groupId,
+        text: caption,
         parse_mode: 'HTML',
       });
     } catch (error) {

@@ -1,5 +1,6 @@
 import { Body, Controller, Get, Logger, Post, Query } from '@nestjs/common';
 import { YoutubeWebsubService } from './youtube-websub.service';
+import { YT_FEED_BASE } from '../../constants';
 
 @Controller('websub/youtube')
 export class YoutubeWebsubController {
@@ -24,10 +25,25 @@ export class YoutubeWebsubController {
   async subscribe(
     @Body() body: { xmlChannelId: string; callbackUrl?: string },
   ) {
-    const topicUrl = `https://www.youtube.com/xml/feeds/videos.xml?channel_id=${body.xmlChannelId}`;
+    const topicUrl = `${YT_FEED_BASE}?channel_id=${body.xmlChannelId}`;
     const callbackUrl =
       body.callbackUrl || `${process.env.APP_URL}/websub/youtube/callback`;
     const status = await this.service.subscribeCallback(topicUrl, callbackUrl);
+    return { success: status >= 200 && status < 300, status };
+  }
+
+  // Unsubscribe endpoint for testing
+  @Post('unsubscribe')
+  async unsubscribe(
+    @Body() body: { xmlChannelId: string; callbackUrl?: string },
+  ) {
+    const topicUrl = `${YT_FEED_BASE}?channel_id=${body.xmlChannelId}`;
+    const callbackUrl =
+      body.callbackUrl || `${process.env.APP_URL}/websub/youtube/callback`;
+    const status = await this.service.unsubscribeCallback(
+      topicUrl,
+      callbackUrl,
+    );
     return { success: status >= 200 && status < 300, status };
   }
 }

@@ -23,9 +23,6 @@ async function bootstrap() {
 
   console.log(`🚀 Server is running on http://localhost:${port}`);
   console.log(process.env.APP_URL);
-  console.log(
-    `📱 Telegram Bot Token: ${process.env.TELEGRAM_BOT_TOKEN ? 'Loaded ✅' : 'Missing ❌'}`,
-  );
 }
 
 void bootstrap();

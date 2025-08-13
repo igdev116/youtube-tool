@@ -12,4 +12,11 @@ export declare class YoutubeWebsubController {
         success: boolean;
         status: number;
     }>;
+    unsubscribe(body: {
+        xmlChannelId: string;
+        callbackUrl?: string;
+    }): Promise<{
+        success: boolean;
+        status: number;
+    }>;
 }
