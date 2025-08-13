@@ -13,12 +13,6 @@ import {
   YT_WATCH_BASE,
 } from '../../constants';
 import { User } from '~/user/user.schema';
-import * as dayjs from 'dayjs';
-import * as utc from 'dayjs/plugin/utc';
-import * as timezone from 'dayjs/plugin/timezone';
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
 
 @Injectable()
 export class YoutubeWebsubService {
@@ -70,9 +64,6 @@ export class YoutubeWebsubService {
           this.extractTag(entry, 'yt:channelId');
         const title = this.extractTag(entry, 'title') || '';
         const publishedAt = this.extractTag(entry, 'published') || '';
-        const publishedAtVn = publishedAt
-          ? dayjs.utc(publishedAt).tz('Asia/Ho_Chi_Minh').toISOString()
-          : '';
         const thumbnail = YT_THUMBNAIL_HQ(videoId || '');
         // Extract author info (channel name and uri)
         const authorBlockMatch = entry.match(/<author[\s\S]*?<\/author>/);
@@ -109,7 +100,7 @@ export class YoutubeWebsubService {
                 channelName,
                 channelUrl,
                 thumbnail,
-                publishedAt: publishedAtVn,
+                publishedAt,
               },
               botToken,
             );

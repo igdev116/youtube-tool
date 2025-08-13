@@ -39,25 +39,18 @@ let TelegramBotService = class TelegramBotService {
             .tz('Asia/Ho_Chi_Minh')
             .format('HH:mm:ss DD/MM/YYYY');
         const captionParts = [];
-        captionParts.push(`${escapeHtml(video.url)}`);
-        captionParts.push('');
         if (video.channelName || video.channelId) {
-            const href = video.channelUrl
-                ? video.channelUrl
-                : video.channelId
-                    ? `https://www.youtube.com/${video.channelId}`
-                    : '';
             const channelLabel = video.channelName || video.channelId || '';
             const bold = `<b>${escapeHtml(channelLabel)}</b>`;
-            captionParts.push(href ? `📺 <a href="${escapeHtml(href)}">${bold}</a>` : `📺 ${bold}`);
+            captionParts.push(`📺 ${bold}`);
         }
         captionParts.push(`🎬 ${escapeHtml(displayTitle)}`);
         captionParts.push(`🕒 ${escapeHtml(publishedText)}`);
-        captionParts.push('');
         if (hasTitle) {
             const tiktokSearchUrl = `https://www.tiktok.com/search?q=${encodeURIComponent(cleaned)}`;
             captionParts.push(`🔎 <a href="${tiktokSearchUrl}">Tìm trên TikTok</a>`);
         }
+        captionParts.push(`🔗 Youtube: ${escapeHtml(video.url)}`);
         const caption = captionParts.join('\n');
         try {
             const apiUrl = (0, constants_1.TELEGRAM_SEND_MESSAGE_URL)(botToken);
@@ -65,7 +58,6 @@ let TelegramBotService = class TelegramBotService {
                 chat_id: groupId,
                 text: caption,
                 parse_mode: 'HTML',
-                disable_web_page_preview: false,
             });
         }
         catch (error) {
