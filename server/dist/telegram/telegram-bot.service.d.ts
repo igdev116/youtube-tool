@@ -3,6 +3,8 @@ export declare class TelegramBotService {
         title: string;
         url: string;
         channelId?: string;
+        channelName?: string;
+        channelUrl?: string;
         thumbnail: string;
         publishedAt: string;
     }, botToken: string): Promise<void>;

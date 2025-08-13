@@ -32,6 +32,39 @@ let UserController = class UserController {
             result: profile,
         };
     }
+    async getFavorites(req) {
+        const user = req.user;
+        const userId = user.sub;
+        const list = await this.userService.getFavoriteChannels(userId);
+        return {
+            success: true,
+            statusCode: 200,
+            message: 'Lấy danh sách kênh yêu thích thành công',
+            result: list,
+        };
+    }
+    async addFavorite(req, body) {
+        const user = req.user;
+        const userId = user.sub;
+        const updated = await this.userService.addFavoriteChannel(userId, body.channelId);
+        return {
+            success: true,
+            statusCode: 200,
+            message: 'Đã thêm kênh vào yêu thích',
+            result: updated?.favoriteChannelIds ?? [],
+        };
+    }
+    async removeFavorite(req, channelId) {
+        const user = req.user;
+        const userId = user.sub;
+        const updated = await this.userService.removeFavoriteChannel(userId, channelId);
+        return {
+            success: true,
+            statusCode: 200,
+            message: 'Đã xoá kênh khỏi yêu thích',
+            result: updated?.favoriteChannelIds ?? [],
+        };
+    }
 };
 exports.UserController = UserController;
 __decorate([
@@ -42,6 +75,32 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "getProfile", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.Get)('favorites'),
+    __param(0, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], UserController.prototype, "getFavorites", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.Post)('favorites'),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], UserController.prototype, "addFavorite", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.Delete)('favorites'),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Query)('channelId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:returntype", Promise)
+], UserController.prototype, "removeFavorite", null);
 exports.UserController = UserController = __decorate([
     (0, common_1.Controller)('user'),
     __metadata("design:paramtypes", [user_service_1.UserService])

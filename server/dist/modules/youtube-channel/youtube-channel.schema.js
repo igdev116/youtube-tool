@@ -9,7 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.YoutubeChannelSchema = exports.YoutubeChannel = exports.ChannelErrorType = void 0;
+exports.YoutubeChannelSchema = exports.YoutubeChannel = exports.YoutubeChannelSort = exports.ChannelErrorType = void 0;
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 const user_schema_1 = require("../../user/user.schema");
@@ -21,6 +21,12 @@ var ChannelErrorType;
     ChannelErrorType["RATE_LIMIT_ERROR"] = "RATE_LIMIT_ERROR";
     ChannelErrorType["SHORT_NOT_FOUND"] = "SHORT_NOT_FOUND";
 })(ChannelErrorType || (exports.ChannelErrorType = ChannelErrorType = {}));
+var YoutubeChannelSort;
+(function (YoutubeChannelSort) {
+    YoutubeChannelSort["NEWEST_UPLOAD"] = "NEWEST_UPLOAD";
+    YoutubeChannelSort["OLDEST_CHANNEL"] = "OLDEST_CHANNEL";
+    YoutubeChannelSort["NEWEST_CHANNEL"] = "NEWEST_CHANNEL";
+})(YoutubeChannelSort || (exports.YoutubeChannelSort = YoutubeChannelSort = {}));
 let YoutubeChannel = class YoutubeChannel {
     channelId;
     xmlChannelId;

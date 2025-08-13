@@ -10,6 +10,11 @@ export declare enum ChannelErrorType {
     RATE_LIMIT_ERROR = "RATE_LIMIT_ERROR",
     SHORT_NOT_FOUND = "SHORT_NOT_FOUND"
 }
+export declare enum YoutubeChannelSort {
+    NEWEST_UPLOAD = "NEWEST_UPLOAD",
+    OLDEST_CHANNEL = "OLDEST_CHANNEL",
+    NEWEST_CHANNEL = "NEWEST_CHANNEL"
+}
 export declare class YoutubeChannel {
     channelId: string;
     xmlChannelId: string;

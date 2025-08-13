@@ -12,7 +12,7 @@ export const channelService = {
   getChannels: (
     params: GetChannelParams
   ): Promise<PagingResponse<ChannelListItem>> =>
-    axiosInstance.get('/channel/list', { params }),
+    axiosInstance.post('/channel/list', params),
   deleteChannel: (channelId: string): Promise<BaseResponse<any>> =>
     axiosInstance.delete(`/channel/${channelId}`),
   toggleChannel: (channelId: string): Promise<BaseResponse<ChannelListItem>> =>

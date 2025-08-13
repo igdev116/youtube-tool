@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { ROUTES, LS_KEYS } from '../constants';
 
 const axiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000',
@@ -11,7 +12,7 @@ const axiosInstance = axios.create({
 // Add accessToken to Authorization header if exists
 axiosInstance.interceptors.request.use((config) => {
   if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('accessToken');
+    const token = localStorage.getItem(LS_KEYS.ACCESS_TOKEN);
     if (token) {
       config.headers = config.headers || {};
       config.headers['Authorization'] = `Bearer ${token}`;
@@ -29,17 +30,20 @@ axiosInstance.interceptors.response.use(
       response.data?.result?.accessToken
     ) {
       if (typeof window !== 'undefined') {
-        localStorage.setItem('accessToken', response.data.result.accessToken);
+        localStorage.setItem(
+          LS_KEYS.ACCESS_TOKEN,
+          response.data.result.accessToken
+        );
       }
     }
     return response.data;
   },
   (error) => {
-    // Xử lý 401 Unauthorized
-    if (error.response?.status === 401) {
-      if (typeof window !== 'undefined') {
-        // Xóa token
-        localStorage.removeItem('accessToken');
+    // Xử lý 401 Unauthorized: xoá token và redirect ngay về login
+    if (error?.response?.status === 401 && typeof window !== 'undefined') {
+      localStorage.removeItem(LS_KEYS.ACCESS_TOKEN);
+      if (window.location.pathname !== ROUTES.LOGIN.INDEX) {
+        window.location.replace(ROUTES.LOGIN.INDEX);
       }
     }
     return Promise.reject(error);

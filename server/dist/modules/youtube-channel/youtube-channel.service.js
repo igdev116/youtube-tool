@@ -26,16 +26,19 @@ const dayjs = require("dayjs");
 const utc = require("dayjs/plugin/utc");
 const timezone = require("dayjs/plugin/timezone");
 const youtube_websub_service_1 = require("../websub/youtube-websub.service");
+const user_service_1 = require("../../user/user.service");
 const constants_1 = require("../../constants");
 dayjs.extend(utc);
 dayjs.extend(timezone);
 let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelService {
     channelModel;
     websubService;
+    userService;
     logger = new common_1.Logger(YoutubeChannelService_1.name);
-    constructor(channelModel, websubService) {
+    constructor(channelModel, websubService, userService) {
         this.channelModel = channelModel;
         this.websubService = websubService;
+        this.userService = userService;
     }
     async addChannelError(channel, errorType) {
         const updateData = {};
@@ -117,12 +120,34 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
         }));
         await Promise.all(tasks);
     }
-    async getUserChannelsWithPagination(userId, page, limit, keyword) {
+    async getUserChannelsWithPagination(userId, page, limit, keyword, sortKey, favoriteOnly) {
         const filter = { user: userId };
         if (keyword) {
             filter.channelId = { $regex: keyword, $options: 'i' };
         }
-        return (0, pagination_util_1.paginateWithPage)(this.channelModel, filter, page, limit, { _id: 1 });
+        if (favoriteOnly) {
+            const favoriteIds = await this.userService.getFavoriteChannels(userId);
+            const validObjectIds = (favoriteIds || [])
+                .filter((id) => mongoose_2.Types.ObjectId.isValid(id))
+                .map((id) => new mongoose_2.Types.ObjectId(id));
+            if (validObjectIds.length === 0) {
+                return (0, pagination_util_1.paginateWithPage)(this.channelModel, { _id: { $in: [] } }, page, limit, this.mapSort(sortKey));
+            }
+            filter._id = { $in: validObjectIds };
+        }
+        const sort = this.mapSort(sortKey);
+        return (0, pagination_util_1.paginateWithPage)(this.channelModel, filter, page, limit, sort);
+    }
+    mapSort(sortKey) {
+        switch (sortKey) {
+            case youtube_channel_schema_1.YoutubeChannelSort.NEWEST_UPLOAD:
+                return { lastVideoAt: -1, _id: -1 };
+            case youtube_channel_schema_1.YoutubeChannelSort.OLDEST_CHANNEL:
+                return { _id: 1 };
+            case youtube_channel_schema_1.YoutubeChannelSort.NEWEST_CHANNEL:
+            default:
+                return { _id: -1 };
+        }
     }
     async deleteChannelById(userId, id) {
         const deleted = await this.channelModel.findOneAndDelete({
@@ -186,6 +211,7 @@ exports.YoutubeChannelService = YoutubeChannelService = YoutubeChannelService_1 
     (0, common_1.Injectable)(),
     __param(0, (0, mongoose_1.InjectModel)(youtube_channel_schema_1.YoutubeChannel.name)),
     __metadata("design:paramtypes", [mongoose_2.Model,
-        youtube_websub_service_1.YoutubeWebsubService])
+        youtube_websub_service_1.YoutubeWebsubService,
+        user_service_1.UserService])
 ], YoutubeChannelService);
 //# sourceMappingURL=youtube-channel.service.js.map

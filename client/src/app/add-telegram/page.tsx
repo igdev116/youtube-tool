@@ -23,8 +23,8 @@ const AddTelegramPage = () => {
       setIsEditing(false);
     }
     if (profile?.botToken) {
-      setBotToken(profile.botToken);
       setIsEditingToken(false);
+      setBotToken('');
     }
   }, [profile?.telegramGroupId, profile?.botToken]);
 
@@ -75,6 +75,7 @@ const AddTelegramPage = () => {
           if (res.success) {
             toastSuccess('Cập nhật Bot Token thành công!');
             setIsEditingToken(false);
+            setBotToken('');
           } else {
             toastError(res.message || 'Cập nhật Bot Token thất bại!');
           }
@@ -90,7 +91,7 @@ const AddTelegramPage = () => {
 
   const handleCancelBotToken = () => {
     setIsEditingToken(false);
-    setBotToken(profile?.botToken || '');
+    setBotToken('');
   };
 
   return (
@@ -156,13 +157,17 @@ const AddTelegramPage = () => {
           onSubmit={handleUpdateBotToken}
           className='flex items-center gap-2 justify-center'>
           <Input.Password
-            placeholder='Bot Token Telegram'
-            value={botToken}
+            placeholder={
+              !isEditingToken && profile?.botToken
+                ? '******** (đã lưu)'
+                : 'Bot Token Telegram'
+            }
+            value={isEditingToken ? botToken : ''}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
               setBotToken(e.target.value)
             }
             className='h-10 min-w-80'
-            visibilityToggle
+            visibilityToggle={isEditingToken}
             disabled={updateBotTokenMutation.isPending || !isEditingToken}
           />
           {!isEditingToken ? (

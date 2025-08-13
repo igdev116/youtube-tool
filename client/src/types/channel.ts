@@ -24,4 +24,12 @@ export interface ChannelListItem {
 
 export interface GetChannelParams extends PagingParams {
   keyword?: string;
+  sort?: ChannelSortKey;
+  favoriteOnly?: boolean;
+}
+
+export enum ChannelSortKey {
+  NEWEST_UPLOAD = 'NEWEST_UPLOAD',
+  OLDEST_CHANNEL = 'OLDEST_CHANNEL',
+  NEWEST_CHANNEL = 'NEWEST_CHANNEL',
 }

@@ -38,6 +38,18 @@ let UserService = class UserService {
     async updateBotToken(userId, botToken) {
         return this.userModel.findByIdAndUpdate(userId, { botToken }, { new: true });
     }
+    async getFavoriteChannels(userId) {
+        const user = await this.userModel
+            .findById(userId)
+            .select('favoriteChannelIds');
+        return user?.favoriteChannelIds ?? [];
+    }
+    async addFavoriteChannel(userId, channelId) {
+        return this.userModel.findByIdAndUpdate(userId, { $addToSet: { favoriteChannelIds: channelId } }, { new: true });
+    }
+    async removeFavoriteChannel(userId, channelId) {
+        return this.userModel.findByIdAndUpdate(userId, { $pull: { favoriteChannelIds: channelId } }, { new: true });
+    }
 };
 exports.UserService = UserService;
 exports.UserService = UserService = __decorate([

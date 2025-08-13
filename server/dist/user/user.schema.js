@@ -16,6 +16,7 @@ let User = class User {
     password;
     telegramGroupId;
     botToken;
+    favoriteChannelIds;
 };
 exports.User = User;
 __decorate([
@@ -34,6 +35,10 @@ __decorate([
     (0, mongoose_1.Prop)({ required: false }),
     __metadata("design:type", String)
 ], User.prototype, "botToken", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: [String], default: [] }),
+    __metadata("design:type", Array)
+], User.prototype, "favoriteChannelIds", void 0);
 exports.User = User = __decorate([
     (0, mongoose_1.Schema)({ timestamps: true })
 ], User);

@@ -36,6 +36,16 @@ let TelegramBotService = class TelegramBotService {
         const displayTitle = hasTitle ? cleaned : 'Không có tiêu đề';
         const publishedText = dayjs(video.publishedAt).format('HH:mm:ss DD/MM/YYYY');
         const captionParts = [];
+        if (video.channelName || video.channelId) {
+            const href = video.channelUrl
+                ? video.channelUrl
+                : video.channelId
+                    ? `https://www.youtube.com/${video.channelId}`
+                    : '';
+            const channelLabel = video.channelName || video.channelId || '';
+            const bold = `<b>${escapeHtml(channelLabel)}</b>`;
+            captionParts.push(href ? `📺 <a href="${escapeHtml(href)}">${bold}</a>` : `📺 ${bold}`);
+        }
         captionParts.push(`🎬 ${escapeHtml(displayTitle)}`);
         captionParts.push(`🕒 ${escapeHtml(publishedText)}`);
         if (hasTitle) {

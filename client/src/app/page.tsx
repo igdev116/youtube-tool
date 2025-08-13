@@ -15,9 +15,11 @@ import {
   message,
   Tag,
   Tooltip,
+  Select,
 } from 'antd';
 import { useChannelService } from '../hooks/useChannelService';
 import type { ChannelListItem } from '../types/channel';
+import { ChannelSortKey } from '../types/channel';
 import { ChannelErrorType } from '../types/channel';
 import {
   DeleteOutlined,
@@ -25,12 +27,16 @@ import {
   PlusOutlined,
   CopyOutlined,
   LinkOutlined,
+  StarOutlined,
+  StarFilled,
 } from '@ant-design/icons';
 import { toastSuccess, toastError } from '../utils/toast';
 import * as XLSX from 'xlsx';
 import dayjs from 'dayjs';
 import debounce from 'lodash/debounce';
 import { TOOLTIP_MESSAGES } from '../constants';
+import { useUserService } from '../hooks/useUserService';
+import { useUserStore } from '../store/userStore';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/vi';
 
@@ -55,18 +61,25 @@ const HomePage = () => {
   const [pageSize, setPageSize] = React.useState(10);
   const [search, setSearch] = React.useState('');
   const [keyword, setKeyword] = React.useState('');
+  const [sort, setSort] = React.useState<ChannelSortKey>(
+    ChannelSortKey.NEWEST_CHANNEL
+  );
 
   // Selected rows state
   const [selectedRowKeys, setSelectedRowKeys] = React.useState<React.Key[]>([]);
   const [selectedRows, setSelectedRows] = React.useState<ChannelListItem[]>([]);
 
+  const [showFavoritesOnly, setShowFavoritesOnly] = React.useState(false);
   const channelsQuery = useQueryGetListChannels({
     page: currentPage,
     limit: pageSize,
     keyword: keyword || undefined,
+    sort,
+    favoriteOnly: showFavoritesOnly || undefined,
   });
   const data: ChannelListItem[] = channelsQuery.data?.result?.content || [];
   const total = channelsQuery.data?.result?.paging?.total || 0;
+  const hasAnyChannels = total > 0;
 
   // Modal state
   const [open, setOpen] = React.useState(false);
@@ -88,7 +101,7 @@ const HomePage = () => {
     }
   };
 
-  const handleToggleChannel = (channelId: string, currentStatus: boolean) => {
+  const handleToggleChannel = (channelId: string) => {
     toggleChannelMutation.mutate(channelId, {
       onSuccess: (res) => {
         if (res.success) {
@@ -223,6 +236,10 @@ const HomePage = () => {
     },
     preserveSelectedRowKeys: true,
   };
+
+  const { addFavoriteMutation, removeFavoriteMutation } = useUserService();
+  const profileStore = useUserStore((s) => s.profile);
+  const favoriteIds: string[] = profileStore?.favoriteChannelIds || [];
 
   const columns = [
     {
@@ -378,7 +395,7 @@ const HomePage = () => {
         const switchComponent = (
           <Switch
             checked={isActive}
-            onChange={() => handleToggleChannel(record._id, isActive)}
+            onChange={() => handleToggleChannel(record._id)}
             disabled={hasErrors}
             loading={
               toggleChannelMutation.isPending &&
@@ -406,19 +423,46 @@ const HomePage = () => {
       title: '',
       key: 'action',
       align: 'center' as const,
-      width: 60,
-      render: (_: any, record: ChannelListItem) => (
-        <Button
-          danger
-          type='text'
-          icon={<DeleteOutlined />}
-          onClick={() => handleDelete(record._id)}
-          loading={
-            deleteChannelMutation.isPending &&
-            deleteChannelMutation.variables === record._id
-          }
-        />
-      ),
+      width: 100,
+      render: (_: any, record: ChannelListItem) => {
+        const isFav = favoriteIds.includes(record._id);
+        const isLoading =
+          addFavoriteMutation.isPending || removeFavoriteMutation.isPending;
+
+        return (
+          <div className='flex items-center gap-2'>
+            <Button
+              type='text'
+              className='h-8 w-8 flex items-center justify-center'
+              onClick={() => {
+                if (isFav) {
+                  removeFavoriteMutation.mutate(record._id);
+                } else {
+                  addFavoriteMutation.mutate(record._id);
+                }
+              }}
+              loading={isLoading}
+              icon={
+                isFav ? (
+                  <StarFilled className='text-yellow-300' />
+                ) : (
+                  <StarOutlined className='text-gray-400' />
+                )
+              }
+            />
+            <Button
+              danger
+              type='text'
+              icon={<DeleteOutlined />}
+              onClick={() => handleDelete(record._id)}
+              loading={
+                deleteChannelMutation.isPending &&
+                deleteChannelMutation.variables === record._id
+              }
+            />
+          </div>
+        );
+      },
     },
   ];
 
@@ -475,7 +519,34 @@ const HomePage = () => {
             Danh sách kênh Youtube{' '}
             <span className='text-primary'>({total} kênh)</span>
           </h2>
-          <div className='flex gap-2'>
+          <div className='flex gap-2 items-center'>
+            <div className='flex items-center gap-2'>
+              <span className='text-sm'>Sắp xếp theo:</span>
+              <Select
+                value={sort}
+                onChange={(val) => {
+                  setSort(val as ChannelSortKey);
+                  setCurrentPage(1);
+                }}
+                options={[
+                  {
+                    label: 'Kênh vừa đăng video',
+                    value: ChannelSortKey.NEWEST_UPLOAD,
+                  },
+                  {
+                    label: 'Kênh mới nhất',
+                    value: ChannelSortKey.NEWEST_CHANNEL,
+                  },
+                  {
+                    label: 'Kênh cũ nhất',
+                    value: ChannelSortKey.OLDEST_CHANNEL,
+                  },
+                ]}
+                className='min-w-48'
+                size='middle'
+                disabled={!hasAnyChannels}
+              />
+            </div>
             <Button
               danger
               onClick={() => {
@@ -497,7 +568,8 @@ const HomePage = () => {
                     }
                   },
                 });
-              }}>
+              }}
+              disabled={data.length === 0 || channelsQuery.isLoading}>
               Xoá toàn bộ
             </Button>
             {selectedRowKeys.length > 0 && (
@@ -515,17 +587,28 @@ const HomePage = () => {
           </div>
         </div>
         <div>
-          <Input.Search
-            placeholder='Tìm kiếm kênh Youtube...'
-            allowClear
-            value={search}
-            onChange={handleSearchChange}
-            className='max-w-xs'
-          />
+          <div className='flex items-center gap-4'>
+            <Input.Search
+              placeholder='Tìm kiếm kênh Youtube...'
+              allowClear
+              value={search}
+              onChange={handleSearchChange}
+              className='max-w-xs'
+              disabled={!hasAnyChannels}
+            />
+            <Checkbox
+              checked={showFavoritesOnly}
+              onChange={(e) => {
+                setShowFavoritesOnly(e.target.checked);
+                setCurrentPage(1);
+              }}>
+              Chỉ hiển thị kênh yêu thích
+            </Checkbox>
+          </div>
         </div>
       </div>
       <Table
-        rowSelection={rowSelection}
+        rowSelection={hasAnyChannels ? rowSelection : undefined}
         columns={columns}
         dataSource={data.map((item) => ({ ...item, key: item._id }))}
         loading={channelsQuery.isLoading}
@@ -536,7 +619,17 @@ const HomePage = () => {
       />
       <Modal
         open={open}
-        onCancel={() => setOpen(false)}
+        onCancel={() => {
+          form.resetFields();
+          setChannelCount(1);
+          setExcelLoading(false);
+          if (fileInputRef.current) {
+            // Clear selected file
+            // @ts-ignore
+            fileInputRef.current.value = '';
+          }
+          setOpen(false);
+        }}
         title='Thêm kênh Youtube'
         footer={
           <Button
@@ -599,7 +692,8 @@ const HomePage = () => {
                               required: true,
                               message: 'Vui lòng nhập link kênh!',
                             },
-                          ]}>
+                          ]}
+                          className='mb-0'>
                           <Input
                             placeholder='Link kênh Youtube'
                             className='h-10'
@@ -632,14 +726,15 @@ const HomePage = () => {
                           {...restField}
                           name={[name, 'isActive']}
                           valuePropName='checked'
-                          initialValue={true}>
+                          initialValue={true}
+                          className='mb-0'>
                           <Switch
                             checkedChildren='Bật'
                             unCheckedChildren='Tắt'
                           />
                         </Form.Item>
                       </Col>
-                      <Col>
+                      <Col className='flex items-center'>
                         {fields.length > 1 && (
                           <Button
                             danger
@@ -647,7 +742,6 @@ const HomePage = () => {
                             icon={<DeleteOutlined />}
                             onClick={() => {
                               remove(name);
-                              setChannelCount(fields.length - 1);
                               setTimeout(scrollToBottom, 100);
                             }}
                             className='flex items-center justify-center h-10'

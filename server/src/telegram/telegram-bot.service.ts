@@ -17,6 +17,8 @@ export class TelegramBotService {
       title: string;
       url: string;
       channelId?: string;
+      channelName?: string;
+      channelUrl?: string;
       thumbnail: string;
       publishedAt: string; // ISO string (đã luôn có)
     },
@@ -53,6 +55,19 @@ export class TelegramBotService {
     );
 
     const captionParts: string[] = [];
+    // Kênh in đậm ở đầu (ưu tiên tên kênh)
+    if (video.channelName || video.channelId) {
+      const href = video.channelUrl
+        ? video.channelUrl
+        : video.channelId
+          ? `https://www.youtube.com/${video.channelId}`
+          : '';
+      const channelLabel = video.channelName || video.channelId || '';
+      const bold = `<b>${escapeHtml(channelLabel)}</b>`;
+      captionParts.push(
+        href ? `📺 <a href="${escapeHtml(href)}">${bold}</a>` : `📺 ${bold}`,
+      );
+    }
     captionParts.push(`🎬 ${escapeHtml(displayTitle)}`);
     captionParts.push(`🕒 ${escapeHtml(publishedText)}`);
 

@@ -1,10 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { FilterQuery, Model, UpdateQuery } from 'mongoose';
+import { FilterQuery, Model, UpdateQuery, Types } from 'mongoose';
 import {
   YoutubeChannel,
   YoutubeChannelDocument,
   ChannelErrorType,
+  YoutubeChannelSort,
 } from './youtube-channel.schema';
 import {
   extractXmlChannelIdFromUrl,
@@ -18,6 +19,7 @@ import * as dayjs from 'dayjs';
 import * as utc from 'dayjs/plugin/utc';
 import * as timezone from 'dayjs/plugin/timezone';
 import { YoutubeWebsubService } from '../websub/youtube-websub.service';
+import { UserService } from '../../user/user.service';
 import { YT_FEED_BASE } from '../../constants';
 
 dayjs.extend(utc);
@@ -31,6 +33,7 @@ export class YoutubeChannelService {
     @InjectModel(YoutubeChannel.name)
     private readonly channelModel: Model<YoutubeChannelDocument>,
     private readonly websubService: YoutubeWebsubService,
+    private readonly userService: UserService,
   ) {}
 
   private async addChannelError(
@@ -141,18 +144,50 @@ export class YoutubeChannelService {
     page: number,
     limit: number,
     keyword?: string,
+    sortKey?: YoutubeChannelSort,
+    favoriteOnly?: boolean,
   ) {
     const filter: FilterQuery<YoutubeChannelDocument> = { user: userId };
     if (keyword) {
       filter.channelId = { $regex: keyword, $options: 'i' } as any;
     }
+    if (favoriteOnly) {
+      const favoriteIds = await this.userService.getFavoriteChannels(userId);
+      const validObjectIds = (favoriteIds || [])
+        .filter((id: string) => Types.ObjectId.isValid(id))
+        .map((id: string) => new Types.ObjectId(id));
+      if (validObjectIds.length === 0) {
+        return paginateWithPage<YoutubeChannelDocument>(
+          this.channelModel,
+          { _id: { $in: [] } } as any,
+          page,
+          limit,
+          this.mapSort(sortKey),
+        );
+      }
+      (filter as any)._id = { $in: validObjectIds } as any;
+    }
+    // sort mapping
+    const sort: Record<string, 1 | -1> = this.mapSort(sortKey);
     return paginateWithPage<YoutubeChannelDocument>(
       this.channelModel,
       filter,
       page,
       limit,
-      { _id: 1 },
+      sort,
     );
+  }
+
+  private mapSort(sortKey?: YoutubeChannelSort): Record<string, 1 | -1> {
+    switch (sortKey) {
+      case YoutubeChannelSort.NEWEST_UPLOAD:
+        return { lastVideoAt: -1, _id: -1 };
+      case YoutubeChannelSort.OLDEST_CHANNEL:
+        return { _id: 1 };
+      case YoutubeChannelSort.NEWEST_CHANNEL:
+      default:
+        return { _id: -1 };
+    }
   }
 
   async deleteChannelById(userId: string, id: string) {

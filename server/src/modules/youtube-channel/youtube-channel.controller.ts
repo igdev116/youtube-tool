@@ -4,8 +4,6 @@ import {
   Body,
   Req,
   UseGuards,
-  Get,
-  Query,
   Delete,
   Param,
   Patch,
@@ -13,9 +11,11 @@ import {
 import { YoutubeChannelService } from './youtube-channel.service';
 import { BulkChannelDto } from './dto/bulk-channel.dto';
 import { BaseResponse } from '../../types/common.type';
+import { GetChannelsDto } from './dto/get-channels.dto';
 
 import { Request } from 'express';
 import { JwtAuthGuard } from '~/auth/jwt-auth.guard';
+import { YoutubeChannelSort } from './youtube-channel.schema';
 
 interface JwtUser {
   sub: string;
@@ -52,23 +52,23 @@ export class YoutubeChannelController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get('list')
+  @Post('list')
   async getUserChannels(
     @Req() req: Request,
-    @Query('page') page: string,
-    @Query('limit') limit: string,
-    @Query('keyword') keyword?: string,
+    @Body() body: GetChannelsDto,
   ): Promise<BaseResponse<any>> {
     const user = req.user as JwtUser;
     const userId = user.sub;
-    const pageNum = Number(page) || 1;
-    const pageSize = Number(limit) || 10;
+    const pageNum = Number(body.page) || 1;
+    const pageSize = Number(body.limit) || 10;
     const pagingResult =
       await this.channelService.getUserChannelsWithPagination(
         userId,
         pageNum,
         pageSize,
-        keyword,
+        body.keyword,
+        body.sort as YoutubeChannelSort,
+        !!body.favoriteOnly,
       );
     return {
       success: true,

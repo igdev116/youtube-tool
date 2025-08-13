@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.YoutubeChannelController = void 0;
 const common_1 = require("@nestjs/common");
 const youtube_channel_service_1 = require("./youtube-channel.service");
+const get_channels_dto_1 = require("./dto/get-channels.dto");
 const jwt_auth_guard_1 = require("../../auth/jwt-auth.guard");
 let YoutubeChannelController = class YoutubeChannelController {
     channelService;
@@ -40,12 +41,12 @@ let YoutubeChannelController = class YoutubeChannelController {
             result: result.docs,
         };
     }
-    async getUserChannels(req, page, limit, keyword) {
+    async getUserChannels(req, body) {
         const user = req.user;
         const userId = user.sub;
-        const pageNum = Number(page) || 1;
-        const pageSize = Number(limit) || 10;
-        const pagingResult = await this.channelService.getUserChannelsWithPagination(userId, pageNum, pageSize, keyword);
+        const pageNum = Number(body.page) || 1;
+        const pageSize = Number(body.limit) || 10;
+        const pagingResult = await this.channelService.getUserChannelsWithPagination(userId, pageNum, pageSize, body.keyword, body.sort, !!body.favoriteOnly);
         return {
             success: true,
             statusCode: 200,
@@ -115,13 +116,11 @@ __decorate([
 ], YoutubeChannelController.prototype, "addChannelsBulk", null);
 __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
-    (0, common_1.Get)('list'),
+    (0, common_1.Post)('list'),
     __param(0, (0, common_1.Req)()),
-    __param(1, (0, common_1.Query)('page')),
-    __param(2, (0, common_1.Query)('limit')),
-    __param(3, (0, common_1.Query)('keyword')),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, String, String, String]),
+    __metadata("design:paramtypes", [Object, get_channels_dto_1.GetChannelsDto]),
     __metadata("design:returntype", Promise)
 ], YoutubeChannelController.prototype, "getUserChannels", null);
 __decorate([

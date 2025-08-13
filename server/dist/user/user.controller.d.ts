@@ -13,4 +13,24 @@ export declare class UserController {
             __v: number;
         }) | null;
     }>;
+    getFavorites(req: Request): Promise<{
+        success: boolean;
+        statusCode: number;
+        message: string;
+        result: string[];
+    }>;
+    addFavorite(req: Request, body: {
+        channelId: string;
+    }): Promise<{
+        success: boolean;
+        statusCode: number;
+        message: string;
+        result: string[];
+    }>;
+    removeFavorite(req: Request, channelId: string): Promise<{
+        success: boolean;
+        statusCode: number;
+        message: string;
+        result: string[];
+    }>;
 }

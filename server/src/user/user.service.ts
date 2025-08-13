@@ -35,4 +35,27 @@ export class UserService {
       { new: true },
     );
   }
+
+  async getFavoriteChannels(userId: string) {
+    const user = await this.userModel
+      .findById(userId)
+      .select('favoriteChannelIds');
+    return user?.favoriteChannelIds ?? [];
+  }
+
+  async addFavoriteChannel(userId: string, channelId: string) {
+    return this.userModel.findByIdAndUpdate(
+      userId,
+      { $addToSet: { favoriteChannelIds: channelId } },
+      { new: true },
+    );
+  }
+
+  async removeFavoriteChannel(userId: string, channelId: string) {
+    return this.userModel.findByIdAndUpdate(
+      userId,
+      { $pull: { favoriteChannelIds: channelId } },
+      { new: true },
+    );
+  }
 }

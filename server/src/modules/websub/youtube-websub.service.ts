@@ -65,6 +65,15 @@ export class YoutubeWebsubService {
         const title = this.extractTag(entry, 'title') || '';
         const publishedAt = this.extractTag(entry, 'published') || '';
         const thumbnail = YT_THUMBNAIL_HQ(videoId || '');
+        // Extract author info (channel name and uri)
+        const authorBlockMatch = entry.match(/<author[\s\S]*?<\/author>/);
+        const authorBlock = authorBlockMatch ? authorBlockMatch[0] : '';
+        const channelName = authorBlock
+          ? this.extractTag(authorBlock, 'name') || ''
+          : '';
+        const channelUrl = authorBlock
+          ? this.extractTag(authorBlock, 'uri') || ''
+          : '';
 
         if (!videoId || !xmlChannelId) continue;
 
@@ -88,6 +97,8 @@ export class YoutubeWebsubService {
                 title,
                 url: `${YT_WATCH_BASE}${videoId}`,
                 channelId: ch.channelId,
+                channelName,
+                channelUrl,
                 thumbnail,
                 publishedAt,
               },

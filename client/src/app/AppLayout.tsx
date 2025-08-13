@@ -65,6 +65,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // Persist dismissible alert
+  const [showSecurityAlert, setShowSecurityAlert] = React.useState(true);
+  React.useEffect(() => {
+    const hidden = localStorage.getItem('hide_security_alert');
+    if (hidden === '1') setShowSecurityAlert(false);
+  }, []);
+
+  const onCloseSecurityAlert = () => {
+    setShowSecurityAlert(false);
+    localStorage.setItem('hide_security_alert', '1');
+  };
+
   return (
     <html lang='en'>
       <head>
@@ -97,13 +109,30 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                       <div className='h-16 flex items-center justify-center font-bold text-2xl tracking-wide text-blue-500'>
                         RoomBees
                       </div>
+
                       <Menu
                         mode='inline'
                         selectedKeys={[pathname]}
-                        className='border-r-0 text-base flex-1'
+                        className='border-r-0 text-base flex-1 mt-2'
                         items={menuItems}
                         onClick={({ key }) => router.push(key)}
                       />
+                      {showSecurityAlert && (
+                        <div className='px-3 pt-2'>
+                          <Alert
+                            type='warning'
+                            closable
+                            onClose={onCloseSecurityAlert}
+                            className='px-2 py-2 text-sm'
+                            message={
+                              <span className='font-semibold'>
+                                Thông tin của bạn luôn được bảo mật
+                              </span>
+                            }
+                            description='Bot Token và nhóm Telegram chỉ được dùng để gửi tin nhắn từ tài khoản của bạn. Dữ liệu được bảo vệ và không chia sẻ với bên thứ ba.'
+                          />
+                        </div>
+                      )}
                       <div className='p-4 border-t border-gray-100'>
                         <button
                           onClick={handleLogout}
@@ -117,26 +146,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 )}
                 <Layout>
                   <Content
-                    className={`min-h-screen ${shouldShowSidebar ? 'bg-gray-50' : 'bg-white'}`}>
-                    <div className={shouldShowSidebar ? 'pb-8' : ''}>
-                      {shouldShowSidebar && (
-                        <div className='mx-auto px-4 pt-4'>
-                          <Alert
-                            type='warning'
-                            showIcon
-                            closable
-                            className='px-4 py-3'
-                            message={
-                              <span className='font-semibold'>
-                                Thông tin của bạn được bảo mật
-                              </span>
-                            }
-                            description='Bot Token và nhóm Telegram chỉ được dùng để gửi tin nhắn từ tài khoản của bạn. Dữ liệu được bảo vệ và không chia sẻ với bên thứ ba.'
-                          />
-                        </div>
-                      )}
-                      {renderContent()}
-                    </div>
+                    className={`h-screen overflow-hidden ${shouldShowSidebar ? 'bg-gray-50' : 'bg-white'}`}>
+                    <div>{renderContent()}</div>
                   </Content>
                 </Layout>
               </Layout>

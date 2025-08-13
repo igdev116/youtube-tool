@@ -16,6 +16,9 @@ export class User {
 
   @Prop({ required: false })
   botToken: string;
+
+  @Prop({ type: [String], default: [] })
+  favoriteChannelIds: string[];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

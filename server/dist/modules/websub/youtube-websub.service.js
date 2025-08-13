@@ -61,6 +61,14 @@ let YoutubeWebsubService = YoutubeWebsubService_1 = class YoutubeWebsubService {
                 const title = this.extractTag(entry, 'title') || '';
                 const publishedAt = this.extractTag(entry, 'published') || '';
                 const thumbnail = (0, constants_1.YT_THUMBNAIL_HQ)(videoId || '');
+                const authorBlockMatch = entry.match(/<author[\s\S]*?<\/author>/);
+                const authorBlock = authorBlockMatch ? authorBlockMatch[0] : '';
+                const channelName = authorBlock
+                    ? this.extractTag(authorBlock, 'name') || ''
+                    : '';
+                const channelUrl = authorBlock
+                    ? this.extractTag(authorBlock, 'uri') || ''
+                    : '';
                 if (!videoId || !xmlChannelId)
                     continue;
                 const channels = await this.channelModel
@@ -78,6 +86,8 @@ let YoutubeWebsubService = YoutubeWebsubService_1 = class YoutubeWebsubService {
                             title,
                             url: `${constants_1.YT_WATCH_BASE}${videoId}`,
                             channelId: ch.channelId,
+                            channelName,
+                            channelUrl,
                             thumbnail,
                             publishedAt,
                         }, botToken);

@@ -13,6 +13,12 @@ export enum ChannelErrorType {
   SHORT_NOT_FOUND = 'SHORT_NOT_FOUND',
 }
 
+export enum YoutubeChannelSort {
+  NEWEST_UPLOAD = 'NEWEST_UPLOAD',
+  OLDEST_CHANNEL = 'OLDEST_CHANNEL',
+  NEWEST_CHANNEL = 'NEWEST_CHANNEL',
+}
+
 @Schema()
 export class YoutubeChannel {
   @Prop({ required: true, unique: true })

@@ -3,4 +3,5 @@ export interface UserProfile {
   username: string;
   telegramGroupId: string;
   botToken?: string;
+  favoriteChannelIds?: string[];
 }
