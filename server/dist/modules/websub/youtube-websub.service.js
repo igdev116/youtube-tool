@@ -21,6 +21,11 @@ const mongoose_2 = require("mongoose");
 const youtube_channel_schema_1 = require("../youtube-channel/youtube-channel.schema");
 const telegram_bot_service_1 = require("../../telegram/telegram-bot.service");
 const constants_1 = require("../../constants");
+const dayjs = require("dayjs");
+const utc = require("dayjs/plugin/utc");
+const timezone = require("dayjs/plugin/timezone");
+dayjs.extend(utc);
+dayjs.extend(timezone);
 let YoutubeWebsubService = YoutubeWebsubService_1 = class YoutubeWebsubService {
     channelModel;
     telegramBotService;
@@ -60,6 +65,9 @@ let YoutubeWebsubService = YoutubeWebsubService_1 = class YoutubeWebsubService {
                     this.extractTag(entry, 'yt:channelId');
                 const title = this.extractTag(entry, 'title') || '';
                 const publishedAt = this.extractTag(entry, 'published') || '';
+                const publishedAtVn = publishedAt
+                    ? dayjs.utc(publishedAt).tz('Asia/Ho_Chi_Minh').toISOString()
+                    : '';
                 const thumbnail = (0, constants_1.YT_THUMBNAIL_HQ)(videoId || '');
                 const authorBlockMatch = entry.match(/<author[\s\S]*?<\/author>/);
                 const authorBlock = authorBlockMatch ? authorBlockMatch[0] : '';
@@ -89,7 +97,7 @@ let YoutubeWebsubService = YoutubeWebsubService_1 = class YoutubeWebsubService {
                             channelName,
                             channelUrl,
                             thumbnail,
-                            publishedAt,
+                            publishedAt: publishedAtVn,
                         }, botToken);
                         await this.channelModel.updateOne({ _id: ch._id }, {
                             $set: {
