@@ -29,15 +29,20 @@ async function extractChannelDataFromUrl(url) {
     if (typeof vanityUrl === 'string' && vanityUrl.includes('youtube.com/')) {
         const afterDomain = vanityUrl.split('youtube.com/')[1];
         const channelId = decodeURI(afterDomain);
-        let avatar;
+        let avatarId;
         try {
-            avatar =
-                data?.metadata?.channelMetadataRenderer?.avatar?.thumbnails?.[0]?.url;
+            const avatarUrl = data?.metadata?.channelMetadataRenderer?.avatar?.thumbnails?.[0]?.url;
+            if (avatarUrl) {
+                const match = avatarUrl.match(/googleusercontent\.com\/([^=]+)=/);
+                if (match && match[1]) {
+                    avatarId = match[1];
+                }
+            }
         }
         catch (error) {
-            console.log('Error extracting avatar:', error);
+            console.log('Error extracting avatar ID:', error);
         }
-        return { channelId, avatar };
+        return { channelId, avatarId };
     }
     return null;
 }

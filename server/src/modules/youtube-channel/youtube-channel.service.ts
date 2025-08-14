@@ -87,7 +87,7 @@ export class YoutubeChannelService {
           return;
         }
 
-        const { channelId, avatar } = channelResult;
+        const { channelId, avatarId } = channelResult;
 
         const existingChannel = await this.channelModel.findOne({
           channelId,
@@ -115,11 +115,11 @@ export class YoutubeChannelService {
         }
 
         try {
-          // Sử dụng avatar từ channel metadata
+          // Sử dụng avatarId từ channel metadata
           await this.channelModel.create({
             channelId,
             xmlChannelId,
-            avatar,
+            avatarId,
             isActive: item.isActive ?? true,
             user: userId,
             ...(latestVideoId

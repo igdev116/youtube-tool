@@ -53,11 +53,12 @@ let TelegramBotService = class TelegramBotService {
         captionParts.push(`🔗 Youtube: ${escapeHtml(video.url)}`);
         const caption = captionParts.join('\n');
         try {
-            if (video.avatar) {
+            if (video.avatarId) {
                 const photoApiUrl = `https://api.telegram.org/bot${botToken}/sendPhoto`;
+                const avatarUrl = (0, constants_1.YT_AVATAR_URL)(video.avatarId, 'MEDIUM');
                 await axios_1.default.post(photoApiUrl, {
                     chat_id: groupId,
-                    photo: video.avatar,
+                    photo: avatarUrl,
                     caption: caption,
                     parse_mode: 'HTML',
                 });

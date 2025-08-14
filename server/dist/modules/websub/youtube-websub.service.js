@@ -96,7 +96,7 @@ let YoutubeWebsubService = YoutubeWebsubService_1 = class YoutubeWebsubService {
                             channelUrl,
                             thumbnail,
                             publishedAt,
-                            avatar: ch.avatar,
+                            avatarId: ch.avatarId,
                         }, botToken);
                         await this.channelModel.updateOne({ _id: ch._id }, {
                             $set: {

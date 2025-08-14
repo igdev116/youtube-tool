@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import axios from 'axios';
-import { TELEGRAM_SEND_MESSAGE_URL } from '../constants';
+import { TELEGRAM_SEND_MESSAGE_URL, YT_AVATAR_URL } from '../constants';
 import * as dayjs from 'dayjs';
 import * as utc from 'dayjs/plugin/utc';
 import * as timezone from 'dayjs/plugin/timezone';
@@ -21,7 +21,7 @@ export class TelegramBotService {
       channelUrl?: string;
       thumbnail: string;
       publishedAt: string; // ISO string (đã luôn có)
-      avatar?: string; // Avatar của channel
+      avatarId?: string; // Avatar ID của channel
     },
     botToken: string,
   ) {
@@ -77,12 +77,13 @@ export class TelegramBotService {
     const caption = captionParts.join('\n');
 
     try {
-      // Nếu có avatar, gửi ảnh với caption
-      if (video.avatar) {
+      // Nếu có avatarId, gửi ảnh với caption
+      if (video.avatarId) {
         const photoApiUrl = `https://api.telegram.org/bot${botToken}/sendPhoto`;
+        const avatarUrl = YT_AVATAR_URL(video.avatarId, 'MEDIUM'); // Sử dụng độ phân giải 800
         await axios.post(photoApiUrl, {
           chat_id: groupId,
-          photo: video.avatar,
+          photo: avatarUrl,
           caption: caption,
           parse_mode: 'HTML',
         });

@@ -19,7 +19,7 @@ export async function getYtInitialDataFromUrl(
 
 export async function extractChannelDataFromUrl(
   url: string,
-): Promise<{ channelId: string; avatar?: string } | null> {
+): Promise<{ channelId: string; avatarId?: string } | null> {
   const data = await getYtInitialDataFromUrl(url);
   if (!data) return null;
 
@@ -29,17 +29,27 @@ export async function extractChannelDataFromUrl(
     const afterDomain = vanityUrl.split('youtube.com/')[1];
     const channelId = decodeURI(afterDomain);
 
-    // Lấy avatar từ ytInitialData
-    let avatar: string | undefined;
+    // Lấy avatar ID từ ytInitialData
+    let avatarId: string | undefined;
     try {
-      // Lấy avatar từ metadata
-      avatar =
+      // Lấy avatar URL từ metadata
+      const avatarUrl =
         data?.metadata?.channelMetadataRenderer?.avatar?.thumbnails?.[0]?.url;
+
+      if (avatarUrl) {
+        // Trích xuất avatar ID từ URL
+        // Ví dụ: "https://yt3.googleusercontent.com/d5w0FTofgi58IngmeJZSVcVk8XaDSEIDJamLdAIDxeEB8ssHQRDz2FUjt7Ej6qB9ndQujxrT=s900-c-k-c0x00ffffff-no-rj"
+        // ID: "d5w0FTofgi58IngmeJZSVcVk8XaDSEIDJamLdAIDxeEB8ssHQRDz2FUjt7Ej6qB9ndQujxrT"
+        const match = avatarUrl.match(/googleusercontent\.com\/([^=]+)=/);
+        if (match && match[1]) {
+          avatarId = match[1];
+        }
+      }
     } catch (error) {
-      console.log('Error extracting avatar:', error);
+      console.log('Error extracting avatar ID:', error);
     }
 
-    return { channelId, avatar };
+    return { channelId, avatarId };
   }
   return null;
 }

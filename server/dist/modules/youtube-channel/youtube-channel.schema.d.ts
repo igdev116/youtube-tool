@@ -23,7 +23,7 @@ export declare class YoutubeChannel {
     user: Types.ObjectId | User;
     isActive: boolean;
     errors: ChannelErrorType[];
-    avatar?: string;
+    avatarId?: string;
 }
 export declare const YoutubeChannelSchema: import("mongoose").Schema<YoutubeChannel, import("mongoose").Model<YoutubeChannel, any, any, any, Document<unknown, any, YoutubeChannel, any> & YoutubeChannel & {
     _id: Types.ObjectId;

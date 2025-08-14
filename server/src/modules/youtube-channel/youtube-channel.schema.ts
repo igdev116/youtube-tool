@@ -43,7 +43,7 @@ export class YoutubeChannel {
   errors: ChannelErrorType[];
 
   @Prop({ required: false })
-  avatar?: string;
+  avatarId?: string;
 }
 
 export const YoutubeChannelSchema =

@@ -112,7 +112,7 @@ export class YoutubeWebsubService {
                 channelUrl,
                 thumbnail,
                 publishedAt,
-                avatar: ch.avatar, // Thêm avatar từ channel
+                avatarId: ch.avatarId, // Thêm avatarId từ channel
               },
               botToken,
             );

@@ -75,7 +75,7 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
             if (!channelResult) {
                 return;
             }
-            const { channelId, avatar } = channelResult;
+            const { channelId, avatarId } = channelResult;
             const existingChannel = await this.channelModel.findOne({
                 channelId,
                 user: userId,
@@ -103,7 +103,7 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
                 await this.channelModel.create({
                     channelId,
                     xmlChannelId,
-                    avatar,
+                    avatarId,
                     isActive: item.isActive ?? true,
                     user: userId,
                     ...(latestVideoId
