@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.extractFirstVideoFromYt = void 0;
 exports.getYtInitialDataFromUrl = getYtInitialDataFromUrl;
-exports.extractChannelIdFromUrl = extractChannelIdFromUrl;
+exports.extractChannelDataFromUrl = extractChannelDataFromUrl;
 exports.extractXmlChannelIdFromUrl = extractXmlChannelIdFromUrl;
 const axios_1 = require("axios");
 async function getYtInitialDataFromUrl(url) {
@@ -21,12 +21,23 @@ async function getYtInitialDataFromUrl(url) {
         return null;
     }
 }
-async function extractChannelIdFromUrl(url) {
+async function extractChannelDataFromUrl(url) {
     const data = await getYtInitialDataFromUrl(url);
+    if (!data)
+        return null;
     const vanityUrl = data?.metadata?.channelMetadataRenderer?.vanityChannelUrl;
     if (typeof vanityUrl === 'string' && vanityUrl.includes('youtube.com/')) {
         const afterDomain = vanityUrl.split('youtube.com/')[1];
-        return decodeURI(afterDomain);
+        const channelId = decodeURI(afterDomain);
+        let avatar;
+        try {
+            avatar =
+                data?.metadata?.channelMetadataRenderer?.avatar?.thumbnails?.[0]?.url;
+        }
+        catch (error) {
+            console.log('Error extracting avatar:', error);
+        }
+        return { channelId, avatar };
     }
     return null;
 }

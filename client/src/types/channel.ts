@@ -20,6 +20,7 @@ export interface ChannelListItem {
   user: string;
   _id: string;
   errors: ChannelErrorType[];
+  avatar?: string;
 }
 
 export interface GetChannelParams extends PagingParams {

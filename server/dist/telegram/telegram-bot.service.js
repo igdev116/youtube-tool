@@ -53,12 +53,23 @@ let TelegramBotService = class TelegramBotService {
         captionParts.push(`🔗 Youtube: ${escapeHtml(video.url)}`);
         const caption = captionParts.join('\n');
         try {
-            const apiUrl = (0, constants_1.TELEGRAM_SEND_MESSAGE_URL)(botToken);
-            await axios_1.default.post(apiUrl, {
-                chat_id: groupId,
-                text: caption,
-                parse_mode: 'HTML',
-            });
+            if (video.avatar) {
+                const photoApiUrl = `https://api.telegram.org/bot${botToken}/sendPhoto`;
+                await axios_1.default.post(photoApiUrl, {
+                    chat_id: groupId,
+                    photo: video.avatar,
+                    caption: caption,
+                    parse_mode: 'HTML',
+                });
+            }
+            else {
+                const apiUrl = (0, constants_1.TELEGRAM_SEND_MESSAGE_URL)(botToken);
+                await axios_1.default.post(apiUrl, {
+                    chat_id: groupId,
+                    text: caption,
+                    parse_mode: 'HTML',
+                });
+            }
         }
         catch (error) {
             console.log('error :', error);

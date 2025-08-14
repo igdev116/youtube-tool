@@ -21,6 +21,7 @@ export class TelegramBotService {
       channelUrl?: string;
       thumbnail: string;
       publishedAt: string; // ISO string (đã luôn có)
+      avatar?: string; // Avatar của channel
     },
     botToken: string,
   ) {
@@ -76,12 +77,24 @@ export class TelegramBotService {
     const caption = captionParts.join('\n');
 
     try {
-      const apiUrl = TELEGRAM_SEND_MESSAGE_URL(botToken);
-      await axios.post(apiUrl, {
-        chat_id: groupId,
-        text: caption,
-        parse_mode: 'HTML',
-      });
+      // Nếu có avatar, gửi ảnh với caption
+      if (video.avatar) {
+        const photoApiUrl = `https://api.telegram.org/bot${botToken}/sendPhoto`;
+        await axios.post(photoApiUrl, {
+          chat_id: groupId,
+          photo: video.avatar,
+          caption: caption,
+          parse_mode: 'HTML',
+        });
+      } else {
+        // Fallback về gửi text nếu không có avatar
+        const apiUrl = TELEGRAM_SEND_MESSAGE_URL(botToken);
+        await axios.post(apiUrl, {
+          chat_id: groupId,
+          text: caption,
+          parse_mode: 'HTML',
+        });
+      }
     } catch (error) {
       console.log('error :', error);
     }

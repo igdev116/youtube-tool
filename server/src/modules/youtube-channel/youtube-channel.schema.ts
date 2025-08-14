@@ -41,6 +41,9 @@ export class YoutubeChannel {
 
   @Prop({ type: [String], enum: Object.values(ChannelErrorType), default: [] })
   errors: ChannelErrorType[];
+
+  @Prop({ required: false })
+  avatar?: string;
 }
 
 export const YoutubeChannelSchema =

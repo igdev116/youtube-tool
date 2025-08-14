@@ -9,7 +9,7 @@ import {
 } from './youtube-channel.schema';
 import {
   extractXmlChannelIdFromUrl,
-  extractChannelIdFromUrl,
+  extractChannelDataFromUrl,
 } from './youtube-channel.utils';
 import { BulkChannelDto } from './dto/bulk-channel.dto';
 import { paginateWithPage } from '../../utils/pagination.util';
@@ -82,7 +82,12 @@ export class YoutubeChannelService {
         if (!xmlChannelId) {
           return;
         }
-        const channelId = await extractChannelIdFromUrl(item.link);
+        const channelResult = await extractChannelDataFromUrl(item.link);
+        if (!channelResult) {
+          return;
+        }
+
+        const { channelId, avatar } = channelResult;
 
         const existingChannel = await this.channelModel.findOne({
           channelId,
@@ -110,9 +115,11 @@ export class YoutubeChannelService {
         }
 
         try {
+          // Sử dụng avatar từ channel metadata
           await this.channelModel.create({
             channelId,
             xmlChannelId,
+            avatar,
             isActive: item.isActive ?? true,
             user: userId,
             ...(latestVideoId

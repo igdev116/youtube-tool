@@ -17,15 +17,29 @@ export async function getYtInitialDataFromUrl(
   }
 }
 
-export async function extractChannelIdFromUrl(
+export async function extractChannelDataFromUrl(
   url: string,
-): Promise<string | null> {
+): Promise<{ channelId: string; avatar?: string } | null> {
   const data = await getYtInitialDataFromUrl(url);
+  if (!data) return null;
+
   // Lấy vanityChannelUrl
   const vanityUrl = data?.metadata?.channelMetadataRenderer?.vanityChannelUrl;
   if (typeof vanityUrl === 'string' && vanityUrl.includes('youtube.com/')) {
     const afterDomain = vanityUrl.split('youtube.com/')[1];
-    return decodeURI(afterDomain);
+    const channelId = decodeURI(afterDomain);
+
+    // Lấy avatar từ ytInitialData
+    let avatar: string | undefined;
+    try {
+      // Lấy avatar từ metadata
+      avatar =
+        data?.metadata?.channelMetadataRenderer?.avatar?.thumbnails?.[0]?.url;
+    } catch (error) {
+      console.log('Error extracting avatar:', error);
+    }
+
+    return { channelId, avatar };
   }
   return null;
 }

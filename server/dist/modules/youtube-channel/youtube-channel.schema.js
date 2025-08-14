@@ -35,6 +35,7 @@ let YoutubeChannel = class YoutubeChannel {
     user;
     isActive;
     errors;
+    avatar;
 };
 exports.YoutubeChannel = YoutubeChannel;
 __decorate([
@@ -65,6 +66,10 @@ __decorate([
     (0, mongoose_1.Prop)({ type: [String], enum: Object.values(ChannelErrorType), default: [] }),
     __metadata("design:type", Array)
 ], YoutubeChannel.prototype, "errors", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: false }),
+    __metadata("design:type", String)
+], YoutubeChannel.prototype, "avatar", void 0);
 exports.YoutubeChannel = YoutubeChannel = __decorate([
     (0, mongoose_1.Schema)()
 ], YoutubeChannel);

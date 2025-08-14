@@ -594,7 +594,6 @@ const HomePage = () => {
               value={search}
               onChange={handleSearchChange}
               className='max-w-xs'
-              disabled={!hasAnyChannels}
             />
             <Checkbox
               checked={showFavoritesOnly}
