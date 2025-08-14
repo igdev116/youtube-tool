@@ -89,6 +89,17 @@ export class YoutubeWebsubService {
           const botToken = user?.botToken;
           if (!groupId || !botToken) continue;
 
+          // Kiểm tra xem video có mới hơn video cuối cùng không
+          const videoPublishedAt = new Date(publishedAt);
+          const lastVideoAt = ch.lastVideoAt;
+
+          if (lastVideoAt && videoPublishedAt <= lastVideoAt) {
+            this.logger.debug(
+              `Skip video ${videoId} - published at ${videoPublishedAt.toISOString()} is not newer than last video at ${lastVideoAt.toISOString()}`,
+            );
+            continue;
+          }
+
           try {
             // Gửi ngay telegram bằng bot token của user
             await this.telegramBotService.sendNewVideoToGroup(
@@ -111,7 +122,7 @@ export class YoutubeWebsubService {
               {
                 $set: {
                   lastVideoId: videoId,
-                  lastVideoAt: new Date(publishedAt),
+                  lastVideoAt: videoPublishedAt,
                 },
               },
             );

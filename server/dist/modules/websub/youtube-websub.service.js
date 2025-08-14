@@ -81,6 +81,12 @@ let YoutubeWebsubService = YoutubeWebsubService_1 = class YoutubeWebsubService {
                     const botToken = user?.botToken;
                     if (!groupId || !botToken)
                         continue;
+                    const videoPublishedAt = new Date(publishedAt);
+                    const lastVideoAt = ch.lastVideoAt;
+                    if (lastVideoAt && videoPublishedAt <= lastVideoAt) {
+                        this.logger.debug(`Skip video ${videoId} - published at ${videoPublishedAt.toISOString()} is not newer than last video at ${lastVideoAt.toISOString()}`);
+                        continue;
+                    }
                     try {
                         await this.telegramBotService.sendNewVideoToGroup(groupId, {
                             title,
@@ -94,7 +100,7 @@ let YoutubeWebsubService = YoutubeWebsubService_1 = class YoutubeWebsubService {
                         await this.channelModel.updateOne({ _id: ch._id }, {
                             $set: {
                                 lastVideoId: videoId,
-                                lastVideoAt: new Date(publishedAt),
+                                lastVideoAt: videoPublishedAt,
                             },
                         });
                     }
