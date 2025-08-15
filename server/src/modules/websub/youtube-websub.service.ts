@@ -13,6 +13,7 @@ import {
   YT_WATCH_BASE,
 } from '../../constants';
 import { User } from '~/user/user.schema';
+import * as dayjs from 'dayjs';
 
 @Injectable()
 export class YoutubeWebsubService {
@@ -83,11 +84,12 @@ export class YoutubeWebsubService {
           .populate('user')
           .exec();
 
-        for (const ch of channels) {
+        // Tạo array các promises để xử lý song song
+        const channelPromises = channels.map(async (ch) => {
           const user = ch.user as User;
           const groupId = user?.telegramGroupId;
           const botToken = user?.botToken;
-          if (!groupId || !botToken) continue;
+          if (!groupId || !botToken) return null;
 
           // Kiểm tra xem video có mới hơn video cuối cùng không
           const videoPublishedAt = new Date(publishedAt);
@@ -97,7 +99,7 @@ export class YoutubeWebsubService {
             this.logger.debug(
               `Skip video ${videoId} - published at ${videoPublishedAt.toISOString()} is not newer than last video at ${lastVideoAt.toISOString()}`,
             );
-            continue;
+            return null;
           }
 
           try {
@@ -127,10 +129,32 @@ export class YoutubeWebsubService {
                 },
               },
             );
+
+            return { success: true, channelId: ch.channelId };
           } catch (e) {
             const err = e as Error;
-            this.logger.error(`Send or update failed: ${err.message}`);
+            this.logger.error(
+              `Send or update failed for channel ${ch.channelId}: ${err.message}`,
+            );
+            return {
+              success: false,
+              channelId: ch.channelId,
+              error: err.message,
+            };
           }
+        });
+
+        // Xử lý song song tất cả channels
+        const results = await Promise.all(channelPromises);
+
+        // Log kết quả
+        const successCount = results.filter((r) => r?.success).length;
+        const failCount = results.filter((r) => r && !r.success).length;
+
+        if (successCount > 0 || failCount > 0) {
+          this.logger.log(
+            `Video ${videoId}: ${successCount} thành công, ${failCount} thất bại`,
+          );
         }
       }
     } catch (err) {
