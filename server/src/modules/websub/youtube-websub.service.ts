@@ -13,7 +13,6 @@ import {
   YT_WATCH_BASE,
 } from '../../constants';
 import { User } from '~/user/user.schema';
-import * as dayjs from 'dayjs';
 
 @Injectable()
 export class YoutubeWebsubService {
@@ -158,8 +157,7 @@ export class YoutubeWebsubService {
         }
       }
     } catch (err) {
-      const e = err as Error;
-      this.logger.error(`WebSub handle failed: ${e.message}`);
+      this.logger.error(`WebSub handle failed: ${(err as Error).message}`);
     }
   }
 

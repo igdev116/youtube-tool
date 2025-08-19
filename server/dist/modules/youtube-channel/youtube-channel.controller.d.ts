@@ -8,6 +8,7 @@ export declare class YoutubeChannelController {
     constructor(channelService: YoutubeChannelService);
     addChannelsBulk(body: BulkChannelDto[], req: Request): BaseResponse<any>;
     getUserChannels(req: Request, body: GetChannelsDto): Promise<BaseResponse<any>>;
+    exportUserChannels(req: Request, body: GetChannelsDto): Promise<BaseResponse<any>>;
     deleteAllUserChannels(req: Request): Promise<BaseResponse<any>>;
     deleteChannel(id: string, req: Request): Promise<BaseResponse<any>>;
     toggleChannelActive(id: string, req: Request): Promise<BaseResponse<any>>;

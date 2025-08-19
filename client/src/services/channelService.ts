@@ -19,4 +19,8 @@ export const channelService = {
     axiosInstance.patch(`/channel/${channelId}/toggle`),
   deleteAllChannels: (): Promise<BaseResponse<any>> =>
     axiosInstance.delete('/channel/all'),
+  exportChannels: (
+    params: Omit<GetChannelParams, 'page' | 'limit'>
+  ): Promise<BaseResponse<ChannelListItem[]>> =>
+    axiosInstance.post('/channel/export', params),
 };

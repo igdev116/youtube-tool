@@ -54,6 +54,7 @@ const HomePage = () => {
     invalidateChannels,
     deleteMultipleChannels,
     deleteAllChannels,
+    exportChannels,
   } = useChannelService();
 
   // Pagination state
@@ -240,6 +241,27 @@ const HomePage = () => {
   const { addFavoriteMutation, removeFavoriteMutation } = useUserService();
   const profileStore = useUserStore((s) => s.profile);
   const favoriteIds: string[] = profileStore?.favoriteChannelIds || [];
+
+  const handleExportExcel = async () => {
+    try {
+      const rows = await exportChannels({
+        keyword: keyword || undefined,
+        sort,
+        favoriteOnly: showFavoritesOnly || undefined,
+      });
+      const worksheet = XLSX.utils.json_to_sheet(
+        rows.map((r: any) => ({
+          Channel: `https://www.youtube.com/${r.channelId}`,
+        }))
+      );
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Channels');
+      XLSX.writeFile(workbook, `channels_${Date.now()}.xlsx`);
+      toastSuccess('Đã xuất Excel thành công!');
+    } catch (e) {
+      toastError('Xuất Excel thất bại!');
+    }
+  };
 
   const columns = [
     {
@@ -547,6 +569,11 @@ const HomePage = () => {
                 disabled={!hasAnyChannels}
               />
             </div>
+            <Button
+              onClick={handleExportExcel}
+              disabled={channelsQuery.isLoading || total === 0}>
+              Xuất Excel
+            </Button>
             <Button
               danger
               onClick={() => {

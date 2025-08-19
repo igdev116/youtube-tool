@@ -35,4 +35,9 @@ export declare class YoutubeChannelService {
     deleteAllUserChannels(userId: string): Promise<{
         deletedCount: number;
     }>;
+    getAllUserChannels(userId: string, keyword?: string, sortKey?: YoutubeChannelSort, favoriteOnly?: boolean): Promise<YoutubeChannelDocument[] | (import("mongoose").FlattenMaps<YoutubeChannelDocument> & Required<{
+        _id: import("mongoose").FlattenMaps<unknown>;
+    }> & {
+        __v: number;
+    })[]>;
 }

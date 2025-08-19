@@ -75,17 +75,17 @@ let YoutubeWebsubService = YoutubeWebsubService_1 = class YoutubeWebsubService {
                     .find({ xmlChannelId: xmlChannelId, isActive: true })
                     .populate('user')
                     .exec();
-                for (const ch of channels) {
+                const channelPromises = channels.map(async (ch) => {
                     const user = ch.user;
                     const groupId = user?.telegramGroupId;
                     const botToken = user?.botToken;
                     if (!groupId || !botToken)
-                        continue;
+                        return null;
                     const videoPublishedAt = new Date(publishedAt);
                     const lastVideoAt = ch.lastVideoAt;
                     if (lastVideoAt && videoPublishedAt <= lastVideoAt) {
                         this.logger.debug(`Skip video ${videoId} - published at ${videoPublishedAt.toISOString()} is not newer than last video at ${lastVideoAt.toISOString()}`);
-                        continue;
+                        return null;
                     }
                     try {
                         await this.telegramBotService.sendNewVideoToGroup(groupId, {
@@ -104,17 +104,28 @@ let YoutubeWebsubService = YoutubeWebsubService_1 = class YoutubeWebsubService {
                                 lastVideoAt: videoPublishedAt,
                             },
                         });
+                        return { success: true, channelId: ch.channelId };
                     }
                     catch (e) {
                         const err = e;
-                        this.logger.error(`Send or update failed: ${err.message}`);
+                        this.logger.error(`Send or update failed for channel ${ch.channelId}: ${err.message}`);
+                        return {
+                            success: false,
+                            channelId: ch.channelId,
+                            error: err.message,
+                        };
                     }
+                });
+                const results = await Promise.all(channelPromises);
+                const successCount = results.filter((r) => r?.success).length;
+                const failCount = results.filter((r) => r && !r.success).length;
+                if (successCount > 0 || failCount > 0) {
+                    this.logger.log(`Video ${videoId}: ${successCount} thành công, ${failCount} thất bại`);
                 }
             }
         }
         catch (err) {
-            const e = err;
-            this.logger.error(`WebSub handle failed: ${e.message}`);
+            this.logger.error(`WebSub handle failed: ${err.message}`);
         }
     }
     async subscribeCallback(topicUrl, callbackUrl) {

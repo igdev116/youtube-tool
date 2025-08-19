@@ -79,6 +79,28 @@ export class YoutubeChannelController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Post('export')
+  async exportUserChannels(
+    @Req() req: Request,
+    @Body() body: GetChannelsDto,
+  ): Promise<BaseResponse<any>> {
+    const user = req.user as JwtUser;
+    const userId = user.sub;
+    const channels = await this.channelService.getAllUserChannels(
+      userId,
+      body.keyword,
+      body.sort as YoutubeChannelSort,
+      !!body.favoriteOnly,
+    );
+    return {
+      success: true,
+      statusCode: 200,
+      message: 'Xuất danh sách kênh thành công',
+      result: channels,
+    };
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Delete('all')
   async deleteAllUserChannels(@Req() req: Request): Promise<BaseResponse<any>> {
     const user = req.user as JwtUser;
