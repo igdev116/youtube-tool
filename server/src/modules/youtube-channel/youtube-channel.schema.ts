@@ -44,6 +44,9 @@ export class YoutubeChannel {
 
   @Prop({ required: false })
   avatarId?: string;
+
+  @Prop({ type: Date, required: false })
+  lastSubscribeAt: Date;
 }
 
 export const YoutubeChannelSchema =

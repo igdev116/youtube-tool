@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import axios from 'axios';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -11,6 +12,11 @@ import {
   HUB_SUBSCRIBE_URL,
   YT_THUMBNAIL_HQ,
   YT_WATCH_BASE,
+} from '../../constants';
+import {
+  HUB_LEASE_SECONDS,
+  WEB_SUB_RENEW_BEFORE_SECONDS,
+  YT_FEED_BASE as FEED_BASE,
 } from '../../constants';
 import { User } from '~/user/user.schema';
 
@@ -162,13 +168,20 @@ export class YoutubeWebsubService {
   }
 
   // Helper: tạo form subscribe (topic là feed RSS của channel)
-  async subscribeCallback(topicUrl: string, callbackUrl: string) {
+  async subscribeCallback(
+    topicUrl: string,
+    callbackUrl: string,
+    leaseSeconds?: number,
+  ) {
     const form = new URLSearchParams();
     form.append('hub.mode', 'subscribe');
     form.append('hub.topic', topicUrl);
     form.append('hub.callback', callbackUrl);
     form.append('hub.verify', 'sync');
     form.append('hub.verify_token', 'test-token');
+    if (leaseSeconds && leaseSeconds > 0) {
+      form.append('hub.lease_seconds', String(leaseSeconds));
+    }
 
     const res = await axios.post(HUB_SUBSCRIBE_URL, form, {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -189,5 +202,56 @@ export class YoutubeWebsubService {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     });
     return res.status;
+  }
+
+  // Cron: mỗi giờ kiểm tra và gia hạn những subscription sắp hết hạn trong 2 ngày
+  @Cron(CronExpression.EVERY_HOUR)
+  async renewExpiringSubscriptions() {
+    try {
+      const now = Date.now();
+      const thresholdMs = WEB_SUB_RENEW_BEFORE_SECONDS * 1000;
+      const leaseMs = HUB_LEASE_SECONDS * 1000;
+
+      // Lấy các channel có lastSubscribeAt cũ hơn now - (lease - threshold)
+      const needRenew = await this.channelModel
+        .find({
+          lastSubscribeAt: { $exists: true },
+        })
+        .lean()
+        .exec();
+
+      const candidates = (needRenew || []).filter((c) => {
+        const last = c.lastSubscribeAt
+          ? new Date(c.lastSubscribeAt).getTime()
+          : 0;
+        return last > 0 && now - last >= leaseMs - thresholdMs;
+      });
+
+      if (candidates.length === 0) return;
+
+      await Promise.all(
+        candidates.map(async (c: any) => {
+          try {
+            const topicUrl = `${FEED_BASE}?channel_id=${c.xmlChannelId}`;
+            const callbackUrl = `${process.env.API_URL}/websub/youtube/callback`;
+            await this.subscribeCallback(
+              topicUrl,
+              callbackUrl,
+              HUB_LEASE_SECONDS,
+            );
+            await this.channelModel.updateOne(
+              { _id: c._id },
+              { $set: { lastSubscribeAt: new Date() } },
+            );
+          } catch (err) {
+            this.logger.error(
+              `Renew subscribe failed for ${c.channelId}: ${(err as Error).message}`,
+            );
+          }
+        }),
+      );
+    } catch (err) {
+      this.logger.error(`Renew cron failed: ${(err as Error).message}`);
+    }
   }
 }

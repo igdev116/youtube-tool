@@ -20,7 +20,7 @@ import * as utc from 'dayjs/plugin/utc';
 import * as timezone from 'dayjs/plugin/timezone';
 import { YoutubeWebsubService } from '../websub/youtube-websub.service';
 import { UserService } from '../../user/user.service';
-import { YT_FEED_BASE } from '../../constants';
+import { YT_FEED_BASE, HUB_LEASE_SECONDS } from '../../constants';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -116,29 +116,47 @@ export class YoutubeChannelService {
 
         try {
           // Sử dụng avatarId từ channel metadata
-          await this.channelModel.create({
+          const created = await this.channelModel.create({
             channelId,
             xmlChannelId,
             avatarId,
             isActive: item.isActive ?? true,
             user: userId,
-            ...(latestVideoId
-              ? {
-                  lastVideoId: latestVideoId,
-                  lastVideoAt: latestPublishedAtDate ?? new Date(),
-                }
-              : {
-                  // Fallback để thoả điều kiện required nếu RSS tạm thời lỗi
-                  lastVideoId: 'INIT',
-                  lastVideoAt: new Date(0),
-                }),
+            lastVideoId: latestVideoId,
+            lastVideoAt: latestPublishedAtDate,
           });
 
           const topicUrl = `${YT_FEED_BASE}?channel_id=${xmlChannelId}`;
           const callbackUrl = `${process.env.API_URL}/websub/youtube/callback`;
-          await this.websubService.subscribeCallback(topicUrl, callbackUrl);
-        } catch {
+          try {
+            await this.websubService.subscribeCallback(
+              topicUrl,
+              callbackUrl,
+              HUB_LEASE_SECONDS,
+            );
+            // Thành công
+            await this.channelModel.updateOne(
+              { _id: created._id },
+              { $set: { lastSubscribeAt: new Date() } },
+            );
+          } catch (err) {
+            // Nếu 409 (already subscribed), vẫn cập nhật lastSubscribeAt để bắt đầu chu kỳ gia hạn
+            const status = err?.response?.status;
+
+            if (status === 409) {
+              await this.channelModel.updateOne(
+                { _id: created._id },
+                { $set: { lastSubscribeAt: new Date() } },
+              );
+            } else {
+              throw err;
+            }
+          }
+        } catch (err) {
           // ignore create/subscribe error
+          this.logger.error(
+            `Failed to create/subscribe channel ${channelId}: ${(err as Error).message}`,
+          );
         }
       }),
     );

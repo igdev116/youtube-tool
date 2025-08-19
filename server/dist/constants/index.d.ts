@@ -2,6 +2,8 @@ export declare const YT_FEED_BASE = "https://www.youtube.com/xml/feeds/videos.xm
 export declare const YT_WATCH_BASE = "https://www.youtube.com/watch?v=";
 export declare const YT_THUMBNAIL_HQ: (videoId: string) => string;
 export declare const HUB_SUBSCRIBE_URL = "https://pubsubhubbub.appspot.com/subscribe";
+export declare const HUB_LEASE_SECONDS = 432000;
+export declare const WEB_SUB_RENEW_BEFORE_SECONDS = 172800;
 export declare const TELEGRAM_API_BASE = "https://api.telegram.org";
 export declare const TELEGRAM_SEND_MESSAGE_URL: (botToken: string) => string;
 export declare const YT_AVATAR_BASE = "https://yt3.googleusercontent.com";

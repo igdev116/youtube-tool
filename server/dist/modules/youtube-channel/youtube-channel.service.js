@@ -100,27 +100,33 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
             catch {
             }
             try {
-                await this.channelModel.create({
+                const created = await this.channelModel.create({
                     channelId,
                     xmlChannelId,
                     avatarId,
                     isActive: item.isActive ?? true,
                     user: userId,
-                    ...(latestVideoId
-                        ? {
-                            lastVideoId: latestVideoId,
-                            lastVideoAt: latestPublishedAtDate ?? new Date(),
-                        }
-                        : {
-                            lastVideoId: 'INIT',
-                            lastVideoAt: new Date(0),
-                        }),
+                    lastVideoId: latestVideoId,
+                    lastVideoAt: latestPublishedAtDate,
                 });
                 const topicUrl = `${constants_1.YT_FEED_BASE}?channel_id=${xmlChannelId}`;
                 const callbackUrl = `${process.env.API_URL}/websub/youtube/callback`;
-                await this.websubService.subscribeCallback(topicUrl, callbackUrl);
+                try {
+                    await this.websubService.subscribeCallback(topicUrl, callbackUrl, constants_1.HUB_LEASE_SECONDS);
+                    await this.channelModel.updateOne({ _id: created._id }, { $set: { lastSubscribeAt: new Date() } });
+                }
+                catch (err) {
+                    const status = err?.response?.status;
+                    if (status === 409) {
+                        await this.channelModel.updateOne({ _id: created._id }, { $set: { lastSubscribeAt: new Date() } });
+                    }
+                    else {
+                        throw err;
+                    }
+                }
             }
-            catch {
+            catch (err) {
+                this.logger.error(`Failed to create/subscribe channel ${channelId}: ${err.message}`);
             }
         }));
         await Promise.all(tasks);

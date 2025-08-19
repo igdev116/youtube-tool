@@ -10,6 +10,7 @@ export declare class YoutubeWebsubService {
     private extractTag;
     private extractNsTag;
     handleNotification(xml: string): Promise<void>;
-    subscribeCallback(topicUrl: string, callbackUrl: string): Promise<number>;
+    subscribeCallback(topicUrl: string, callbackUrl: string, leaseSeconds?: number): Promise<number>;
     unsubscribeCallback(topicUrl: string, callbackUrl: string): Promise<number>;
+    renewExpiringSubscriptions(): Promise<void>;
 }
