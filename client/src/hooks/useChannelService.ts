@@ -40,12 +40,10 @@ export function useChannelService() {
     invalidateChannels();
   };
 
-  const exportChannels = async (
-    params: Omit<GetChannelParams, 'page' | 'limit'>
-  ) => {
-    const res = await channelService.exportChannels(params);
-    return res.result || [];
-  };
+  const useMutationExportChannels = () =>
+    useMutation({
+      mutationFn: () => channelService.exportChannels(),
+    });
 
   return {
     addChannelsMutation,
@@ -55,6 +53,6 @@ export function useChannelService() {
     invalidateChannels,
     deleteMultipleChannels,
     deleteAllChannels,
-    exportChannels,
+    useMutationExportChannels,
   };
 }

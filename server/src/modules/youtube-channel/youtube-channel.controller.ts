@@ -80,18 +80,11 @@ export class YoutubeChannelController {
 
   @UseGuards(JwtAuthGuard)
   @Post('export')
-  async exportUserChannels(
-    @Req() req: Request,
-    @Body() body: GetChannelsDto,
-  ): Promise<BaseResponse<any>> {
+  async exportUserChannels(@Req() req: Request): Promise<BaseResponse<any>> {
     const user = req.user as JwtUser;
     const userId = user.sub;
-    const channels = await this.channelService.getAllUserChannels(
-      userId,
-      body.keyword,
-      body.sort as YoutubeChannelSort,
-      !!body.favoriteOnly,
-    );
+    const channels = await this.channelService.getAllUserChannels(userId);
+    console.log('channels :', channels.length);
     return {
       success: true,
       statusCode: 200,

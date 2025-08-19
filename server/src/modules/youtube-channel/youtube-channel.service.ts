@@ -288,28 +288,7 @@ export class YoutubeChannelService {
     return { deletedCount: result.deletedCount ?? 0 };
   }
 
-  async getAllUserChannels(
-    userId: string,
-    keyword?: string,
-    sortKey?: YoutubeChannelSort,
-    favoriteOnly?: boolean,
-  ) {
-    const filter: FilterQuery<YoutubeChannelDocument> = { user: userId };
-    if (keyword) {
-      filter.channelId = { $regex: keyword, $options: 'i' } as any;
-    }
-    if (favoriteOnly) {
-      const favoriteIds = await this.userService.getFavoriteChannels(userId);
-      const validObjectIds = (favoriteIds || [])
-        .filter((id: string) => Types.ObjectId.isValid(id))
-        .map((id: string) => new Types.ObjectId(id));
-      if (validObjectIds.length === 0) {
-        return [] as YoutubeChannelDocument[];
-      }
-      (filter as any)._id = { $in: validObjectIds } as any;
-    }
-
-    const sort: Record<string, 1 | -1> = this.mapSort(sortKey);
-    return this.channelModel.find(filter).sort(sort).lean().exec();
+  async getAllUserChannels(userId: string) {
+    return this.channelModel.find({ user: userId }).lean().exec();
   }
 }

@@ -216,23 +216,8 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
         }
         return { deletedCount: result.deletedCount ?? 0 };
     }
-    async getAllUserChannels(userId, keyword, sortKey, favoriteOnly) {
-        const filter = { user: userId };
-        if (keyword) {
-            filter.channelId = { $regex: keyword, $options: 'i' };
-        }
-        if (favoriteOnly) {
-            const favoriteIds = await this.userService.getFavoriteChannels(userId);
-            const validObjectIds = (favoriteIds || [])
-                .filter((id) => mongoose_2.Types.ObjectId.isValid(id))
-                .map((id) => new mongoose_2.Types.ObjectId(id));
-            if (validObjectIds.length === 0) {
-                return [];
-            }
-            filter._id = { $in: validObjectIds };
-        }
-        const sort = this.mapSort(sortKey);
-        return this.channelModel.find(filter).sort(sort).lean().exec();
+    async getAllUserChannels(userId) {
+        return this.channelModel.find({ user: userId }).lean().exec();
     }
 };
 exports.YoutubeChannelService = YoutubeChannelService;

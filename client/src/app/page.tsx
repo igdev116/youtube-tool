@@ -54,7 +54,7 @@ const HomePage = () => {
     invalidateChannels,
     deleteMultipleChannels,
     deleteAllChannels,
-    exportChannels,
+    useMutationExportChannels,
   } = useChannelService();
 
   // Pagination state
@@ -242,26 +242,24 @@ const HomePage = () => {
   const profileStore = useUserStore((s) => s.profile);
   const favoriteIds: string[] = profileStore?.favoriteChannelIds || [];
 
-  const handleExportExcel = async () => {
-    try {
-      const rows = await exportChannels({
-        keyword: keyword || undefined,
-        sort,
-        favoriteOnly: showFavoritesOnly || undefined,
-      });
-      const worksheet = XLSX.utils.json_to_sheet(
-        rows.map((r: any) => ({
-          Channel: `https://www.youtube.com/${r.channelId}`,
-        }))
-      );
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, 'Channels');
-      XLSX.writeFile(workbook, `channels_${Date.now()}.xlsx`);
-      toastSuccess('Đã xuất Excel thành công!');
-    } catch (e) {
-      toastError('Xuất Excel thất bại!');
-    }
-  };
+  const exportMutation = useMutationExportChannels();
+  const handleExportExcel = React.useCallback(() => {
+    exportMutation.mutate(undefined, {
+      onSuccess: (res) => {
+        const rows = res?.result || [];
+        const worksheet = XLSX.utils.json_to_sheet(
+          rows.map((r: any) => ({
+            Channel: `https://www.youtube.com/${r.channelId}`,
+          }))
+        );
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Channels');
+        XLSX.writeFile(workbook, `channels_${Date.now()}.xlsx`);
+        toastSuccess('Đã xuất Excel thành công!');
+      },
+      onError: () => toastError('Xuất Excel thất bại!'),
+    });
+  }, [exportMutation]);
 
   const columns = [
     {
@@ -571,6 +569,7 @@ const HomePage = () => {
             </div>
             <Button
               onClick={handleExportExcel}
+              loading={exportMutation.isPending}
               disabled={channelsQuery.isLoading || total === 0}>
               Xuất Excel
             </Button>

@@ -54,10 +54,11 @@ let YoutubeChannelController = class YoutubeChannelController {
             result: pagingResult.result,
         };
     }
-    async exportUserChannels(req, body) {
+    async exportUserChannels(req) {
         const user = req.user;
         const userId = user.sub;
-        const channels = await this.channelService.getAllUserChannels(userId, body.keyword, body.sort, !!body.favoriteOnly);
+        const channels = await this.channelService.getAllUserChannels(userId);
+        console.log('channels :', channels.length);
         return {
             success: true,
             statusCode: 200,
@@ -138,9 +139,8 @@ __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Post)('export'),
     __param(0, (0, common_1.Req)()),
-    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, get_channels_dto_1.GetChannelsDto]),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], YoutubeChannelController.prototype, "exportUserChannels", null);
 __decorate([
