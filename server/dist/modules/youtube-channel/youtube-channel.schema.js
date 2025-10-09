@@ -40,7 +40,7 @@ let YoutubeChannel = class YoutubeChannel {
 };
 exports.YoutubeChannel = YoutubeChannel;
 __decorate([
-    (0, mongoose_1.Prop)({ required: true, unique: true }),
+    (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", String)
 ], YoutubeChannel.prototype, "channelId", void 0);
 __decorate([

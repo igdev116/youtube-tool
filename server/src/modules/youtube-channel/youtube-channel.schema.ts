@@ -21,7 +21,7 @@ export enum YoutubeChannelSort {
 
 @Schema()
 export class YoutubeChannel {
-  @Prop({ required: true, unique: true })
+  @Prop({ required: true })
   channelId: string;
 
   @Prop({ required: true })
