@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Input, Button, Typography, Divider } from 'antd';
+import { Input, Button, Typography, Divider, Form } from 'antd';
 import { useTelegramService } from '../../hooks/useTelegramService';
 import { toastSuccess, toastError } from '../../utils/toast';
 import type { BaseResponse } from '../../types/common';
@@ -11,12 +11,12 @@ const { Title } = Typography;
 
 const AddTelegramPage = () => {
   const { updateGroupMutation, updateBotTokenMutation } = useTelegramService();
-  const [telegramGroup, setTelegramGroup] = useState('');
-  const [isEditing, setIsEditing] = useState(false);
-  const [botToken, setBotToken] = useState('');
-  const [isEditingToken, setIsEditingToken] = useState(false);
+  // Create separate forms for Telegram Group and Bot Token
+  const [telegramGroupForm] = Form.useForm();
+  const [botTokenForm] = Form.useForm();
   const profile = useUserStore((s) => s.profile);
 
+  // Mask the token for display
   const maskToken = React.useCallback((token?: string | null) => {
     if (!token) return '';
     if (token.length <= 3) return token;
@@ -26,32 +26,38 @@ const AddTelegramPage = () => {
   }, []);
 
   React.useEffect(() => {
+    // Set Telegram Group form value
     if (profile?.telegramGroupId) {
-      setTelegramGroup(profile.telegramGroupId);
-      setIsEditing(false);
+      const fullLink = `https://web.telegram.org/k/#${profile.telegramGroupId}`;
+      telegramGroupForm.setFieldsValue({
+        telegramGroup: fullLink,
+      });
     }
-    if (profile?.botToken) {
-      setIsEditingToken(false);
-      setBotToken('');
-    }
-  }, [profile?.telegramGroupId, profile?.botToken]);
 
-  const handleUpdateGroup = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!telegramGroup) {
-      toastError('Vui lòng nhập ID group Telegram!');
-      return;
+    // Set Bot Token form value
+    if (profile?.botToken) {
+      botTokenForm.setFieldsValue({
+        botToken: profile.botToken,
+      });
     }
-    // Luôn gửi link đầy đủ
-    const groupId = telegramGroup.replace('https://web.telegram.org/k/#', '');
+  }, [profile, telegramGroupForm, botTokenForm]);
+
+  const handleUpdateGroup = (values: { telegramGroup: string }) => {
+    // Extract telegramGroupId from the full link
+    const groupId = values.telegramGroup.replace(
+      'https://web.telegram.org/k/#',
+      ''
+    );
+
+    // Prepare full link to send to backend
     const fullLink = `https://web.telegram.org/k/#${groupId}`;
+
     updateGroupMutation.mutate(
       { link: fullLink },
       {
         onSuccess: (res: BaseResponse<any>) => {
           if (res.success) {
             toastSuccess('Cập nhật group Telegram thành công!');
-            setIsEditing(false);
           } else {
             toastError(res.message || 'Cập nhật group Telegram thất bại!');
           }
@@ -65,31 +71,13 @@ const AddTelegramPage = () => {
     );
   };
 
-  const handleCancelGroup = () => {
-    setIsEditing(false);
-    setTelegramGroup(profile?.telegramGroupId || '');
-  };
-
-  const handleUpdateBotToken = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!botToken) {
-      toastError('Vui lòng nhập Bot Token!');
-      return;
-    }
-    // Không gọi API nếu không thay đổi
-    if (botToken === (profile?.botToken || '')) {
-      setIsEditingToken(false);
-      setBotToken('');
-      return;
-    }
+  const handleUpdateBotToken = (values: { botToken: string }) => {
     updateBotTokenMutation.mutate(
-      { botToken },
+      { botToken: values.botToken },
       {
         onSuccess: (res: BaseResponse<any>) => {
           if (res.success) {
             toastSuccess('Cập nhật Bot Token thành công!');
-            setIsEditingToken(false);
-            setBotToken('');
           } else {
             toastError(res.message || 'Cập nhật Bot Token thất bại!');
           }
@@ -103,124 +91,118 @@ const AddTelegramPage = () => {
     );
   };
 
-  const handleCancelBotToken = () => {
-    setIsEditingToken(false);
-    setBotToken('');
-  };
-
   return (
     <div className='max-w-2xl mx-auto mt-10 bg-white p-8 rounded-lg shadow-lg'>
       <div className='mb-8'>
         <Title level={2} className='text-center mb-6'>
           Cập nhật group Telegram
         </Title>
-        <form
-          onSubmit={handleUpdateGroup}
-          className='flex items-center gap-2 justify-center'>
-          <Input
-            placeholder='ID group Telegram'
-            value={
-              telegramGroup
-                ? `https://web.telegram.org/k/#${telegramGroup.replace('https://web.telegram.org/k/#', '')}`
+        <Form
+          form={telegramGroupForm}
+          onFinish={handleUpdateGroup}
+          className='flex items-start gap-2'>
+          <Form.Item
+            name='telegramGroup'
+            initialValue={
+              profile?.telegramGroupId
+                ? `https://web.telegram.org/k/#${profile.telegramGroupId}`
                 : ''
             }
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setTelegramGroup(
-                e.target.value.replace('https://web.telegram.org/k/#', '')
-              )
-            }
-            className='h-10 min-w-80'
-            disabled={updateGroupMutation.isPending || !isEditing}
-          />
-          {!isEditing ? (
+            rules={[
+              {
+                required: true,
+                message: 'Vui lòng nhập link group Telegram!',
+              },
+              {
+                validator: (_, value) => {
+                  const telegramUrlRegex =
+                    /^https:\/\/web\.telegram\.org\/k\/#-?\w+$/;
+
+                  if (value && !telegramUrlRegex.test(value)) {
+                    return Promise.reject(
+                      new Error(
+                        `Link group Telegram không đúng định dạng! \n (ví dụ: https://web.telegram.org/k/#-1001234567890)`
+                      )
+                    );
+                  }
+                  return Promise.resolve();
+                },
+              },
+            ]}
+            className='w-full mb-0'>
+            <Input
+              placeholder='https://web.telegram.org/k/#123'
+              className='h-10 w-full'
+              autoComplete='off'
+              disabled={updateGroupMutation.isPending}
+            />
+          </Form.Item>
+
+          <Button
+            type='primary'
+            htmlType='submit'
+            className='h-10'
+            loading={updateGroupMutation.isPending}>
+            OK
+          </Button>
+        </Form>
+
+        <Divider className='my-6' />
+
+        <div>
+          <Title level={2} className='text-center mb-6'>
+            Cập nhật Bot Token
+          </Title>
+          <Form
+            form={botTokenForm}
+            onFinish={handleUpdateBotToken}
+            className='flex items-start gap-2'>
+            <Form.Item
+              name='botToken'
+              initialValue={profile?.botToken || ''}
+              rules={[
+                {
+                  required: true,
+                  message: 'Vui lòng nhập Bot Token!',
+                },
+                {
+                  validator: (_, value) => {
+                    // Basic Bot Token validation
+                    // Telegram Bot Token is typically a string of alphanumeric characters
+                    const botTokenRegex = /^[0-9]{9,10}:[a-zA-Z0-9_-]{35}$/;
+
+                    if (value && !botTokenRegex.test(value)) {
+                      return Promise.reject(
+                        new Error(
+                          `Bot Token không đúng định dạng! \n (ví dụ: 123456789:ABCdefGHI-jklMNO_pqrSTUvwxYZ)`
+                        )
+                      );
+                    }
+                    return Promise.resolve();
+                  },
+                },
+              ]}
+              className='w-full mb-0'>
+              <Input
+                placeholder='Nhập Bot Token Telegram'
+                className='h-10 w-full'
+                autoComplete='off'
+              />
+            </Form.Item>
+
             <Button
               type='primary'
+              htmlType='submit'
               className='h-10'
-              onClick={() => setIsEditing(true)}
-              disabled={updateGroupMutation.isPending}>
-              {profile?.telegramGroupId ? 'Chỉnh sửa' : 'Cập nhật'}
+              loading={updateBotTokenMutation.isPending}>
+              OK
             </Button>
-          ) : (
-            <div className='flex items-center gap-1.5'>
-              <Button
-                type='primary'
-                htmlType='submit'
-                className='h-10'
-                loading={updateGroupMutation.isPending}
-                disabled={updateGroupMutation.isPending}>
-                OK
-              </Button>
-              <Button
-                className='h-10'
-                onClick={handleCancelGroup}
-                disabled={updateGroupMutation.isPending}>
-                Hủy
-              </Button>
-            </div>
-          )}
-        </form>
-      </div>
-
-      <Divider className='my-6' />
-
-      <div>
-        <Title level={2} className='text-center mb-6'>
-          Cập nhật Bot Token
-        </Title>
-        <form
-          onSubmit={handleUpdateBotToken}
-          className='flex items-center gap-2 justify-center'>
-          {!isEditingToken ? (
-            <>
-              <Input
-                className='h-10 min-w-80'
-                value={maskToken(profile?.botToken)}
-                readOnly
-                disabled
-              />
-              <Button
-                type='primary'
-                className='h-10'
-                onClick={() => {
-                  setIsEditingToken(true);
-                  setBotToken(profile?.botToken || '');
-                }}
-                disabled={updateBotTokenMutation.isPending}>
-                {profile?.botToken ? 'Chỉnh sửa' : 'Cập nhật'}
-              </Button>
-            </>
-          ) : (
-            <>
-              <Input
-                className='h-10 min-w-80'
-                value={botToken}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setBotToken(e.target.value)
-                }
-              />
-              <div className='flex items-center gap-1.5'>
-                <Button
-                  type='primary'
-                  htmlType='submit'
-                  className='h-10'
-                  loading={updateBotTokenMutation.isPending}
-                  disabled={updateBotTokenMutation.isPending}>
-                  OK
-                </Button>
-                <Button
-                  className='h-10'
-                  onClick={handleCancelBotToken}
-                  disabled={updateBotTokenMutation.isPending}>
-                  Hủy
-                </Button>
-              </div>
-            </>
-          )}
-        </form>
-        <p className='text-gray-500 text-center mt-3 text-sm'>
-          Lưu ý: Bot Token dùng để gửi tin nhắn Telegram. Hãy bảo mật thông tin
-          này.
-        </p>
+          </Form>
+          <p className='text-gray-500 text-center mt-3 text-sm'>
+            Lưu ý: Bot Token dùng để gửi tin nhắn Telegram. Hãy bảo mật thông
+            tin này.
+          </p>
+        </div>
       </div>
     </div>
   );
