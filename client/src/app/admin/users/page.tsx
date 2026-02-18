@@ -7,13 +7,45 @@ import type { AdminUser } from '../../../types/admin';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/vi';
-import { CopyOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
+import {
+  CopyOutlined,
+  DeleteOutlined,
+  EyeOutlined,
+  EyeInvisibleOutlined,
+} from '@ant-design/icons';
 import debounce from 'lodash/debounce';
 import { toastSuccess, toastError } from '../../../utils/toast';
 import { useRouter } from 'next/navigation';
 
 dayjs.extend(relativeTime);
 dayjs.locale('vi');
+
+const PasswordCell = ({ password }: { password: string }) => {
+  const [visible, setVisible] = React.useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(password);
+    message.success('Đã copy mật khẩu!');
+  };
+
+  return (
+    <div className='flex items-center justify-between gap-2 min-w-[120px]'>
+      <span
+        className='font-mono text-sm tracking-tighter transition-all duration-300 cursor-pointer hover:text-primary'
+        onClick={handleCopy}
+        title='Click để copy'>
+        {visible ? password : '••••••••'}
+      </span>
+      <Button
+        type='text'
+        size='small'
+        className='text-gray-400 hover:text-primary p-0 h-6 w-6 flex items-center justify-center'
+        icon={visible ? <EyeInvisibleOutlined /> : <EyeOutlined />}
+        onClick={() => setVisible(!visible)}
+      />
+    </div>
+  );
+};
 
 const AdminUsersPage = () => {
   const router = useRouter();
@@ -99,15 +131,7 @@ const AdminUsersPage = () => {
       dataIndex: 'password',
       key: 'password',
       width: 150,
-      render: (password: string) => (
-        <div className='flex items-center gap-2'>
-          <span className='font-mono text-sm'>{password}</span>
-          <CopyOutlined
-            className='cursor-pointer text-gray-400 hover:text-blue-500 transition'
-            onClick={() => handleCopy(password, 'password')}
-          />
-        </div>
-      ),
+      render: (password: string) => <PasswordCell password={password} />,
     },
     {
       title: 'Bot Token',

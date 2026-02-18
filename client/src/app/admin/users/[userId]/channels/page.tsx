@@ -258,9 +258,6 @@ const UserChannelsPage = () => {
         rowKey='_id'
         bordered
         scroll={{ y: 'calc(100vh - 380px)' }}
-        locale={{
-          emptyText: keyword ? 'Không tìm thấy kênh nào' : 'Chưa có kênh nào',
-        }}
       />
     </div>
   );
