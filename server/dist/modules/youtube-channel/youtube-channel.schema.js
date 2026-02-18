@@ -9,18 +9,10 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.YoutubeChannelSchema = exports.YoutubeChannel = exports.YoutubeChannelSort = exports.ChannelErrorType = void 0;
+exports.YoutubeChannelSchema = exports.YoutubeChannel = exports.YoutubeChannelSort = void 0;
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 const user_schema_1 = require("../../user/user.schema");
-var ChannelErrorType;
-(function (ChannelErrorType) {
-    ChannelErrorType["LINK_ERROR"] = "LINK_ERROR";
-    ChannelErrorType["NETWORK_ERROR"] = "NETWORK_ERROR";
-    ChannelErrorType["PARSE_ERROR"] = "PARSE_ERROR";
-    ChannelErrorType["RATE_LIMIT_ERROR"] = "RATE_LIMIT_ERROR";
-    ChannelErrorType["SHORT_NOT_FOUND"] = "SHORT_NOT_FOUND";
-})(ChannelErrorType || (exports.ChannelErrorType = ChannelErrorType = {}));
 var YoutubeChannelSort;
 (function (YoutubeChannelSort) {
     YoutubeChannelSort["NEWEST_UPLOAD"] = "NEWEST_UPLOAD";
@@ -34,7 +26,6 @@ let YoutubeChannel = class YoutubeChannel {
     lastVideoAt;
     user;
     isActive;
-    errors;
     avatarId;
     lastSubscribeAt;
 };
@@ -63,10 +54,6 @@ __decorate([
     (0, mongoose_1.Prop)({ default: true }),
     __metadata("design:type", Boolean)
 ], YoutubeChannel.prototype, "isActive", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ type: [String], enum: Object.values(ChannelErrorType), default: [] }),
-    __metadata("design:type", Array)
-], YoutubeChannel.prototype, "errors", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ required: false }),
     __metadata("design:type", String)

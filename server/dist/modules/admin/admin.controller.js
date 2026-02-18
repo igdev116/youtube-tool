@@ -53,17 +53,6 @@ let AdminController = class AdminController {
             },
         };
     }
-    async deleteAllChannelsWithErrors() {
-        const result = await this.adminService.deleteAllChannelsWithErrors();
-        return {
-            success: true,
-            statusCode: 200,
-            message: result.message,
-            result: {
-                deletedCount: result.deletedCount,
-            },
-        };
-    }
     async getUsersList(params) {
         const result = await this.adminService.getUsersList(params);
         return {
@@ -117,6 +106,17 @@ let AdminController = class AdminController {
             },
         };
     }
+    async migrateUserField() {
+        const result = await this.adminService.migrateUserFieldToObjectId();
+        return {
+            success: true,
+            statusCode: 200,
+            message: result.message,
+            result: {
+                count: result.count,
+            },
+        };
+    }
 };
 exports.AdminController = AdminController;
 __decorate([
@@ -137,12 +137,6 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], AdminController.prototype, "resetAllLastVideoId", null);
-__decorate([
-    (0, common_1.Post)('delete-channels-with-errors'),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", Promise)
-], AdminController.prototype, "deleteAllChannelsWithErrors", null);
 __decorate([
     (0, common_1.Post)('users'),
     __param(0, (0, common_1.Body)()),
@@ -180,6 +174,12 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], AdminController.prototype, "deleteUser", null);
+__decorate([
+    (0, common_1.Post)('migrate-user-objectid'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], AdminController.prototype, "migrateUserField", null);
 exports.AdminController = AdminController = __decorate([
     (0, common_1.Controller)('admin'),
     __metadata("design:paramtypes", [admin_service_1.AdminService])

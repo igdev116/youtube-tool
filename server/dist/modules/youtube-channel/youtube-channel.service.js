@@ -40,19 +40,6 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
         this.websubService = websubService;
         this.userService = userService;
     }
-    async addChannelError(channel, errorType) {
-        const updateData = {};
-        const currentErrors = channel.errors || [];
-        if (!currentErrors.includes(errorType)) {
-            updateData.$addToSet = { errors: errorType };
-        }
-        if (errorType === youtube_channel_schema_1.ChannelErrorType.LINK_ERROR) {
-            updateData.isActive = false;
-        }
-        if (Object.keys(updateData).length > 0) {
-            await this.channelModel.updateOne({ _id: channel._id }, updateData);
-        }
-    }
     addChannelsBulk(channels, userId) {
         setTimeout(() => {
             void this.processChannelsBulk(channels, userId).catch(() => undefined);

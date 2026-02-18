@@ -20,7 +20,6 @@ export declare class AdminService {
         result: {
             totalChannels: number;
             activeChannels: number;
-            channelsWithErrors: number;
             inactiveChannels: number;
         };
     }>;
@@ -28,11 +27,6 @@ export declare class AdminService {
         success: boolean;
         message: string;
         modifiedCount: number;
-    }>;
-    deleteAllChannelsWithErrors(): Promise<{
-        success: boolean;
-        message: string;
-        deletedCount: number;
     }>;
     getUsersList(params: GetUsersDto): Promise<{
         success: boolean;
@@ -56,5 +50,10 @@ export declare class AdminService {
     deleteUserChannel(userId: string, channelId: string): Promise<{
         success: boolean;
         message: string;
+    }>;
+    migrateUserFieldToObjectId(): Promise<{
+        success: boolean;
+        message: string;
+        count: number;
     }>;
 }

@@ -16,6 +16,5 @@ export class UserChannelResponseDto {
   lastVideoId?: string;
   lastVideoAt?: Date;
   isActive: boolean;
-  errors: string[];
   createdAt?: Date;
 }

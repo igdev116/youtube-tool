@@ -54,19 +54,6 @@ export class AdminController {
     };
   }
 
-  @Post('delete-channels-with-errors')
-  async deleteAllChannelsWithErrors(): Promise<BaseResponse<any>> {
-    const result = await this.adminService.deleteAllChannelsWithErrors();
-    return {
-      success: true,
-      statusCode: 200,
-      message: result.message,
-      result: {
-        deletedCount: result.deletedCount,
-      },
-    };
-  }
-
   @Post('users')
   async getUsersList(
     @Body() params: GetUsersDto,
@@ -140,6 +127,19 @@ export class AdminController {
       result: {
         deletedChannels: result.deletedChannels,
         deletedUser: result.deletedUser,
+      },
+    };
+  }
+
+  @Post('migrate-user-objectid')
+  async migrateUserField(): Promise<BaseResponse<any>> {
+    const result = await this.adminService.migrateUserFieldToObjectId();
+    return {
+      success: true,
+      statusCode: 200,
+      message: result.message,
+      result: {
+        count: result.count,
       },
     };
   }

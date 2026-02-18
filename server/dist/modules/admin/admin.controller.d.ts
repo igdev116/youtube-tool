@@ -9,10 +9,10 @@ export declare class AdminController {
     deleteAllChannels(): Promise<BaseResponse<any>>;
     getChannelStats(): Promise<BaseResponse<any>>;
     resetAllLastVideoId(): Promise<BaseResponse<any>>;
-    deleteAllChannelsWithErrors(): Promise<BaseResponse<any>>;
     getUsersList(params: GetUsersDto): Promise<PagingResponseV2<UserAdminResponseDto>>;
     getUser(userId: string): Promise<BaseResponse<UserAdminResponseDto>>;
     getUserChannels(userId: string, params: GetUserChannelsDto): Promise<PagingResponseV2<any>>;
     deleteUserChannel(userId: string, channelId: string): Promise<BaseResponse<any>>;
     deleteUser(userId: string): Promise<BaseResponse<any>>;
+    migrateUserField(): Promise<BaseResponse<any>>;
 }

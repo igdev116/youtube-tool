@@ -4,7 +4,6 @@ import { FilterQuery, Model, UpdateQuery, Types } from 'mongoose';
 import {
   YoutubeChannel,
   YoutubeChannelDocument,
-  ChannelErrorType,
   YoutubeChannelSort,
 } from './youtube-channel.schema';
 import {
@@ -35,26 +34,6 @@ export class YoutubeChannelService {
     private readonly websubService: YoutubeWebsubService,
     private readonly userService: UserService,
   ) {}
-
-  private async addChannelError(
-    channel: YoutubeChannelDocument,
-    errorType: ChannelErrorType,
-  ) {
-    const updateData: UpdateQuery<YoutubeChannelDocument> = {};
-    const currentErrors = channel.errors || [];
-    if (!currentErrors.includes(errorType)) {
-      updateData.$addToSet = { errors: errorType } as any;
-    }
-    if (errorType === ChannelErrorType.LINK_ERROR) {
-      (updateData as any).isActive = false;
-    }
-    if (Object.keys(updateData).length > 0) {
-      await this.channelModel.updateOne(
-        { _id: channel._id } as FilterQuery<YoutubeChannelDocument>,
-        updateData,
-      );
-    }
-  }
 
   // Không cần await vì xử lý nền; để tránh cảnh báo linter cho async không await, giữ nguyên dạng sync
   addChannelsBulk(channels: BulkChannelDto[], userId: string) {

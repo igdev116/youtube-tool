@@ -3,13 +3,6 @@ import { User } from '../../user/user.schema';
 export type YoutubeChannelDocument = YoutubeChannel & Document & {
     user: Types.ObjectId | User;
 };
-export declare enum ChannelErrorType {
-    LINK_ERROR = "LINK_ERROR",
-    NETWORK_ERROR = "NETWORK_ERROR",
-    PARSE_ERROR = "PARSE_ERROR",
-    RATE_LIMIT_ERROR = "RATE_LIMIT_ERROR",
-    SHORT_NOT_FOUND = "SHORT_NOT_FOUND"
-}
 export declare enum YoutubeChannelSort {
     NEWEST_UPLOAD = "NEWEST_UPLOAD",
     OLDEST_CHANNEL = "OLDEST_CHANNEL",
@@ -22,7 +15,6 @@ export declare class YoutubeChannel {
     lastVideoAt: Date;
     user: Types.ObjectId | User;
     isActive: boolean;
-    errors: ChannelErrorType[];
     avatarId?: string;
     lastSubscribeAt: Date;
 }

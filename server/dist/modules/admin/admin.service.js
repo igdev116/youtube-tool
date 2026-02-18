@@ -40,16 +40,12 @@ let AdminService = class AdminService {
         const activeChannels = await this.channelModel.countDocuments({
             isActive: true,
         });
-        const channelsWithErrors = await this.channelModel.countDocuments({
-            errors: { $exists: true, $ne: [] },
-        });
         return {
             success: true,
             message: 'Thống kê channels',
             result: {
                 totalChannels,
                 activeChannels,
-                channelsWithErrors,
                 inactiveChannels: totalChannels - activeChannels,
             },
         };
@@ -63,17 +59,6 @@ let AdminService = class AdminService {
             success: true,
             message: `Đã reset lastVideoId cho ${result.modifiedCount} channels`,
             modifiedCount: result.modifiedCount,
-        };
-    }
-    async deleteAllChannelsWithErrors() {
-        const result = await this.channelModel.deleteMany({
-            errors: { $exists: true, $ne: [] },
-        });
-        console.log(`🗑️ Admin đã xóa ${result.deletedCount} channels có lỗi`);
-        return {
-            success: true,
-            message: `Đã xóa ${result.deletedCount} channels có lỗi`,
-            deletedCount: result.deletedCount,
         };
     }
     async getUsersList(params) {
@@ -189,6 +174,27 @@ let AdminService = class AdminService {
         return {
             success: false,
             message: 'Không tìm thấy channel hoặc channel không thuộc về user này',
+        };
+    }
+    async migrateUserFieldToObjectId() {
+        const channels = await this.channelModel
+            .find({
+            user: { $type: 'string' },
+        })
+            .lean();
+        let migratedCount = 0;
+        for (const channel of channels) {
+            const userStr = channel.user;
+            if (mongoose_2.Types.ObjectId.isValid(userStr)) {
+                await this.channelModel.updateOne({ _id: channel._id }, { $set: { user: new mongoose_2.Types.ObjectId(userStr) } });
+                migratedCount++;
+            }
+        }
+        console.log(`🚀 Đã migrate ${migratedCount} channels sang ObjectId`);
+        return {
+            success: true,
+            message: `Đã migrate thành công ${migratedCount} channels`,
+            count: migratedCount,
         };
     }
 };

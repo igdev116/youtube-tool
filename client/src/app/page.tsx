@@ -20,7 +20,7 @@ import {
 import { useChannelService } from '../hooks/useChannelService';
 import type { ChannelListItem } from '../types/channel';
 import { ChannelSortKey } from '../types/channel';
-import { ChannelErrorType } from '../types/channel';
+
 import {
   DeleteOutlined,
   UploadOutlined,
@@ -63,7 +63,7 @@ const HomePage = () => {
   const [search, setSearch] = React.useState('');
   const [keyword, setKeyword] = React.useState('');
   const [sort, setSort] = React.useState<ChannelSortKey>(
-    ChannelSortKey.NEWEST_UPLOAD
+    ChannelSortKey.NEWEST_UPLOAD,
   );
 
   // Selected rows state
@@ -113,7 +113,7 @@ const HomePage = () => {
       },
       onError: (err: any) => {
         toastError(
-          err?.response?.data?.message || 'Cập nhật trạng thái kênh thất bại!'
+          err?.response?.data?.message || 'Cập nhật trạng thái kênh thất bại!',
         );
       },
     });
@@ -217,7 +217,7 @@ const HomePage = () => {
           }
           return acc;
         },
-        []
+        [],
       );
       form.setFieldsValue({ channels });
       setExcelLoading(false);
@@ -230,7 +230,7 @@ const HomePage = () => {
     selectedRowKeys,
     onChange: (
       newSelectedRowKeys: React.Key[],
-      newSelectedRows: ChannelListItem[]
+      newSelectedRows: ChannelListItem[],
     ) => {
       setSelectedRowKeys(newSelectedRowKeys);
       setSelectedRows(newSelectedRows);
@@ -250,7 +250,7 @@ const HomePage = () => {
         const worksheet = XLSX.utils.json_to_sheet(
           rows.map((r: any) => ({
             Channel: `https://www.youtube.com/${r.channelId}`,
-          }))
+          })),
         );
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, 'Channels');
@@ -289,23 +289,7 @@ const HomePage = () => {
       dataIndex: 'lastVideoId',
       key: 'lastVideoId',
       width: 150,
-      render: (lastVideoId: string, record: ChannelListItem) => {
-        // Ưu tiên hiển thị lỗi link nếu có
-        const hasLinkError = record.errors?.includes(
-          ChannelErrorType.LINK_ERROR
-        );
-        if (hasLinkError) {
-          return (
-            <Tooltip
-              title={TOOLTIP_MESSAGES.CHECK_LINK_ERROR}
-              placement='top'
-              mouseEnterDelay={0}
-              mouseLeaveDelay={0}>
-              <Tag color='error'>Link kênh lỗi</Tag>
-            </Tooltip>
-          );
-        }
-
+      render: (lastVideoId: string) => {
         if (!lastVideoId) {
           return (
             <Tooltip
@@ -336,23 +320,7 @@ const HomePage = () => {
       dataIndex: 'lastVideoAt',
       key: 'lastVideoAt',
       width: 150,
-      render: (lastVideoAt: string, record: ChannelListItem) => {
-        // Ưu tiên hiển thị lỗi link nếu có
-        const hasLinkError = record.errors?.includes(
-          ChannelErrorType.LINK_ERROR
-        );
-        if (hasLinkError) {
-          return (
-            <Tooltip
-              title={TOOLTIP_MESSAGES.CHECK_LINK_ERROR}
-              placement='top'
-              mouseEnterDelay={0}
-              mouseLeaveDelay={0}>
-              <Tag color='error'>Link kênh lỗi</Tag>
-            </Tooltip>
-          );
-        }
-
+      render: (lastVideoAt: string) => {
         if (!lastVideoAt) {
           return (
             <Tooltip
@@ -375,69 +343,21 @@ const HomePage = () => {
       },
     },
     {
-      title: 'Tình trạng link',
-      dataIndex: 'errors',
-      key: 'errors',
-      width: 160,
-      render: (errors: ChannelErrorType[]) => {
-        if (!errors || errors.length === 0) {
-          return <Tag color='success'>Link ổn định</Tag>;
-        }
-        // Kiểm tra có lỗi link không
-        const hasLinkError = errors.includes(ChannelErrorType.LINK_ERROR);
-
-        return (
-          <div className='flex flex-wrap gap-1'>
-            {errors.map((error, index) => (
-              <Tooltip
-                key={index}
-                title={
-                  hasLinkError ? TOOLTIP_MESSAGES.CHECK_LINK_ERROR : undefined
-                }
-                placement='top'
-                mouseEnterDelay={0}
-                mouseLeaveDelay={0}>
-                <Tag color='error'>{mapErrorTypeToMessage(error)}</Tag>
-              </Tooltip>
-            ))}
-          </div>
-        );
-      },
-    },
-    {
       title: 'Kích hoạt',
       dataIndex: 'isActive',
       key: 'isActive',
       align: 'center' as const,
       width: 100,
-      render: (isActive: boolean, record: ChannelListItem) => {
-        const hasErrors = record.errors && record.errors.length > 0;
-        const switchComponent = (
-          <Switch
-            checked={isActive}
-            onChange={() => handleToggleChannel(record._id)}
-            disabled={hasErrors}
-            loading={
-              toggleChannelMutation.isPending &&
-              toggleChannelMutation.variables === record._id
-            }
-          />
-        );
-
-        if (hasErrors) {
-          return (
-            <Tooltip
-              title={TOOLTIP_MESSAGES.CHECK_LINK_ERROR}
-              placement='top'
-              mouseEnterDelay={0}
-              mouseLeaveDelay={0}>
-              {switchComponent}
-            </Tooltip>
-          );
-        }
-
-        return switchComponent;
-      },
+      render: (isActive: boolean, record: ChannelListItem) => (
+        <Switch
+          checked={isActive}
+          onChange={() => handleToggleChannel(record._id)}
+          loading={
+            toggleChannelMutation.isPending &&
+            toggleChannelMutation.variables === record._id
+          }
+        />
+      ),
     },
     {
       title: '',
@@ -507,28 +427,12 @@ const HomePage = () => {
         setKeyword(val);
         setCurrentPage(1);
       }, 400),
-    []
+    [],
   );
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
     debounceSearch(e.target.value);
-  };
-
-  // Map error type thành message
-  const mapErrorTypeToMessage = (errorType: ChannelErrorType): string => {
-    switch (errorType) {
-      case ChannelErrorType.LINK_ERROR:
-        return 'Link kênh lỗi';
-      case ChannelErrorType.NETWORK_ERROR:
-        return 'Lỗi kết nối mạng';
-      case ChannelErrorType.PARSE_ERROR:
-        return 'Lỗi xử lý dữ liệu';
-      case ChannelErrorType.RATE_LIMIT_ERROR:
-        return 'Lỗi giới hạn tần suất';
-      default:
-        return 'Lỗi không xác định';
-    }
   };
 
   return (
@@ -735,11 +639,11 @@ const HomePage = () => {
                                 ).map(
                                   (
                                     row: { link: string; isActive: boolean },
-                                    idx: number
+                                    idx: number,
                                   ) =>
                                     idx === name
                                       ? { ...row, link: decoded }
-                                      : row
+                                      : row,
                                 ),
                               });
                             }}

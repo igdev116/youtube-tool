@@ -16,7 +16,6 @@ export interface AdminUserChannel {
   lastVideoId?: string;
   lastVideoAt?: string;
   isActive: boolean;
-  errors: string[];
   createdAt?: string;
 }
 

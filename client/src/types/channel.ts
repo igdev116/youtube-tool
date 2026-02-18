@@ -1,12 +1,5 @@
 import { PagingParams } from './common';
 
-export enum ChannelErrorType {
-  LINK_ERROR = 'LINK_ERROR',
-  NETWORK_ERROR = 'NETWORK_ERROR',
-  PARSE_ERROR = 'PARSE_ERROR',
-  RATE_LIMIT_ERROR = 'RATE_LIMIT_ERROR',
-}
-
 export interface ChannelParam {
   link: string;
   isActive: boolean;
@@ -19,7 +12,6 @@ export interface ChannelListItem {
   lastVideoAt: string;
   user: string;
   _id: string;
-  errors: ChannelErrorType[];
   avatarId?: string;
 }
 

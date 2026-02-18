@@ -19,7 +19,6 @@ class UserChannelResponseDto {
     lastVideoId;
     lastVideoAt;
     isActive;
-    errors;
     createdAt;
 }
 exports.UserChannelResponseDto = UserChannelResponseDto;

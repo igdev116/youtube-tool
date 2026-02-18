@@ -27,6 +27,5 @@ export const LS_KEYS = {
 };
 
 export const TOOLTIP_MESSAGES = {
-  CHECK_LINK_ERROR: 'Vui lòng check lại link kênh',
   ADD_TELEGRAM_GROUP: 'Vui lòng thêm nhóm Telegram',
 } as const;
