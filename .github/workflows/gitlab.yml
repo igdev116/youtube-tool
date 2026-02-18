@@ -14,6 +14,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Push to GitLab
+      - name: Push branches & tags to GitLab
         run: |
-          git push --mirror https://oauth2:${{ secrets.GITLAB_TOKEN }}@gitlab.com/igdev116/youtube-tool.git
+          git push https://oauth2:${{ secrets.GITLAB_TOKEN }}@gitlab.com/igdev116/youtube-tool.git \
+            +refs/heads/*:refs/heads/* \
+            +refs/tags/*:refs/tags/*
