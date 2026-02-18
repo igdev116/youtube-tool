@@ -20,21 +20,37 @@ import { useRouter } from 'next/navigation';
 dayjs.extend(relativeTime);
 dayjs.locale('vi');
 
-const PasswordCell = ({ password }: { password: string }) => {
+const VisibilityCell = ({
+  value,
+  label,
+  truncate = false,
+}: {
+  value: string;
+  label: string;
+  truncate?: boolean;
+}) => {
   const [visible, setVisible] = React.useState(false);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(password);
-    message.success('Đã copy mật khẩu!');
+    navigator.clipboard.writeText(value);
+    message.success(`Đã copy ${label}!`);
   };
+
+  const displayValue = React.useMemo(() => {
+    if (!visible) return '••••••••';
+    if (truncate && value.length > 15) {
+      return `${value.slice(0, 6)}...${value.slice(-6)}`;
+    }
+    return value;
+  }, [visible, value, truncate]);
 
   return (
     <div className='flex items-center justify-between gap-2 min-w-[120px]'>
       <span
         className='font-mono text-sm tracking-tighter transition-all duration-300 cursor-pointer hover:text-primary'
         onClick={handleCopy}
-        title='Click để copy'>
-        {visible ? password : '••••••••'}
+        title={`Click để copy ${label}`}>
+        {displayValue}
       </span>
       <Button
         type='text'
@@ -81,11 +97,6 @@ const AdminUsersPage = () => {
     debounceSearch(e.target.value);
   };
 
-  const handleCopy = (text: string, label: string) => {
-    navigator.clipboard.writeText(text);
-    message.success(`Đã copy ${label}!`);
-  };
-
   const handleDelete = (userId: string, username: string) => {
     Modal.confirm({
       title: 'Xác nhận xóa user',
@@ -110,12 +121,6 @@ const AdminUsersPage = () => {
     router.push(`/admin/users/${userId}/channels`);
   };
 
-  const truncateToken = (token?: string) => {
-    if (!token) return 'Chưa có';
-    if (token.length <= 10) return token;
-    return `${token.slice(0, 4)}...${token.slice(-4)}`;
-  };
-
   const columns = [
     {
       title: 'Username',
@@ -131,7 +136,9 @@ const AdminUsersPage = () => {
       dataIndex: 'password',
       key: 'password',
       width: 150,
-      render: (password: string) => <PasswordCell password={password} />,
+      render: (password: string) => (
+        <VisibilityCell value={password} label='mật khẩu' />
+      ),
     },
     {
       title: 'Bot Token',
@@ -140,16 +147,10 @@ const AdminUsersPage = () => {
       width: 150,
       render: (botToken?: string) => {
         if (!botToken) {
-          return <span className='text-gray-400'>Chưa có</span>;
+          return <span className='text-gray-400 text-sm'>Chưa có</span>;
         }
         return (
-          <div className='flex items-center gap-2'>
-            <span className='font-mono text-sm'>{truncateToken(botToken)}</span>
-            <CopyOutlined
-              className='cursor-pointer text-gray-400 hover:text-blue-500 transition'
-              onClick={() => handleCopy(botToken, 'bot token')}
-            />
-          </div>
+          <VisibilityCell value={botToken} label='bot token' truncate={true} />
         );
       },
     },
