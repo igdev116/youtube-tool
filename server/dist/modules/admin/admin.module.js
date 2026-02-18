@@ -10,6 +10,7 @@ exports.AdminModule = void 0;
 const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const youtube_channel_schema_1 = require("../youtube-channel/youtube-channel.schema");
+const user_schema_1 = require("../../user/user.schema");
 const admin_service_1 = require("./admin.service");
 const admin_controller_1 = require("./admin.controller");
 let AdminModule = class AdminModule {
@@ -20,6 +21,7 @@ exports.AdminModule = AdminModule = __decorate([
         imports: [
             mongoose_1.MongooseModule.forFeature([
                 { name: youtube_channel_schema_1.YoutubeChannel.name, schema: youtube_channel_schema_1.YoutubeChannelSchema },
+                { name: user_schema_1.User.name, schema: user_schema_1.UserSchema },
             ]),
         ],
         providers: [admin_service_1.AdminService],

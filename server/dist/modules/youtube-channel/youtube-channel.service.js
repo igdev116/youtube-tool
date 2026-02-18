@@ -66,6 +66,7 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
     async processChannelsBulk(channels, userId) {
         const maxConcurrency = Number(process.env.BULK_CONCURRENCY || 3);
         const limit = (0, p_limit_1.default)(Math.max(1, maxConcurrency));
+        const userObjectId = new mongoose_2.Types.ObjectId(userId);
         const tasks = channels.map((item) => limit(async () => {
             const xmlChannelId = await (0, youtube_channel_utils_1.extractXmlChannelIdFromUrl)(item.link);
             if (!xmlChannelId) {
@@ -78,7 +79,7 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
             const { channelId, avatarId } = channelResult;
             const existingChannel = await this.channelModel.findOne({
                 channelId,
-                user: userId,
+                user: userObjectId,
             });
             if (existingChannel) {
                 return;
@@ -105,7 +106,7 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
                     xmlChannelId,
                     avatarId,
                     isActive: item.isActive ?? true,
-                    user: userId,
+                    user: userObjectId,
                     lastVideoId: latestVideoId,
                     lastVideoAt: latestPublishedAtDate,
                 });
@@ -132,7 +133,8 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
         await Promise.all(tasks);
     }
     async getUserChannelsWithPagination(userId, page, limit, keyword, sortKey, favoriteOnly) {
-        const filter = { user: userId };
+        const userObjectId = new mongoose_2.Types.ObjectId(userId);
+        const filter = { user: userObjectId };
         if (keyword) {
             filter.channelId = { $regex: keyword, $options: 'i' };
         }
@@ -161,9 +163,10 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
         }
     }
     async deleteChannelById(userId, id) {
+        const userObjectId = new mongoose_2.Types.ObjectId(userId);
         const deleted = await this.channelModel.findOneAndDelete({
             _id: id,
-            user: userId,
+            user: userObjectId,
         });
         if (deleted) {
             try {
@@ -182,9 +185,10 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
         return deleted;
     }
     async toggleChannelActive(userId, id) {
+        const userObjectId = new mongoose_2.Types.ObjectId(userId);
         const channel = await this.channelModel.findOne({
             _id: id,
-            user: userId,
+            user: userObjectId,
         });
         if (!channel) {
             return null;
@@ -194,12 +198,13 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
         return channel;
     }
     async deleteAllUserChannels(userId) {
+        const userObjectId = new mongoose_2.Types.ObjectId(userId);
         const userChannels = await this.channelModel
-            .find({ user: userId }, { xmlChannelId: 1 })
+            .find({ user: userObjectId }, { xmlChannelId: 1 })
             .lean()
             .exec();
         const xmlIds = Array.from(new Set((userChannels || []).map((c) => c.xmlChannelId).filter(Boolean)));
-        const result = await this.channelModel.deleteMany({ user: userId });
+        const result = await this.channelModel.deleteMany({ user: userObjectId });
         for (const xmlId of xmlIds) {
             try {
                 const remaining = await this.channelModel.countDocuments({
@@ -217,7 +222,8 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
         return { deletedCount: result.deletedCount ?? 0 };
     }
     async getAllUserChannels(userId) {
-        return this.channelModel.find({ user: userId }).lean().exec();
+        const userObjectId = new mongoose_2.Types.ObjectId(userId);
+        return this.channelModel.find({ user: userObjectId }).lean().exec();
     }
 };
 exports.YoutubeChannelService = YoutubeChannelService;

@@ -5,7 +5,12 @@ import React from 'react';
 import Providers from './providers';
 import ProfileProvider from './profile-provider';
 import { Layout, Menu, ConfigProvider, Alert } from 'antd';
-import { HomeOutlined, PlusCircleOutlined } from '@ant-design/icons';
+import {
+  HomeOutlined,
+  PlusCircleOutlined,
+  SettingOutlined,
+  UserOutlined,
+} from '@ant-design/icons';
 import { LogoutOutlined } from '@ant-design/icons';
 import { usePathname, useRouter } from 'next/navigation';
 import './globals.css';
@@ -23,18 +28,42 @@ const font = Nunito_Sans({
   subsets: ['latin'],
 });
 
-const menuItems = [
-  {
-    key: '/',
-    icon: <HomeOutlined />,
-    label: 'Quản lý kênh',
-  },
-  {
-    key: '/add-telegram',
-    icon: <PlusCircleOutlined />,
-    label: 'Cập nhật Telegram',
-  },
-];
+const getMenuItems = (username?: string) => {
+  const baseItems = [
+    {
+      key: '/',
+      icon: <HomeOutlined />,
+      label: 'Quản lý kênh',
+    },
+    {
+      key: '/add-telegram',
+      icon: <PlusCircleOutlined />,
+      label: 'Cập nhật Telegram',
+    },
+  ];
+
+  // Chỉ hiển thị menu Admin nếu username nằm trong danh sách NEXT_PUBLIC_ADMIN_USERNAME
+  const adminConfig = process.env.NEXT_PUBLIC_ADMIN_USERNAME || '';
+  const adminUsernames = adminConfig.split(',').map((u) => u.trim());
+  const isAdmin = username && adminUsernames.includes(username);
+
+  if (isAdmin) {
+    baseItems.push({
+      key: 'admin',
+      icon: <SettingOutlined />,
+      label: 'Admin',
+      children: [
+        {
+          key: '/admin/users',
+          icon: <UserOutlined />,
+          label: 'Users',
+        },
+      ],
+    } as any);
+  }
+
+  return baseItems;
+};
 
 const theme = {};
 
@@ -77,6 +106,21 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     localStorage.setItem('hide_security_alert', '1');
   };
 
+  // Get menu items based on current user
+  const menuItems = React.useMemo(
+    () => getMenuItems(profile?.username),
+    [profile?.username],
+  );
+
+  // Get selected keys - handle submenu selection
+  const getSelectedKeys = () => {
+    // Nếu đang ở trang admin, highlight submenu item
+    if (pathname.startsWith('/admin/')) {
+      return [pathname];
+    }
+    return [pathname];
+  };
+
   return (
     <html lang='en'>
       <head>
@@ -112,7 +156,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
                       <Menu
                         mode='inline'
-                        selectedKeys={[pathname]}
+                        selectedKeys={getSelectedKeys()}
+                        defaultOpenKeys={
+                          pathname.startsWith('/admin/') ? ['admin'] : []
+                        }
                         className='border-r-0 text-base flex-1 mt-2'
                         items={menuItems}
                         onClick={({ key }) => router.push(key)}

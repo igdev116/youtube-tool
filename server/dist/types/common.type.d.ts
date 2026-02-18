@@ -14,6 +14,8 @@ export interface PagingResponse<T> {
         };
     };
     message: string;
+    success: boolean;
+    statusCode?: number;
 }
 export interface PagingResponseV2<T> {
     result: {
@@ -24,4 +26,6 @@ export interface PagingResponseV2<T> {
         };
     };
     message: string;
+    success: boolean;
+    statusCode?: number;
 }

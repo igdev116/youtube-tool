@@ -36,6 +36,7 @@ export async function paginateWithCursor<T extends Document>(
       },
     },
     message: '',
+    success: true,
   };
 }
 
@@ -64,5 +65,6 @@ export async function paginateWithPage<T extends Document>(
       },
     },
     message: '',
+    success: true,
   };
 }

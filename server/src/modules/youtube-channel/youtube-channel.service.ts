@@ -75,6 +75,7 @@ export class YoutubeChannelService {
   ) {
     const maxConcurrency = Number(process.env.BULK_CONCURRENCY || 3);
     const limit = pLimit(Math.max(1, maxConcurrency));
+    const userObjectId = new Types.ObjectId(userId);
 
     const tasks = channels.map((item) =>
       limit(async () => {
@@ -91,7 +92,7 @@ export class YoutubeChannelService {
 
         const existingChannel = await this.channelModel.findOne({
           channelId,
-          user: userId,
+          user: userObjectId,
         });
         if (existingChannel) {
           return;
@@ -121,7 +122,7 @@ export class YoutubeChannelService {
             xmlChannelId,
             avatarId,
             isActive: item.isActive ?? true,
-            user: userId,
+            user: userObjectId,
             lastVideoId: latestVideoId,
             lastVideoAt: latestPublishedAtDate,
           });
@@ -172,7 +173,8 @@ export class YoutubeChannelService {
     sortKey?: YoutubeChannelSort,
     favoriteOnly?: boolean,
   ) {
-    const filter: FilterQuery<YoutubeChannelDocument> = { user: userId };
+    const userObjectId = new Types.ObjectId(userId);
+    const filter: FilterQuery<YoutubeChannelDocument> = { user: userObjectId };
     if (keyword) {
       filter.channelId = { $regex: keyword, $options: 'i' } as any;
     }
@@ -216,9 +218,10 @@ export class YoutubeChannelService {
   }
 
   async deleteChannelById(userId: string, id: string) {
+    const userObjectId = new Types.ObjectId(userId);
     const deleted = await this.channelModel.findOneAndDelete({
       _id: id,
-      user: userId,
+      user: userObjectId,
     });
 
     if (deleted) {
@@ -240,9 +243,10 @@ export class YoutubeChannelService {
   }
 
   async toggleChannelActive(userId: string, id: string) {
+    const userObjectId = new Types.ObjectId(userId);
     const channel = await this.channelModel.findOne({
       _id: id,
-      user: userId,
+      user: userObjectId,
     });
 
     if (!channel) {
@@ -256,9 +260,10 @@ export class YoutubeChannelService {
   }
 
   async deleteAllUserChannels(userId: string) {
+    const userObjectId = new Types.ObjectId(userId);
     // Lấy danh sách xmlChannelId trước khi xoá để xử lý unsubscribe nếu cần
     const userChannels = await this.channelModel
-      .find({ user: userId }, { xmlChannelId: 1 })
+      .find({ user: userObjectId }, { xmlChannelId: 1 })
       .lean()
       .exec();
     const xmlIds = Array.from(
@@ -267,7 +272,7 @@ export class YoutubeChannelService {
       ),
     );
 
-    const result = await this.channelModel.deleteMany({ user: userId });
+    const result = await this.channelModel.deleteMany({ user: userObjectId });
 
     // Với mỗi xmlChannelId, nếu không còn ai theo dõi nữa thì unsubscribe
     for (const xmlId of xmlIds) {
@@ -289,6 +294,7 @@ export class YoutubeChannelService {
   }
 
   async getAllUserChannels(userId: string) {
-    return this.channelModel.find({ user: userId }).lean().exec();
+    const userObjectId = new Types.ObjectId(userId);
+    return this.channelModel.find({ user: userObjectId }).lean().exec();
   }
 }

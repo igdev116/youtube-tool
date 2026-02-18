@@ -32,6 +32,7 @@ async function paginateWithCursor(model, query, limit, cursor, sort = { _id: 1 }
             },
         },
         message: '',
+        success: true,
     };
 }
 async function paginateWithPage(model, query, page, limit, sort = { _id: 1 }) {
@@ -53,6 +54,7 @@ async function paginateWithPage(model, query, page, limit, sort = { _id: 1 }) {
             },
         },
         message: '',
+        success: true,
     };
 }
 //# sourceMappingURL=pagination.util.js.map

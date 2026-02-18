@@ -4,6 +4,7 @@ import {
   YoutubeChannel,
   YoutubeChannelSchema,
 } from '../youtube-channel/youtube-channel.schema';
+import { User, UserSchema } from '../../user/user.schema';
 import { AdminService } from './admin.service';
 import { AdminController } from './admin.controller';
 
@@ -11,6 +12,7 @@ import { AdminController } from './admin.controller';
   imports: [
     MongooseModule.forFeature([
       { name: YoutubeChannel.name, schema: YoutubeChannelSchema },
+      { name: User.name, schema: UserSchema },
     ]),
   ],
   providers: [AdminService],
