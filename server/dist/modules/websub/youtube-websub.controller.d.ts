@@ -19,4 +19,7 @@ export declare class YoutubeWebsubController {
         success: boolean;
         status: number;
     }>;
+    renew(): Promise<{
+        message: string;
+    }>;
 }

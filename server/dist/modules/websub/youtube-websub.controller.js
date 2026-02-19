@@ -42,6 +42,10 @@ let YoutubeWebsubController = YoutubeWebsubController_1 = class YoutubeWebsubCon
         const status = await this.service.unsubscribeCallback(topicUrl, callbackUrl);
         return { success: status >= 200 && status < 300, status };
     }
+    async renew() {
+        await this.service.renewExpiringSubscriptions();
+        return { message: 'Renew process started' };
+    }
 };
 exports.YoutubeWebsubController = YoutubeWebsubController;
 __decorate([
@@ -72,6 +76,12 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], YoutubeWebsubController.prototype, "unsubscribe", null);
+__decorate([
+    (0, common_1.Post)('renew'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], YoutubeWebsubController.prototype, "renew", null);
 exports.YoutubeWebsubController = YoutubeWebsubController = YoutubeWebsubController_1 = __decorate([
     (0, common_1.Controller)('websub/youtube'),
     __metadata("design:paramtypes", [youtube_websub_service_1.YoutubeWebsubService])
