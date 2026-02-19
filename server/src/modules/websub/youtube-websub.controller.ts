@@ -46,4 +46,10 @@ export class YoutubeWebsubController {
     );
     return { success: status >= 200 && status < 300, status };
   }
+
+  @Post('renew')
+  async renew() {
+    await this.service.renewExpiringSubscriptions();
+    return { message: 'Renew process started' };
+  }
 }
