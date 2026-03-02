@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import axios from 'axios';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import {
   YoutubeChannel,
   YoutubeChannelDocument,
@@ -18,7 +18,7 @@ import {
   WEB_SUB_RENEW_BEFORE_SECONDS,
   YT_FEED_BASE as FEED_BASE,
 } from '../../constants';
-import { User } from '~/user/user.schema';
+import { TelegramGroupService } from '../../telegram-group/telegram-group.service';
 
 @Injectable()
 export class YoutubeWebsubService {
@@ -28,6 +28,7 @@ export class YoutubeWebsubService {
     @InjectModel(YoutubeChannel.name)
     private readonly channelModel: Model<YoutubeChannelDocument>,
     private readonly telegramBotService: TelegramBotService,
+    private readonly telegramGroupService: TelegramGroupService,
   ) {}
 
   // Parser XML đơn giản cho WebSub (không phụ thuộc thư viện)
@@ -47,7 +48,6 @@ export class YoutubeWebsubService {
   }
 
   private extractNsTag(content: string, nsTag: string): string | null {
-    // Ví dụ nsTag = 'yt:videoId' hoặc 'media:thumbnail'
     const m = content.match(new RegExp(`<${nsTag}>([^<]*?)</${nsTag}>`));
     return m ? m[1] : null;
   }
@@ -83,20 +83,13 @@ export class YoutubeWebsubService {
 
         if (!videoId || !xmlChannelId) continue;
 
-        // Tìm tất cả kênh theo xmlChannelId
+        // Tìm tất cả kênh theo xmlChannelId (không cần populate user nữa)
         const channels = await this.channelModel
           .find({ xmlChannelId: xmlChannelId, isActive: true })
-          .populate('user')
+          .lean()
           .exec();
 
-        // Tạo array các promises để xử lý song song
         const channelPromises = channels.map(async (ch) => {
-          const user = ch.user as User;
-          const groupId = user?.telegramGroupId;
-          const botToken = user?.botToken;
-          if (!groupId || !botToken) return null;
-
-          // Kiểm tra xem video có mới hơn video cuối cùng không
           const videoPublishedAt = new Date(publishedAt);
           const lastVideoAt = ch.lastVideoAt;
 
@@ -107,24 +100,44 @@ export class YoutubeWebsubService {
             return null;
           }
 
-          try {
-            // Gửi ngay telegram bằng bot token của user
-            await this.telegramBotService.sendNewVideoToGroup(
-              groupId,
-              {
-                title,
-                url: `${YT_WATCH_BASE}${videoId}`,
-                channelId: ch.channelId,
-                channelName,
-                channelUrl,
-                thumbnail,
-                publishedAt,
-                avatarId: ch.avatarId, // Thêm avatarId từ channel
-              },
-              botToken,
-            );
+          // Tìm tất cả TelegramGroups của user này có chứa channelId
+          const userId = ch.user as Types.ObjectId;
+          const groups = await this.telegramGroupService.getGroupsByChannelId(
+            userId,
+            ch.channelId,
+          );
 
-            // Chỉ update DB khi gửi thành công
+          if (!groups || groups.length === 0) return null;
+
+          // Gửi thông báo đến tất cả groups
+          let anySent = false;
+          for (const group of groups) {
+            try {
+              await this.telegramBotService.sendNewVideoToGroup(
+                group.groupId,
+                {
+                  title,
+                  url: `${YT_WATCH_BASE}${videoId}`,
+                  channelId: ch.channelId,
+                  channelName,
+                  channelUrl,
+                  thumbnail,
+                  publishedAt,
+                  avatarId: ch.avatarId,
+                },
+                group.botToken,
+              );
+              anySent = true;
+            } catch (e) {
+              const err = e as Error;
+              this.logger.error(
+                `Send to group ${group.name} (${group.groupId}) failed for channel ${ch.channelId}: ${err.message}`,
+              );
+            }
+          }
+
+          // Chỉ update lastVideoId/lastVideoAt khi ít nhất 1 group gửi thành công
+          if (anySent) {
             await this.channelModel.updateOne(
               { _id: ch._id },
               {
@@ -134,19 +147,9 @@ export class YoutubeWebsubService {
                 },
               },
             );
-
-            return { success: true, channelId: ch.channelId };
-          } catch (e) {
-            const err = e as Error;
-            this.logger.error(
-              `Send or update failed for channel ${ch.channelId}: ${err.message}`,
-            );
-            return {
-              success: false,
-              channelId: ch.channelId,
-              error: err.message,
-            };
           }
+
+          return { success: anySent, channelId: ch.channelId };
         });
 
         // Xử lý song song tất cả channels

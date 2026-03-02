@@ -13,6 +13,7 @@ const youtube_websub_service_1 = require("./youtube-websub.service");
 const mongoose_1 = require("@nestjs/mongoose");
 const youtube_channel_schema_1 = require("../youtube-channel/youtube-channel.schema");
 const telegram_module_1 = require("../../telegram/telegram.module");
+const telegram_group_module_1 = require("../../telegram-group/telegram-group.module");
 let YoutubeWebsubModule = class YoutubeWebsubModule {
 };
 exports.YoutubeWebsubModule = YoutubeWebsubModule;
@@ -23,6 +24,7 @@ exports.YoutubeWebsubModule = YoutubeWebsubModule = __decorate([
                 { name: youtube_channel_schema_1.YoutubeChannel.name, schema: youtube_channel_schema_1.YoutubeChannelSchema },
             ]),
             telegram_module_1.TelegramModule,
+            telegram_group_module_1.TelegramGroupModule,
         ],
         controllers: [youtube_websub_controller_1.YoutubeWebsubController],
         providers: [youtube_websub_service_1.YoutubeWebsubService],

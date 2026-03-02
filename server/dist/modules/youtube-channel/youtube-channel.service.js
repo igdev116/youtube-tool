@@ -97,6 +97,7 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
                     lastVideoId: latestVideoId,
                     lastVideoAt: latestPublishedAtDate,
                 });
+                console.log('created', created);
                 const topicUrl = `${constants_1.YT_FEED_BASE}?channel_id=${xmlChannelId}`;
                 const callbackUrl = `${process.env.API_URL}/websub/youtube/callback`;
                 try {

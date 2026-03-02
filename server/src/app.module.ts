@@ -10,6 +10,7 @@ import { YoutubeChannelModule } from './modules/youtube-channel/youtube-channel.
 import { TelegramModule } from './telegram/telegram.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { YoutubeWebsubModule } from './modules/websub/youtube-websub.module';
+import { TelegramGroupModule } from './telegram-group/telegram-group.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { YoutubeWebsubModule } from './modules/websub/youtube-websub.module';
     TelegramModule,
     AdminModule,
     YoutubeWebsubModule,
+    TelegramGroupModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -19,6 +19,7 @@ const youtube_channel_module_1 = require("./modules/youtube-channel/youtube-chan
 const telegram_module_1 = require("./telegram/telegram.module");
 const admin_module_1 = require("./modules/admin/admin.module");
 const youtube_websub_module_1 = require("./modules/websub/youtube-websub.module");
+const telegram_group_module_1 = require("./telegram-group/telegram-group.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -38,6 +39,7 @@ exports.AppModule = AppModule = __decorate([
             telegram_module_1.TelegramModule,
             admin_module_1.AdminModule,
             youtube_websub_module_1.YoutubeWebsubModule,
+            telegram_group_module_1.TelegramGroupModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],

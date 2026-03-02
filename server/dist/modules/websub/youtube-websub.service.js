@@ -23,13 +23,16 @@ const youtube_channel_schema_1 = require("../youtube-channel/youtube-channel.sch
 const telegram_bot_service_1 = require("../../telegram/telegram-bot.service");
 const constants_1 = require("../../constants");
 const constants_2 = require("../../constants");
+const telegram_group_service_1 = require("../../telegram-group/telegram-group.service");
 let YoutubeWebsubService = YoutubeWebsubService_1 = class YoutubeWebsubService {
     channelModel;
     telegramBotService;
+    telegramGroupService;
     logger = new common_1.Logger(YoutubeWebsubService_1.name);
-    constructor(channelModel, telegramBotService) {
+    constructor(channelModel, telegramBotService, telegramGroupService) {
         this.channelModel = channelModel;
         this.telegramBotService = telegramBotService;
+        this.telegramGroupService = telegramGroupService;
     }
     extractEntries(xml) {
         const entries = [];
@@ -75,48 +78,48 @@ let YoutubeWebsubService = YoutubeWebsubService_1 = class YoutubeWebsubService {
                     continue;
                 const channels = await this.channelModel
                     .find({ xmlChannelId: xmlChannelId, isActive: true })
-                    .populate('user')
+                    .lean()
                     .exec();
                 const channelPromises = channels.map(async (ch) => {
-                    const user = ch.user;
-                    const groupId = user?.telegramGroupId;
-                    const botToken = user?.botToken;
-                    if (!groupId || !botToken)
-                        return null;
                     const videoPublishedAt = new Date(publishedAt);
                     const lastVideoAt = ch.lastVideoAt;
                     if (lastVideoAt && videoPublishedAt <= lastVideoAt) {
                         this.logger.debug(`Skip video ${videoId} - published at ${videoPublishedAt.toISOString()} is not newer than last video at ${lastVideoAt.toISOString()}`);
                         return null;
                     }
-                    try {
-                        await this.telegramBotService.sendNewVideoToGroup(groupId, {
-                            title,
-                            url: `${constants_1.YT_WATCH_BASE}${videoId}`,
-                            channelId: ch.channelId,
-                            channelName,
-                            channelUrl,
-                            thumbnail,
-                            publishedAt,
-                            avatarId: ch.avatarId,
-                        }, botToken);
+                    const userId = ch.user;
+                    const groups = await this.telegramGroupService.getGroupsByChannelId(userId, ch.channelId);
+                    if (!groups || groups.length === 0)
+                        return null;
+                    let anySent = false;
+                    for (const group of groups) {
+                        try {
+                            await this.telegramBotService.sendNewVideoToGroup(group.groupId, {
+                                title,
+                                url: `${constants_1.YT_WATCH_BASE}${videoId}`,
+                                channelId: ch.channelId,
+                                channelName,
+                                channelUrl,
+                                thumbnail,
+                                publishedAt,
+                                avatarId: ch.avatarId,
+                            }, group.botToken);
+                            anySent = true;
+                        }
+                        catch (e) {
+                            const err = e;
+                            this.logger.error(`Send to group ${group.name} (${group.groupId}) failed for channel ${ch.channelId}: ${err.message}`);
+                        }
+                    }
+                    if (anySent) {
                         await this.channelModel.updateOne({ _id: ch._id }, {
                             $set: {
                                 lastVideoId: videoId,
                                 lastVideoAt: videoPublishedAt,
                             },
                         });
-                        return { success: true, channelId: ch.channelId };
                     }
-                    catch (e) {
-                        const err = e;
-                        this.logger.error(`Send or update failed for channel ${ch.channelId}: ${err.message}`);
-                        return {
-                            success: false,
-                            channelId: ch.channelId,
-                            error: err.message,
-                        };
-                    }
+                    return { success: anySent, channelId: ch.channelId };
                 });
                 const results = await Promise.all(channelPromises);
                 const successCount = results.filter((r) => r?.success).length;
@@ -204,6 +207,7 @@ exports.YoutubeWebsubService = YoutubeWebsubService = YoutubeWebsubService_1 = _
     (0, common_1.Injectable)(),
     __param(0, (0, mongoose_1.InjectModel)(youtube_channel_schema_1.YoutubeChannel.name)),
     __metadata("design:paramtypes", [mongoose_2.Model,
-        telegram_bot_service_1.TelegramBotService])
+        telegram_bot_service_1.TelegramBotService,
+        telegram_group_service_1.TelegramGroupService])
 ], YoutubeWebsubService);
 //# sourceMappingURL=youtube-websub.service.js.map

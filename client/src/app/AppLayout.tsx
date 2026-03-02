@@ -7,9 +7,9 @@ import ProfileProvider from './profile-provider';
 import { Layout, Menu, ConfigProvider, Alert } from 'antd';
 import {
   HomeOutlined,
-  PlusCircleOutlined,
   SettingOutlined,
   UserOutlined,
+  TeamOutlined,
 } from '@ant-design/icons';
 import { LogoutOutlined } from '@ant-design/icons';
 import { usePathname, useRouter } from 'next/navigation';
@@ -36,9 +36,9 @@ const getMenuItems = (username?: string) => {
       label: 'Quản lý kênh',
     },
     {
-      key: '/add-telegram',
-      icon: <PlusCircleOutlined />,
-      label: 'Cập nhật Telegram',
+      key: '/groups',
+      icon: <TeamOutlined />,
+      label: 'Quản lý Groups',
     },
   ];
 
