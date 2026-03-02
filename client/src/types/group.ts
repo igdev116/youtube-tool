@@ -3,7 +3,7 @@ export interface TelegramGroup {
   name: string;
   groupId: string;
   botToken: string;
-  channelIds: string[];
+  channelCount?: number;
   user: string;
   createdAt?: string;
   updatedAt?: string;
@@ -13,7 +13,6 @@ export interface CreateGroupDto {
   name: string;
   groupId: string;
   botToken: string;
-  channelIds?: string[];
 }
 
 export interface UpdateGroupDto {

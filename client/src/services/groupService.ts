@@ -5,10 +5,14 @@ import type {
   CreateGroupDto,
   UpdateGroupDto,
 } from '../types/group';
+import type { ChannelListItem } from '../types/channel';
 
 export const groupService = {
   getGroups: (): Promise<BaseResponse<TelegramGroup[]>> =>
     axiosInstance.get('/groups'),
+
+  getGroupById: (id: string): Promise<BaseResponse<TelegramGroup>> =>
+    axiosInstance.get(`/groups/${id}`),
 
   createGroup: (dto: CreateGroupDto): Promise<BaseResponse<TelegramGroup>> =>
     axiosInstance.post('/groups', dto),
@@ -22,15 +26,6 @@ export const groupService = {
   deleteGroup: (id: string): Promise<BaseResponse<any>> =>
     axiosInstance.delete(`/groups/${id}`),
 
-  addChannels: (
-    id: string,
-    channelIds: string[],
-  ): Promise<BaseResponse<TelegramGroup>> =>
-    axiosInstance.post(`/groups/${id}/channels`, { channelIds }),
-
-  removeChannel: (
-    id: string,
-    channelId: string,
-  ): Promise<BaseResponse<TelegramGroup>> =>
-    axiosInstance.delete(`/groups/${id}/channels/${channelId}`),
+  getGroupChannels: (id: string): Promise<BaseResponse<ChannelListItem[]>> =>
+    axiosInstance.get(`/groups/${id}/channels`),
 };

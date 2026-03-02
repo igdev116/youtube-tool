@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { User } from '../../user/user.schema';
+import { TelegramGroup } from '../../telegram-group/telegram-group.schema';
 
 export type YoutubeChannelDocument = YoutubeChannel &
   Document & { user: Types.ObjectId | User };
@@ -36,6 +37,13 @@ export class YoutubeChannel {
 
   @Prop({ type: Date, required: false })
   lastSubscribeAt: Date;
+
+  @Prop({
+    type: [{ type: Types.ObjectId, ref: 'TelegramGroup' }],
+    default: [],
+    index: true,
+  })
+  groups: Types.ObjectId[] | TelegramGroup[];
 }
 
 export const YoutubeChannelSchema =

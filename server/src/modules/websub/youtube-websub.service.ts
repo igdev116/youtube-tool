@@ -18,7 +18,6 @@ import {
   WEB_SUB_RENEW_BEFORE_SECONDS,
   YT_FEED_BASE as FEED_BASE,
 } from '../../constants';
-import { TelegramGroupService } from '../../telegram-group/telegram-group.service';
 
 @Injectable()
 export class YoutubeWebsubService {
@@ -28,7 +27,6 @@ export class YoutubeWebsubService {
     @InjectModel(YoutubeChannel.name)
     private readonly channelModel: Model<YoutubeChannelDocument>,
     private readonly telegramBotService: TelegramBotService,
-    private readonly telegramGroupService: TelegramGroupService,
   ) {}
 
   // Parser XML đơn giản cho WebSub (không phụ thuộc thư viện)
@@ -83,9 +81,10 @@ export class YoutubeWebsubService {
 
         if (!videoId || !xmlChannelId) continue;
 
-        // Tìm tất cả kênh theo xmlChannelId (không cần populate user nữa)
+        // Tìm tất cả kênh theo xmlChannelId, populate groups
         const channels = await this.channelModel
           .find({ xmlChannelId: xmlChannelId, isActive: true })
+          .populate('groups')
           .lean()
           .exec();
 
@@ -100,14 +99,9 @@ export class YoutubeWebsubService {
             return null;
           }
 
-          // Tìm tất cả TelegramGroups của user này có chứa channelId
-          const userId = ch.user as Types.ObjectId;
-          const groups = await this.telegramGroupService.getGroupsByChannelId(
-            userId,
-            ch.channelId,
-          );
+          const groups = (ch.groups || []) as any[];
 
-          if (!groups || groups.length === 0) return null;
+          if (groups.length === 0) return null;
 
           // Gửi thông báo đến tất cả groups
           let anySent = false;

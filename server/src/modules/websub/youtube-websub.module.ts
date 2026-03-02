@@ -7,7 +7,6 @@ import {
   YoutubeChannelSchema,
 } from '../youtube-channel/youtube-channel.schema';
 import { TelegramModule } from '../../telegram/telegram.module';
-import { TelegramGroupModule } from '../../telegram-group/telegram-group.module';
 
 @Module({
   imports: [
@@ -15,7 +14,6 @@ import { TelegramGroupModule } from '../../telegram-group/telegram-group.module'
       { name: YoutubeChannel.name, schema: YoutubeChannelSchema },
     ]),
     TelegramModule,
-    TelegramGroupModule,
   ],
   controllers: [YoutubeWebsubController],
   providers: [YoutubeWebsubService],

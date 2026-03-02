@@ -159,4 +159,62 @@ export class YoutubeChannelController {
       result: channel,
     };
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id/groups/:groupId')
+  async addChannelToGroup(
+    @Param('id') channelDbId: string,
+    @Param('groupId') groupId: string,
+    @Req() req: Request,
+  ): Promise<BaseResponse<any>> {
+    const userId = (req.user as JwtUser).sub;
+    const channel = await this.channelService.addChannelToGroup(
+      userId,
+      channelDbId,
+      groupId,
+    );
+    if (!channel) {
+      return {
+        success: false,
+        statusCode: 404,
+        message: 'Không tìm thấy kênh',
+        result: null,
+      };
+    }
+    return {
+      success: true,
+      statusCode: 200,
+      message: 'Thêm kênh vào group thành công',
+      result: channel,
+    };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete(':id/groups/:groupId')
+  async removeChannelFromGroup(
+    @Param('id') channelDbId: string,
+    @Param('groupId') groupId: string,
+    @Req() req: Request,
+  ): Promise<BaseResponse<any>> {
+    const userId = (req.user as JwtUser).sub;
+    const channel = await this.channelService.removeChannelFromGroup(
+      userId,
+      channelDbId,
+      groupId,
+    );
+    if (!channel) {
+      return {
+        success: false,
+        statusCode: 404,
+        message: 'Không tìm thấy kênh',
+        result: null,
+      };
+    }
+    return {
+      success: true,
+      statusCode: 200,
+      message: 'Xóa kênh khỏi group thành công',
+      result: channel,
+    };
+  }
 }

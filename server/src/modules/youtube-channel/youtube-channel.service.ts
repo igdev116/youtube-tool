@@ -177,13 +177,26 @@ export class YoutubeChannelService {
     }
     // sort mapping
     const sort: Record<string, 1 | -1> = this.mapSort(sortKey);
-    return paginateWithPage<YoutubeChannelDocument>(
-      this.channelModel,
-      filter,
-      page,
-      limit,
-      sort,
-    );
+    const skip = (page - 1) * limit;
+    const total = await this.channelModel.countDocuments(filter);
+    const hasMore = page * limit < total;
+    const content = await this.channelModel
+      .find(filter)
+      .sort(sort)
+      .skip(skip)
+      .limit(limit)
+      .populate('groups', '_id name groupId')
+      .lean()
+      .exec();
+
+    return {
+      result: {
+        content,
+        paging: { hasMore, total },
+      },
+      message: '',
+      success: true,
+    };
   }
 
   private mapSort(sortKey?: YoutubeChannelSort): Record<string, 1 | -1> {
@@ -277,5 +290,47 @@ export class YoutubeChannelService {
   async getAllUserChannels(userId: string) {
     const userObjectId = new Types.ObjectId(userId);
     return this.channelModel.find({ user: userObjectId }).lean().exec();
+  }
+
+  /**
+   * Thêm channel vào group
+   */
+  async addChannelToGroup(
+    userId: string,
+    channelDbId: string,
+    groupId: string,
+  ) {
+    const userObjectId = new Types.ObjectId(userId);
+    const groupObjectId = new Types.ObjectId(groupId);
+    const channel = await this.channelModel
+      .findOneAndUpdate(
+        { _id: channelDbId, user: userObjectId },
+        { $addToSet: { groups: groupObjectId } },
+        { new: true },
+      )
+      .populate('groups', '_id name');
+    if (!channel) return null;
+    return channel;
+  }
+
+  /**
+   * Xóa channel khỏi group
+   */
+  async removeChannelFromGroup(
+    userId: string,
+    channelDbId: string,
+    groupId: string,
+  ) {
+    const userObjectId = new Types.ObjectId(userId);
+    const groupObjectId = new Types.ObjectId(groupId);
+    const channel = await this.channelModel
+      .findOneAndUpdate(
+        { _id: channelDbId, user: userObjectId },
+        { $pull: { groups: groupObjectId } },
+        { new: true },
+      )
+      .populate('groups', '_id name');
+    if (!channel) return null;
+    return channel;
   }
 }

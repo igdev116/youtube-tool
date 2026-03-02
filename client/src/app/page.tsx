@@ -37,6 +37,7 @@ import debounce from 'lodash/debounce';
 import { TOOLTIP_MESSAGES } from '../constants';
 import { useUserService } from '../hooks/useUserService';
 import { useUserStore } from '../store/userStore';
+import { useRouter } from 'next/navigation';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/vi';
 
@@ -46,6 +47,7 @@ dayjs.locale('vi');
 const { Link } = Typography;
 
 const HomePage = () => {
+  const router = useRouter();
   const {
     useQueryGetListChannels,
     deleteChannelMutation,
@@ -338,6 +340,32 @@ const HomePage = () => {
           <div className='flex flex-col leading-tight'>
             <span>{dt.format('HH:mm DD/MM/YY')}</span>
             <span className='mt-1 text-xs text-gray-500'>({dt.fromNow()})</span>
+          </div>
+        );
+      },
+    },
+    {
+      title: 'Thuộc nhóm',
+      key: 'groups',
+      width: 160,
+      render: (_: any, record: ChannelListItem) => {
+        if (!record.groups || record.groups.length === 0) {
+          return (
+            <span className='text-gray-300 text-xs italic'>Chưa có nhóm</span>
+          );
+        }
+        return (
+          <div className='flex flex-wrap gap-1'>
+            {record.groups.map((g) => (
+              <Tooltip title={g.name} key={g._id}>
+                <Tag
+                  color='blue'
+                  onClick={() => router.push(`/groups/${g._id}`)}
+                  className='mr-0 mb-0.5 text-xs max-w-[140px] truncate block cursor-pointer hover:opacity-80 transition-opacity'>
+                  {g.name}
+                </Tag>
+              </Tooltip>
+            ))}
           </div>
         );
       },

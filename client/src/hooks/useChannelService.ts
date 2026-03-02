@@ -29,7 +29,7 @@ export function useChannelService() {
 
   const deleteMultipleChannels = async (channelIds: string[]) => {
     const deletePromises = channelIds.map((id) =>
-      channelService.deleteChannel(id)
+      channelService.deleteChannel(id),
     );
     await Promise.all(deletePromises);
     invalidateChannels();
@@ -45,6 +45,34 @@ export function useChannelService() {
       mutationFn: () => channelService.exportChannels(),
     });
 
+  const addGroupToChannelMutation = useMutation({
+    mutationFn: ({
+      channelDbId,
+      groupId,
+    }: {
+      channelDbId: string;
+      groupId: string;
+    }) => channelService.addGroupToChannel(channelDbId, groupId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['channels'] });
+      queryClient.invalidateQueries({ queryKey: ['group-channels'] });
+    },
+  });
+
+  const removeGroupFromChannelMutation = useMutation({
+    mutationFn: ({
+      channelDbId,
+      groupId,
+    }: {
+      channelDbId: string;
+      groupId: string;
+    }) => channelService.removeGroupFromChannel(channelDbId, groupId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['channels'] });
+      queryClient.invalidateQueries({ queryKey: ['group-channels'] });
+    },
+  });
+
   return {
     addChannelsMutation,
     deleteChannelMutation,
@@ -54,5 +82,7 @@ export function useChannelService() {
     deleteMultipleChannels,
     deleteAllChannels,
     useMutationExportChannels,
+    addGroupToChannelMutation,
+    removeGroupFromChannelMutation,
   };
 }

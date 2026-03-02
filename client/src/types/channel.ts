@@ -10,9 +10,12 @@ export interface ChannelListItem {
   isActive: boolean;
   lastVideoId: string;
   lastVideoAt: string;
+  xmlChannelId: string;
   user: string;
   _id: string;
   avatarId?: string;
+  lastSubscribeAt?: string;
+  groups?: { _id: string; name: string; groupId: string }[];
 }
 
 export interface GetChannelParams extends PagingParams {

@@ -11,6 +11,20 @@ export const useGroupService = () => {
       queryFn: () => groupService.getGroups(),
     });
 
+  const useQueryGetGroupById = (id: string, enabled = true) =>
+    useQuery({
+      queryKey: ['group', id],
+      queryFn: () => groupService.getGroupById(id),
+      enabled: !!id && enabled,
+    });
+
+  const useQueryGetGroupChannels = (id: string, enabled = true) =>
+    useQuery({
+      queryKey: ['group-channels', id],
+      queryFn: () => groupService.getGroupChannels(id),
+      enabled: !!id && enabled,
+    });
+
   const createGroupMutation = useMutation({
     mutationFn: (dto: CreateGroupDto) => groupService.createGroup(dto),
     onSuccess: () => {
@@ -30,31 +44,16 @@ export const useGroupService = () => {
     mutationFn: (id: string) => groupService.deleteGroup(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['groups'] });
-    },
-  });
-
-  const addChannelsMutation = useMutation({
-    mutationFn: ({ id, channelIds }: { id: string; channelIds: string[] }) =>
-      groupService.addChannels(id, channelIds),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['groups'] });
-    },
-  });
-
-  const removeChannelMutation = useMutation({
-    mutationFn: ({ id, channelId }: { id: string; channelId: string }) =>
-      groupService.removeChannel(id, channelId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['groups'] });
+      queryClient.invalidateQueries({ queryKey: ['channels'] });
     },
   });
 
   return {
     useQueryGetGroups,
+    useQueryGetGroupById,
+    useQueryGetGroupChannels,
     createGroupMutation,
     updateGroupMutation,
     deleteGroupMutation,
-    addChannelsMutation,
-    removeChannelMutation,
   };
 };

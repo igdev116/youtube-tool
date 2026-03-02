@@ -1,7 +1,7 @@
 import {
   Controller,
-  Post,
   Get,
+  Post,
   Patch,
   Delete,
   Body,
@@ -53,6 +53,21 @@ export class TelegramGroupController {
     };
   }
 
+  @Get(':id')
+  async getGroupById(
+    @Param('id') groupId: string,
+    @Req() req: Request,
+  ): Promise<BaseResponse<any>> {
+    const userId = (req.user as JwtUser).sub;
+    const group = await this.groupService.getGroupById(userId, groupId);
+    return {
+      success: true,
+      statusCode: 200,
+      message: 'Lấy thông tin group thành công',
+      result: group,
+    };
+  }
+
   @Patch(':id')
   async updateGroup(
     @Param('id') groupId: string,
@@ -84,43 +99,21 @@ export class TelegramGroupController {
     };
   }
 
-  @Post(':id/channels')
-  async addChannels(
+  /**
+   * GET /groups/:id/channels — lấy danh sách channels của group
+   */
+  @Get(':id/channels')
+  async getGroupChannels(
     @Param('id') groupId: string,
-    @Body() body: { channelIds: string[] },
     @Req() req: Request,
   ): Promise<BaseResponse<any>> {
     const userId = (req.user as JwtUser).sub;
-    const group = await this.groupService.addChannels(
-      userId,
-      groupId,
-      body.channelIds,
-    );
+    const channels = await this.groupService.getGroupChannels(userId, groupId);
     return {
       success: true,
       statusCode: 200,
-      message: 'Thêm kênh vào group thành công',
-      result: group,
-    };
-  }
-
-  @Delete(':id/channels/:channelId')
-  async removeChannel(
-    @Param('id') groupId: string,
-    @Param('channelId') channelId: string,
-    @Req() req: Request,
-  ): Promise<BaseResponse<any>> {
-    const userId = (req.user as JwtUser).sub;
-    const group = await this.groupService.removeChannel(
-      userId,
-      groupId,
-      channelId,
-    );
-    return {
-      success: true,
-      statusCode: 200,
-      message: 'Xóa kênh khỏi group thành công',
-      result: group,
+      message: 'Lấy danh sách kênh của group thành công',
+      result: channels,
     };
   }
 }
