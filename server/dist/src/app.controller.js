@@ -25,6 +25,12 @@ let AppController = class AppController {
         console.log(message);
         return message;
     }
+    async runMigrationGet() {
+        return this.appService.migrateChannelGroups();
+    }
+    async runMigrationPost() {
+        return this.appService.migrateChannelGroups();
+    }
 };
 exports.AppController = AppController;
 __decorate([
@@ -39,6 +45,18 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], AppController.prototype, "ping", null);
+__decorate([
+    (0, common_1.Get)('migrate-channel-groups'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], AppController.prototype, "runMigrationGet", null);
+__decorate([
+    (0, common_1.Post)('migrate-channel-groups'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], AppController.prototype, "runMigrationPost", null);
 exports.AppController = AppController = __decorate([
     (0, common_1.Controller)(),
     __metadata("design:paramtypes", [app_service_1.AppService])

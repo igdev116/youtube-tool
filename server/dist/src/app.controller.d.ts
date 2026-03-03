@@ -4,4 +4,12 @@ export declare class AppController {
     constructor(appService: AppService);
     getHello(): string;
     ping(): string;
+    runMigrationGet(): Promise<{
+        success: boolean;
+        logs: string[];
+    }>;
+    runMigrationPost(): Promise<{
+        success: boolean;
+        logs: string[];
+    }>;
 }
