@@ -16,8 +16,7 @@ import {
   PlusOutlined,
   DeleteOutlined,
   EditOutlined,
-  TeamOutlined,
-  EyeOutlined,
+  ArrowRightOutlined,
 } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 import { useGroupService } from '../../hooks/useGroupService';
@@ -191,10 +190,10 @@ const GroupsPage = () => {
       key: 'name',
       render: (name: string, record) => (
         <span
-          className='font-semibold text-blue-600 cursor-pointer hover:underline'
+          className='font-semibold text-blue-600 cursor-pointer hover:underline flex items-center gap-1 group'
           onClick={() => router.push(`/groups/${record._id}`)}>
-          <TeamOutlined className='mr-2' />
           {name}
+          <ArrowRightOutlined className='text-[10px] opacity-0 group-hover:opacity-100 transition-opacity translate-y-[1px]' />
         </span>
       ),
     },
@@ -232,16 +231,7 @@ const GroupsPage = () => {
       align: 'center',
       width: 150,
       render: (_, record) => (
-        <div className='flex items-center gap-1 justify-center'>
-          <Tooltip title='Quản lý kênh'>
-            <Button
-              type='default'
-              size='small'
-              icon={<EyeOutlined />}
-              onClick={() => router.push(`/groups/${record._id}`)}>
-              Chi tiết
-            </Button>
-          </Tooltip>
+        <div className='flex items-center gap-2 justify-center'>
           <Tooltip title='Chỉnh sửa'>
             <Button
               type='text'
