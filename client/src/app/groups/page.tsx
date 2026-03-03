@@ -291,7 +291,15 @@ const GroupsPage = () => {
           </Tooltip>
           <Popconfirm
             title='Xóa group này?'
-            description='Kênh YouTube sẽ không còn thuộc group này.'
+            description={
+              <div>
+                Kênh YouTube sẽ không còn thuộc group này.
+                <br />
+                <span className='text-red-500'>
+                  (Chỉ xoá group chứ ko xoá các kênh bên trong group)
+                </span>
+              </div>
+            }
             onConfirm={() => handleDeleteGroup(record._id)}
             okText='Xóa'
             cancelText='Huỷ'
