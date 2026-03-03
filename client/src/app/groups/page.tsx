@@ -17,11 +17,47 @@ import {
   DeleteOutlined,
   EditOutlined,
   ArrowRightOutlined,
+  LinkOutlined,
 } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 import { useGroupService } from '../../hooks/useGroupService';
 import type { TelegramGroup } from '../../types/group';
 import type { ColumnsType } from 'antd/es/table';
+
+// ----------- Helpers -----------
+const parseTelegramId = (input: string) => {
+  let v = input.trim();
+  // https://web.telegram.org/k/#-5079958874
+  if (v.includes('web.telegram.org')) {
+    const match = v.match(/#(-?\d+)/);
+    if (match) return match[1];
+  }
+  // Private group link: https://t.me/c/1234567890/123 -> -1001234567890
+  if (v.includes('t.me/c/')) {
+    const match = v.match(/t\.me\/c\/(\d+)/);
+    if (match) return `-100${match[1]}`;
+  }
+  // Public link: https://t.me/groupname -> @groupname
+  if (v.includes('t.me/')) {
+    const parts = v.split('/');
+    const last = parts.filter(Boolean).pop();
+    if (last && !/^\d+$/.test(last)) {
+      return last.startsWith('@') ? last : `@${last}`;
+    }
+  }
+  return v;
+};
+
+const formatToLink = (id: string) => {
+  if (!id) return '';
+  if (id.startsWith('@')) return `https://t.me/${id.slice(1)}`;
+  if (id.startsWith('-100')) return `https://t.me/c/${id.slice(4)}`;
+  // Fallback for numeric IDs that don't follow the standard private group format
+  // Or if it was original web.telegram.org format, we can only do a best effort.
+  // We'll return it as is if it doesn't match above, but the user expects a link.
+  if (id.startsWith('-')) return `https://web.telegram.org/k/#${id}`;
+  return id;
+};
 
 // ----------- Masked Token component -----------
 const MaskedToken = ({ value }: { value: string }) => {
@@ -64,7 +100,9 @@ const GroupFormModal = ({
     if (open) {
       form.setFieldsValue({
         name: initialValues?.name ?? '',
-        groupId: initialValues?.groupId ?? '',
+        groupId: initialValues?.groupId
+          ? formatToLink(initialValues.groupId)
+          : '',
         botToken: initialValues?.botToken ?? '',
       });
     } else {
@@ -90,16 +128,15 @@ const GroupFormModal = ({
 
         <Form.Item
           name='groupId'
-          label='Telegram Group ID'
-          extra='Negative number ID, vd: -1001234567890'
+          label='Link Telegram Group'
+          extra='Ví dụ: https://web.telegram.org/k/#-5079958874'
           rules={[
-            { required: true, message: 'Vui lòng nhập Group ID!' },
-            {
-              pattern: /^-?\d+$/,
-              message: 'Group ID phải là số nguyên (âm hoặc dương)!',
-            },
+            { required: true, message: 'Vui lòng dán link Telegram Group!' },
           ]}>
-          <Input placeholder='-1001234567890' className='h-10' />
+          <Input
+            placeholder='https://web.telegram.org/k/#-5079958874'
+            className='h-10'
+          />
         </Form.Item>
 
         <Form.Item
@@ -108,7 +145,7 @@ const GroupFormModal = ({
           rules={[
             { required: true, message: 'Vui lòng nhập Bot Token!' },
             {
-              pattern: /^[0-9]{8,10}:[a-zA-Z0-9_-]{35}$/,
+              pattern: /^[0-9]{8,11}:[a-zA-Z0-9_-]{35}$/,
               message: 'Định dạng không đúng! (vd: 123456789:ABCdef...)',
             },
           ]}>
@@ -154,9 +191,14 @@ const GroupsPage = () => {
     groupId: string;
     botToken: string;
   }) => {
+    const processedValues = {
+      ...values,
+      groupId: parseTelegramId(values.groupId),
+    };
+
     if (groupModal.editing?._id) {
       updateGroupMutation.mutate(
-        { id: groupModal.editing._id, dto: values },
+        { id: groupModal.editing._id, dto: processedValues },
         {
           onSuccess: () => {
             message.success('Đã cập nhật group!');
@@ -166,7 +208,7 @@ const GroupsPage = () => {
         },
       );
     } else {
-      createGroupMutation.mutate(values, {
+      createGroupMutation.mutate(processedValues, {
         onSuccess: () => {
           message.success('Đã tạo group!');
           setGroupModal({ open: false, editing: null });
@@ -198,12 +240,19 @@ const GroupsPage = () => {
       ),
     },
     {
-      title: 'Group ID',
+      title: 'Link Telegram Group',
       dataIndex: 'groupId',
       key: 'groupId',
-      width: 180,
+      width: 400,
       render: (id: string) => (
-        <code className='bg-gray-100 px-2 py-0.5 rounded text-xs'>{id}</code>
+        <a
+          href={formatToLink(id)}
+          target='_blank'
+          rel='noopener noreferrer'
+          className='text-blue-500 hover:underline flex items-center gap-1'>
+          <LinkOutlined className='text-xs' />
+          {formatToLink(id)}
+        </a>
       ),
     },
     {
