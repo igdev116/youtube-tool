@@ -10,8 +10,9 @@ import {
   SettingOutlined,
   UserOutlined,
   TeamOutlined,
+  CustomerServiceOutlined,
+  LogoutOutlined,
 } from '@ant-design/icons';
-import { LogoutOutlined } from '@ant-design/icons';
 import { usePathname, useRouter } from 'next/navigation';
 import './globals.css';
 import colors from '~/lib/tailwind/colors';
@@ -39,6 +40,11 @@ const getMenuItems = (username?: string) => {
       key: '/groups',
       icon: <TeamOutlined />,
       label: 'Quản lý Groups',
+    },
+    {
+      key: 'https://t.me/+5hmFJERkb_kyNGE1',
+      icon: <CustomerServiceOutlined />,
+      label: 'Hỗ trợ',
     },
   ];
 
@@ -162,7 +168,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                         }
                         className='border-r-0 text-base flex-1 mt-2'
                         items={menuItems}
-                        onClick={({ key }) => router.push(key)}
+                        onClick={({ key }) => {
+                          if (key.startsWith('http')) {
+                            window.open(key, '_blank');
+                          } else {
+                            router.push(key);
+                          }
+                        }}
                       />
                       {showSecurityAlert && (
                         <div className='px-3 pt-2'>
