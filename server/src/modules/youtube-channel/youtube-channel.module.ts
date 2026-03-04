@@ -10,6 +10,7 @@ import {
   TelegramGroup,
   TelegramGroupSchema,
 } from '../../telegram-group/telegram-group.schema';
+import { TelegramGroupModule } from '../../telegram-group/telegram-group.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import {
     UserModule,
     TelegramModule,
     YoutubeWebsubModule,
+    TelegramGroupModule,
   ],
   providers: [YoutubeChannelService],
   exports: [YoutubeChannelService],

@@ -6,8 +6,8 @@ export type YoutubeChannelDocument = YoutubeChannel & Document & {
 };
 export declare enum YoutubeChannelSort {
     NEWEST_UPLOAD = "NEWEST_UPLOAD",
-    OLDEST_CHANNEL = "OLDEST_CHANNEL",
-    NEWEST_CHANNEL = "NEWEST_CHANNEL"
+    OLDEST_UPLOAD = "OLDEST_UPLOAD",
+    NO_GROUP = "NO_GROUP"
 }
 export declare class YoutubeChannel {
     channelId: string;

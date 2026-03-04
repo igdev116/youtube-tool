@@ -9,7 +9,7 @@ export declare class YoutubeChannelService {
     private readonly userService;
     private readonly logger;
     constructor(channelModel: Model<YoutubeChannelDocument>, websubService: YoutubeWebsubService, userService: UserService);
-    addChannelsBulk(channels: BulkChannelDto[], userId: string): {
+    addChannelsBulk(channels: BulkChannelDto[], userId: string, groupIds?: string[]): {
         error: boolean;
         message: string;
         docs: never[];

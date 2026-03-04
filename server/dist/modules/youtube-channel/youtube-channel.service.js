@@ -40,9 +40,9 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
         this.websubService = websubService;
         this.userService = userService;
     }
-    addChannelsBulk(channels, userId) {
+    addChannelsBulk(channels, userId, groupIds = []) {
         setTimeout(() => {
-            void this.processChannelsBulk(channels, userId).catch(() => undefined);
+            void this.processChannelsBulk(channels, userId, groupIds).catch(() => undefined);
         }, 0);
         return {
             error: false,
@@ -50,10 +50,13 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
             docs: [],
         };
     }
-    async processChannelsBulk(channels, userId) {
+    async processChannelsBulk(channels, userId, groupIds = []) {
         const maxConcurrency = Number(process.env.BULK_CONCURRENCY || 3);
         const limit = (0, p_limit_1.default)(Math.max(1, maxConcurrency));
         const userObjectId = new mongoose_2.Types.ObjectId(userId);
+        const groupObjectIds = groupIds
+            .filter((id) => mongoose_2.Types.ObjectId.isValid(id))
+            .map((id) => new mongoose_2.Types.ObjectId(id));
         const tasks = channels.map((item) => limit(async () => {
             const xmlChannelId = await (0, youtube_channel_utils_1.extractXmlChannelIdFromUrl)(item.link);
             if (!xmlChannelId) {
@@ -96,8 +99,8 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
                     user: userObjectId,
                     lastVideoId: latestVideoId,
                     lastVideoAt: latestPublishedAtDate,
+                    ...(groupObjectIds.length > 0 && { groups: groupObjectIds }),
                 });
-                console.log('created', created);
                 const topicUrl = `${constants_1.YT_FEED_BASE}?channel_id=${xmlChannelId}`;
                 const callbackUrl = `${process.env.API_URL}/websub/youtube/callback`;
                 try {
@@ -136,6 +139,12 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
             }
             filter._id = { $in: validObjectIds };
         }
+        if (sortKey === youtube_channel_schema_1.YoutubeChannelSort.NO_GROUP) {
+            filter.$or = [
+                { groups: { $exists: false } },
+                { groups: { $size: 0 } },
+            ];
+        }
         const sort = this.mapSort(sortKey);
         const skip = (page - 1) * limit;
         const total = await this.channelModel.countDocuments(filter);
@@ -161,9 +170,9 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
         switch (sortKey) {
             case youtube_channel_schema_1.YoutubeChannelSort.NEWEST_UPLOAD:
                 return { lastVideoAt: -1, _id: -1 };
-            case youtube_channel_schema_1.YoutubeChannelSort.OLDEST_CHANNEL:
-                return { _id: 1 };
-            case youtube_channel_schema_1.YoutubeChannelSort.NEWEST_CHANNEL:
+            case youtube_channel_schema_1.YoutubeChannelSort.OLDEST_UPLOAD:
+                return { lastVideoAt: 1, _id: 1 };
+            case youtube_channel_schema_1.YoutubeChannelSort.NO_GROUP:
             default:
                 return { _id: -1 };
         }

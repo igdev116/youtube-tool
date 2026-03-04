@@ -36,10 +36,16 @@ export class YoutubeChannelService {
   ) {}
 
   // Không cần await vì xử lý nền; để tránh cảnh báo linter cho async không await, giữ nguyên dạng sync
-  addChannelsBulk(channels: BulkChannelDto[], userId: string) {
+  addChannelsBulk(
+    channels: BulkChannelDto[],
+    userId: string,
+    groupIds: string[] = [],
+  ) {
     // Đẩy xử lý sang nền để tránh timeout/giới hạn tài nguyên (Render)
     setTimeout(() => {
-      void this.processChannelsBulk(channels, userId).catch(() => undefined);
+      void this.processChannelsBulk(channels, userId, groupIds).catch(
+        () => undefined,
+      );
     }, 0);
     return {
       error: false,
@@ -51,14 +57,19 @@ export class YoutubeChannelService {
   private async processChannelsBulk(
     channels: BulkChannelDto[],
     userId: string,
+    groupIds: string[] = [],
   ) {
     const maxConcurrency = Number(process.env.BULK_CONCURRENCY || 3);
     const limit = pLimit(Math.max(1, maxConcurrency));
     const userObjectId = new Types.ObjectId(userId);
+    const groupObjectIds = groupIds
+      .filter((id) => Types.ObjectId.isValid(id))
+      .map((id) => new Types.ObjectId(id));
 
     const tasks = channels.map((item) =>
       limit(async () => {
         const xmlChannelId = await extractXmlChannelIdFromUrl(item.link);
+
         if (!xmlChannelId) {
           return;
         }
@@ -81,6 +92,7 @@ export class YoutubeChannelService {
         let latestPublishedAtDate: Date | undefined;
         try {
           const latestVideo = await extractFirstVideoFromYt(xmlChannelId);
+
           if (latestVideo && latestVideo.id) {
             latestVideoId = latestVideo.id;
             latestPublishedAtDate = latestVideo.publishedAt
@@ -104,9 +116,8 @@ export class YoutubeChannelService {
             user: userObjectId,
             lastVideoId: latestVideoId,
             lastVideoAt: latestPublishedAtDate,
+            ...(groupObjectIds.length > 0 && { groups: groupObjectIds }),
           });
-
-          console.log('created', created);
 
           const topicUrl = `${YT_FEED_BASE}?channel_id=${xmlChannelId}`;
           const callbackUrl = `${process.env.API_URL}/websub/youtube/callback`;
@@ -175,6 +186,13 @@ export class YoutubeChannelService {
       }
       (filter as any)._id = { $in: validObjectIds } as any;
     }
+    if (sortKey === YoutubeChannelSort.NO_GROUP) {
+      (filter as any).$or = [
+        { groups: { $exists: false } },
+        { groups: { $size: 0 } },
+      ];
+    }
+
     // sort mapping
     const sort: Record<string, 1 | -1> = this.mapSort(sortKey);
     const skip = (page - 1) * limit;
@@ -203,10 +221,11 @@ export class YoutubeChannelService {
     switch (sortKey) {
       case YoutubeChannelSort.NEWEST_UPLOAD:
         return { lastVideoAt: -1, _id: -1 };
-      case YoutubeChannelSort.OLDEST_CHANNEL:
-        return { _id: 1 };
-      case YoutubeChannelSort.NEWEST_CHANNEL:
+      case YoutubeChannelSort.OLDEST_UPLOAD:
+        return { lastVideoAt: 1, _id: 1 };
+      case YoutubeChannelSort.NO_GROUP:
       default:
+        // Use default newest as fallback
         return { _id: -1 };
     }
   }

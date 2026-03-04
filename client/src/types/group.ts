@@ -11,8 +11,8 @@ export interface TelegramGroup {
 
 export interface CreateGroupDto {
   name: string;
-  groupId: string;
-  botToken: string;
+  groupId?: string;
+  botToken?: string;
 }
 
 export interface UpdateGroupDto {

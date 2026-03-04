@@ -9,6 +9,7 @@ import {
   Patch,
 } from '@nestjs/common';
 import { YoutubeChannelService } from './youtube-channel.service';
+import { TelegramGroupService } from '../../telegram-group/telegram-group.service';
 import { BulkChannelDto } from './dto/bulk-channel.dto';
 import { BaseResponse } from '../../types/common.type';
 import { GetChannelsDto } from './dto/get-channels.dto';
@@ -24,17 +25,47 @@ interface JwtUser {
 
 @Controller('channel')
 export class YoutubeChannelController {
-  constructor(private readonly channelService: YoutubeChannelService) {}
+  constructor(
+    private readonly channelService: YoutubeChannelService,
+    private readonly groupService: TelegramGroupService,
+  ) {}
 
   @UseGuards(JwtAuthGuard)
   @Post('bulk')
-  addChannelsBulk(
-    @Body() body: BulkChannelDto[],
+  async addChannelsBulk(
+    @Body()
+    body: {
+      channels: BulkChannelDto[];
+      groupIds?: string[];
+      newGroupNames?: string[];
+    },
     @Req() req: Request,
-  ): BaseResponse<any> {
+  ): Promise<BaseResponse<any>> {
     const user = req.user as JwtUser;
     const userId = user.sub;
-    const result = this.channelService.addChannelsBulk(body, userId);
+    const channels = Array.isArray(body) ? body : (body.channels ?? []);
+
+    let groupIds: string[] = Array.isArray(body) ? [] : (body.groupIds ?? []);
+
+    // Create new groups if provided and merge their IDs
+    const newGroupNames: string[] = Array.isArray(body)
+      ? []
+      : (body.newGroupNames ?? []);
+    if (newGroupNames.length > 0) {
+      const created = await Promise.all(
+        newGroupNames.map((name) =>
+          this.groupService.createGroup(userId, { name }),
+        ),
+      );
+      groupIds = [...groupIds, ...created.map((g) => String(g._id))];
+    }
+
+    console.log(channels);
+    const result = this.channelService.addChannelsBulk(
+      channels,
+      userId,
+      groupIds,
+    );
     if (result.error) {
       return {
         success: false,

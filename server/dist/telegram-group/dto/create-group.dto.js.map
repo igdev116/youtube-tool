@@ -1,1 +1,1 @@
-{"version":3,"file":"create-group.dto.js","sourceRoot":"","sources":["../../../src/telegram-group/dto/create-group.dto.ts"],"names":[],"mappings":";;;AAAA,MAAa,cAAc;IACzB,IAAI,CAAS;IACb,OAAO,CAAS;IAChB,QAAQ,CAAS;IACjB,UAAU,CAAY;CACvB;AALD,wCAKC"}
+{"version":3,"file":"create-group.dto.js","sourceRoot":"","sources":["../../../src/telegram-group/dto/create-group.dto.ts"],"names":[],"mappings":";;;AAAA,MAAa,cAAc;IACzB,IAAI,CAAS;IACb,OAAO,CAAU;IACjB,QAAQ,CAAU;IAClB,UAAU,CAAY;CACvB;AALD,wCAKC"}

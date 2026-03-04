@@ -8,8 +8,8 @@ export type YoutubeChannelDocument = YoutubeChannel &
 
 export enum YoutubeChannelSort {
   NEWEST_UPLOAD = 'NEWEST_UPLOAD',
-  OLDEST_CHANNEL = 'OLDEST_CHANNEL',
-  NEWEST_CHANNEL = 'NEWEST_CHANNEL',
+  OLDEST_UPLOAD = 'OLDEST_UPLOAD',
+  NO_GROUP = 'NO_GROUP',
 }
 
 @Schema()
@@ -20,10 +20,10 @@ export class YoutubeChannel {
   @Prop({ required: true })
   xmlChannelId: string;
 
-  @Prop({ required: true })
+  @Prop({ required: false })
   lastVideoId: string;
 
-  @Prop({ type: Date, required: true })
+  @Prop({ type: Date, required: false })
   lastVideoAt: Date;
 
   @Prop({ type: Types.ObjectId, ref: User.name, required: true })

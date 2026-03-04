@@ -21,6 +21,9 @@ import {
   LinkOutlined,
   ArrowLeftOutlined,
   CopyOutlined,
+  YoutubeOutlined,
+  CalendarOutlined,
+  TeamOutlined,
 } from '@ant-design/icons';
 import { useParams, useRouter } from 'next/navigation';
 import { useGroupService } from '../../../hooks/useGroupService';
@@ -35,6 +38,14 @@ dayjs.extend(relativeTime);
 dayjs.locale('vi');
 
 const { Link } = Typography;
+
+const formatToLink = (id: string) => {
+  if (!id) return '';
+  if (id.startsWith('@')) return `https://t.me/${id.slice(1)}`;
+  if (id.startsWith('-100')) return `https://t.me/c/${id.slice(4)}`;
+  if (id.startsWith('-')) return `https://web.telegram.org/k/#${id}`;
+  return id;
+};
 
 // Add Channel Modal
 const AddChannelModal = ({
@@ -64,37 +75,90 @@ const AddChannelModal = ({
     <Modal
       open={open}
       onCancel={onCancel}
-      title='Thêm kênh vào Group'
-      onOk={() => onConfirm(selected)}
-      okText='Thêm'
-      cancelText='Huỷ'
-      confirmLoading={loading}
-      okButtonProps={{ disabled: selected.length === 0 }}
-      destroyOnHidden>
-      <div className='mt-3'>
+      title={
+        <div className='flex items-center gap-2 py-0.5'>
+          <PlusOutlined className='text-blue-500' />
+          <span className='font-semibold text-gray-800 text-base'>
+            Thêm kênh vào Group
+          </span>
+        </div>
+      }
+      footer={
+        <div className='p-3 border-t bg-gray-50 rounded-b-xl flex gap-3'>
+          <Button
+            onClick={onCancel}
+            className='flex-1 h-10 rounded-lg hover:bg-white text-sm'>
+            Hủy
+          </Button>
+          <Button
+            type='primary'
+            loading={loading}
+            onClick={() => onConfirm(selected)}
+            disabled={selected.length === 0}
+            className='flex-1 h-10 font-normal shadow-md shadow-blue-100 rounded-lg text-sm border-none'>
+            Thêm {selected.length > 0 ? `(${selected.length})` : ''}
+          </Button>
+        </div>
+      }
+      destroyOnClose
+      width={420}
+      styles={{
+        content: { padding: 0 },
+        header: {
+          padding: '12px 20px',
+          borderBottom: '1px solid #f0f0f0',
+          margin: 0,
+        },
+        body: { padding: '16px 20px' },
+        footer: { margin: 0 },
+      }}>
+      <div className='mt-1'>
+        <p className='text-[11px] text-gray-400 mb-2 font-medium uppercase tracking-tight'>
+          CHỌN KÊNH TRONG DANH SÁCH
+        </p>
         <Select
           mode='multiple'
           className='w-full'
-          placeholder='Chọn kênh để thêm...'
+          placeholder='Tìm theo link youtube...'
           value={selected}
           onChange={setSelected}
           showSearch
-          size='large'
+          size='middle'
           filterOption={(input, opt) =>
             (opt?.label ?? '').toLowerCase().includes(input.toLowerCase())
           }
           options={available.map((ch) => ({
             value: ch._id,
-            label: ch.channelId,
+            label: `https://www.youtube.com/${ch.channelId}`,
           }))}
           notFoundContent={
-            available.length === 0
-              ? 'Tất cả kênh đã trong group này'
-              : 'Không tìm thấy'
+            <div className='py-4 text-center'>
+              <p className='text-gray-400 text-xs italic mb-0'>
+                {available.length === 0
+                  ? 'Tất cả kênh hiện có đã thuộc group này'
+                  : 'Không tìm thấy kênh phù hợp'}
+              </p>
+            </div>
           }
+          style={{ borderRadius: '8px' }}
         />
       </div>
     </Modal>
+  );
+};
+
+const MaskedToken = ({ value }: { value: string }) => {
+  const [show, setShow] = React.useState(false);
+  if (!value)
+    return <span className='text-gray-400 italic text-xs'>Chưa cấu hình</span>;
+  const masked = `${value.slice(0, 4)}${'•'.repeat(10)}${value.slice(-4)}`;
+  return (
+    <span
+      className='font-mono text-xs cursor-pointer hover:text-blue-500 select-none'
+      onClick={() => setShow((p) => !p)}
+      title='Click để ẩn/hiện'>
+      {show ? value : masked}
+    </span>
   );
 };
 
@@ -168,14 +232,23 @@ const GroupDetailPage = () => {
 
   const columns: ColumnsType<ChannelListItem> = [
     {
-      title: 'Kênh YouTube',
+      title: (
+        <div className='flex items-center gap-2'>
+          <YoutubeOutlined className='text-red-500' />
+          <span>Kênh YouTube</span>
+        </div>
+      ),
       dataIndex: 'channelId',
       key: 'channelId',
       render: (channelId: string) => {
         const link = `https://www.youtube.com/${channelId}`;
         return (
           <div className='flex items-center gap-2'>
-            <Link href={link} target='_blank' rel='noopener noreferrer'>
+            <Link
+              href={link}
+              target='_blank'
+              rel='noopener noreferrer'
+              className='text-blue-600 font-medium'>
               {link}
             </Link>
             <CopyOutlined
@@ -190,7 +263,12 @@ const GroupDetailPage = () => {
       },
     },
     {
-      title: 'Video mới nhất',
+      title: (
+        <div className='flex items-center gap-2'>
+          <YoutubeOutlined className='text-red-500' />
+          <span>Video mới nhất</span>
+        </div>
+      ),
       dataIndex: 'lastVideoId',
       key: 'lastVideoId',
       width: 150,
@@ -199,10 +277,12 @@ const GroupDetailPage = () => {
           return (
             <Tooltip
               title='Vui lòng thêm Bot vào Telegram Group để tự động cập nhật video mới!'
-              placement='top'
-              mouseEnterDelay={0}
-              mouseLeaveDelay={0}>
-              <Tag color='warning'>Chưa cập nhật</Tag>
+              placement='top'>
+              <Tag
+                color='default'
+                className='border-none bg-gray-100 text-gray-400'>
+                Trống
+              </Tag>
             </Tooltip>
           );
         }
@@ -212,28 +292,35 @@ const GroupDetailPage = () => {
           <Button
             type='link'
             size='small'
-            className='h-auto flex items-center gap-1'
+            className='h-auto flex items-center gap-1.5 font-medium'
             onClick={() => window.open(videoLink, '_blank')}>
-            <LinkOutlined />
+            <LinkOutlined className='text-xs' />
             Xem ngay
           </Button>
         );
       },
     },
     {
-      title: 'Ngày đăng cuối',
+      title: (
+        <div className='flex items-center gap-2'>
+          <CalendarOutlined className='text-blue-500' />
+          <span>Ngày đăng cuối</span>
+        </div>
+      ),
       dataIndex: 'lastVideoAt',
       key: 'lastVideoAt',
-      width: 170,
+      width: 180,
       render: (lastVideoAt: string) => {
         if (!lastVideoAt) {
           return (
             <Tooltip
               title='Vui lòng thêm Bot vào Telegram Group để tự động cập nhật video mới!'
-              placement='top'
-              mouseEnterDelay={0}
-              mouseLeaveDelay={0}>
-              <Tag color='warning'>Chưa cập nhật</Tag>
+              placement='top'>
+              <Tag
+                color='default'
+                className='border-none bg-gray-100 text-gray-400'>
+                Trống
+              </Tag>
             </Tooltip>
           );
         }
@@ -241,8 +328,10 @@ const GroupDetailPage = () => {
         const dt = dayjs(lastVideoAt);
         return (
           <div className='flex flex-col leading-tight'>
-            <span>{dt.format('HH:mm DD/MM/YY')}</span>
-            <span className='mt-1 text-xs text-gray-500'>({dt.fromNow()})</span>
+            <span className='text-sm'>{dt.format('HH:mm DD/MM/YY')}</span>
+            <span className='mt-1 text-xs text-gray-400 font-normal'>
+              ({dt.fromNow()})
+            </span>
           </div>
         );
       },
@@ -276,8 +365,14 @@ const GroupDetailPage = () => {
           okText='Xóa'
           cancelText='Huỷ'
           okButtonProps={{ danger: true }}>
-          <Tooltip title='Xóa khỏi group'>
-            <Button type='text' size='small' danger icon={<DeleteOutlined />} />
+          <Tooltip title='Xóa khỏi group' mouseEnterDelay={0.3}>
+            <Button
+              type='text'
+              size='small'
+              danger
+              icon={<DeleteOutlined />}
+              className='h-8 w-8 flex items-center justify-center'
+            />
           </Tooltip>
         </Popconfirm>
       ),
@@ -286,7 +381,7 @@ const GroupDetailPage = () => {
 
   if (groupQuery.isLoading) {
     return (
-      <div className='flex justify-center items-center min-h-64'>
+      <div className='flex justify-center items-center h-screen'>
         <Spin size='large' />
       </div>
     );
@@ -294,84 +389,89 @@ const GroupDetailPage = () => {
 
   if (!group) {
     return (
-      <div className='p-6'>
+      <div className='max-w-6xl mx-auto mt-10 p-12 bg-white rounded-2xl shadow-xl border border-blue-50 text-center'>
+        <Empty description='Group không tồn tại' />
         <Button
           icon={<ArrowLeftOutlined />}
           onClick={() => router.push('/groups')}
-          className='mb-4'>
-          Quay lại
+          className='mt-4 h-10 rounded-lg'>
+          Quay lại danh sách
         </Button>
-        <Empty description='Group không tồn tại' />
       </div>
     );
   }
 
   return (
-    <div className='max-w-6xl mx-auto mt-10 mb-10 bg-white px-6 py-4 rounded-lg shadow-lg'>
-      {/* Back + Header */}
-      <div className='flex items-center gap-3 mb-6'>
-        <Button
-          icon={<ArrowLeftOutlined />}
-          onClick={() => router.push('/groups')}
-          size='middle'
-          className='flex items-center justify-center'
-        />
-        <h2 className='text-2xl font-bold mb-0'>
-          {group.name}{' '}
-          <span className='text-primary'>({groupChannels.length} kênh)</span>
-        </h2>
-      </div>
+    <div className='max-w-6xl mx-auto mt-10 mb-10 bg-white px-8 py-6 rounded-2xl shadow-xl shadow-blue-50/50 border border-blue-50'>
+      {/* Header Styled like Groups list */}
+      <div className='flex justify-between items-center mb-8'>
+        <div className='flex items-center gap-3'>
+          <Button
+            type='text'
+            icon={<ArrowLeftOutlined />}
+            onClick={() => router.push('/groups')}
+            className='h-8 w-8 flex items-center justify-center bg-gray-50 hover:bg-gray-100 rounded-lg mr-2'
+          />
+          <div className='bg-blue-600 h-6 w-1 rounded-full'></div>
+          <h1 className='text-xl font-semibold text-gray-800 mb-0 flex items-center gap-2'>
+            {group.name}
+            <Tag
+              color='blue'
+              className='ml-1 font-semibold bg-blue-50 border-blue-100 text-blue-600 rounded px-1.5 text-[11px] h-5 flex items-center'>
+              {groupChannels.length} kênh
+            </Tag>
+          </h1>
+        </div>
 
-      {/* Group Info */}
-      <div className='bg-gray-50 border border-gray-200 rounded-lg p-3 mb-5 text-sm flex flex-wrap gap-x-6 gap-y-1'>
-        <span>
-          <span className='text-gray-400 mr-1'>Group ID:</span>
-          <code className='bg-white border border-gray-200 px-2 py-0.5 rounded text-xs'>
-            {group.groupId}
-          </code>
-        </span>
-        <span>
-          <span className='text-gray-400 mr-1'>Bot Token:</span>
-          <span className='font-mono text-xs'>
-            {group.botToken.slice(0, 8)}••••••••
-          </span>
-        </span>
-      </div>
-
-      {/* Channels Table */}
-      <div className='flex justify-between items-center mb-3'>
-        <span className='font-semibold text-gray-700'></span>
         <Button
           type='primary'
+          size='small'
           icon={<PlusOutlined />}
-          size='middle'
-          onClick={() => setAddModal(true)}>
-          Thêm kênh
+          onClick={() => setAddModal(true)}
+          className='h-9 px-5 font-normal bg-blue-600 hover:bg-blue-700 border-none shadow-md shadow-blue-100 hover:scale-[1.01] transition-all rounded-lg flex items-center justify-center text-sm'>
+          Thêm kênh mới
         </Button>
+      </div>
+
+      {/* Condensed Info Row */}
+      <div className='flex flex-wrap items-center gap-x-8 gap-y-2 mb-6 px-2 py-2 border-b border-gray-50'>
+        <div className='flex items-center gap-2'>
+          <LinkOutlined className='text-blue-400 text-xs' />
+          <span className='text-[11px] text-gray-400 font-semibold uppercase tracking-wider'>
+            Tele:
+          </span>
+          {group.groupId ? (
+            <a
+              href={formatToLink(group.groupId)}
+              target='_blank'
+              rel='noreferrer'
+              className='text-xs font-medium text-blue-500 hover:underline truncate max-w-[200px]'>
+              {group.groupId}
+            </a>
+          ) : (
+            <span className='text-xs italic text-gray-300'>Chưa có</span>
+          )}
+        </div>
+
+        <div className='flex items-center gap-2'>
+          <TeamOutlined className='text-amber-400 text-xs' />
+          <span className='text-[11px] text-gray-400 font-semibold uppercase tracking-wider'>
+            Bot:
+          </span>
+          <MaskedToken value={group.botToken} />
+        </div>
       </div>
 
       <Table
         columns={columns}
-        dataSource={groupChannels}
-        rowKey='_id'
+        dataSource={groupChannels.map((item) => ({ ...item, key: item._id }))}
         loading={groupChannelsQuery.isLoading}
+        pagination={{ pageSize: 8, hideOnSinglePage: true }}
         bordered
         scroll={{ y: 'calc(100vh - 400px)' }}
-        locale={{
-          emptyText: <Empty description='Chưa có kênh nào trong group này' />,
-        }}
-        pagination={
-          groupChannels.length > 10
-            ? {
-                pageSize: 10,
-                showSizeChanger: false,
-                showTotal: (total) => `${total} kênh`,
-              }
-            : false
-        }
+        className='premium-table'
       />
 
-      {/* Add Channel Modal */}
       <AddChannelModal
         open={addModal}
         loading={addGroupToChannelMutation.isPending}

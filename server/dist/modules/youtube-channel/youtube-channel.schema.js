@@ -16,8 +16,8 @@ const user_schema_1 = require("../../user/user.schema");
 var YoutubeChannelSort;
 (function (YoutubeChannelSort) {
     YoutubeChannelSort["NEWEST_UPLOAD"] = "NEWEST_UPLOAD";
-    YoutubeChannelSort["OLDEST_CHANNEL"] = "OLDEST_CHANNEL";
-    YoutubeChannelSort["NEWEST_CHANNEL"] = "NEWEST_CHANNEL";
+    YoutubeChannelSort["OLDEST_UPLOAD"] = "OLDEST_UPLOAD";
+    YoutubeChannelSort["NO_GROUP"] = "NO_GROUP";
 })(YoutubeChannelSort || (exports.YoutubeChannelSort = YoutubeChannelSort = {}));
 let YoutubeChannel = class YoutubeChannel {
     channelId;
@@ -40,11 +40,11 @@ __decorate([
     __metadata("design:type", String)
 ], YoutubeChannel.prototype, "xmlChannelId", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ required: true }),
+    (0, mongoose_1.Prop)({ required: false }),
     __metadata("design:type", String)
 ], YoutubeChannel.prototype, "lastVideoId", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: Date, required: true }),
+    (0, mongoose_1.Prop)({ type: Date, required: false }),
     __metadata("design:type", Date)
 ], YoutubeChannel.prototype, "lastVideoAt", void 0);
 __decorate([

@@ -9,10 +9,10 @@ export class TelegramGroup {
   @Prop({ required: true })
   name: string;
 
-  @Prop({ required: true })
+  @Prop({ default: '' })
   groupId: string;
 
-  @Prop({ required: true })
+  @Prop({ default: '' })
   botToken: string;
 
   @Prop({ type: Types.ObjectId, ref: User.name, required: true })

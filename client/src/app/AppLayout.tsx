@@ -150,7 +150,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     breakpoint='lg'
                     collapsedWidth={0}>
                     <div className='flex flex-col h-full'>
-                      <div className='h-16 flex items-center justify-center font-bold text-2xl tracking-wide text-blue-500'>
+                      <div className='h-16 flex items-center justify-center font-semibold text-2xl tracking-wide text-blue-500'>
                         RoomBees
                       </div>
 

@@ -18,6 +18,7 @@ import {
   CopyOutlined,
   LinkOutlined,
   DeleteOutlined,
+  SearchOutlined,
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import debounce from 'lodash/debounce';
@@ -221,43 +222,50 @@ const UserChannelsPage = () => {
 
   return (
     <div className='max-w-6xl mx-auto mt-10 bg-white px-6 pt-4 rounded-lg shadow-lg'>
-      <div className='mb-6'>
-        <Button
-          type='text'
-          icon={<ArrowLeftOutlined />}
-          onClick={() => router.push('/admin/users')}
-          className='mb-4'>
-          Quay lại
-        </Button>
-
+      <div className='flex flex-col gap-4 mb-6'>
         <div className='flex justify-between items-center'>
-          <h2 className='mb-0 text-2xl font-bold'>
-            Danh sách kênh của{' '}
-            <span className='text-primary'>
-              {user?.username} ({total} kênh)
-            </span>
+          <h2 className='text-center mb-0 text-xl font-semibold text-gray-800 flex items-center gap-3'>
+            <Button
+              type='text'
+              size='small'
+              icon={<ArrowLeftOutlined />}
+              onClick={() => router.push('/admin/users')}
+              className='hover:bg-blue-50 text-gray-400 hover:text-blue-500'
+            />
+            <div className='bg-blue-600 h-6 w-1 rounded-full'></div>
+            Quản lý kênh của{' '}
+            <span className='text-blue-600'>{user?.username}</span>
+            <Tag
+              color='blue'
+              className='ml-1 font-semibold bg-blue-50 border-blue-100 text-blue-600 rounded px-1.5 text-[11px] h-5 flex items-center'>
+              {total} kênh
+            </Tag>
           </h2>
         </div>
-      </div>
-
-      <div className='mb-4'>
-        <Input.Search
-          placeholder='Tìm kiếm kênh Youtube...'
-          allowClear
-          value={search}
-          onChange={handleSearchChange}
-          className='max-w-md'
-        />
+        <div className='border-t border-gray-100 pt-4 flex justify-between items-center'>
+          <div className='flex items-center gap-4'>
+            <Input.Search
+              placeholder='Tìm theo ID hoặc tên kênh...'
+              allowClear
+              value={search}
+              enterButton={<SearchOutlined />}
+              onChange={handleSearchChange}
+              className='w-80 shadow-sm border-blue-50'
+              size='middle'
+            />
+          </div>
+        </div>
       </div>
 
       <Table
         columns={columns}
-        dataSource={channels}
+        dataSource={channels.map((c) => ({ ...c, key: c._id }))}
         loading={channelsQuery.isLoading}
         pagination={pagination}
         rowKey='_id'
         bordered
-        scroll={{ y: 'calc(100vh - 380px)' }}
+        scroll={{ y: 'calc(100vh - 350px)' }}
+        className='premium-table'
       />
     </div>
   );

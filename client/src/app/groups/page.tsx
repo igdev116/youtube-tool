@@ -18,6 +18,8 @@ import {
   EditOutlined,
   ArrowRightOutlined,
   LinkOutlined,
+  TeamOutlined,
+  InfoCircleOutlined,
 } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 import { useGroupService } from '../../hooks/useGroupService';
@@ -62,6 +64,8 @@ const formatToLink = (id: string) => {
 // ----------- Masked Token component -----------
 const MaskedToken = ({ value }: { value: string }) => {
   const [show, setShow] = React.useState(false);
+  if (!value)
+    return <span className='text-gray-400 italic text-xs'>Chưa cấu hình</span>;
   const masked = `${value.slice(0, 4)}${'•'.repeat(10)}${value.slice(-4)}`;
   return (
     <span
@@ -96,14 +100,14 @@ const GroupFormModal = ({
   const [form] = Form.useForm();
   const isEdit = !!initialValues?._id;
 
+  // Sync form values when modal opens or initialValues change
   React.useEffect(() => {
     if (open) {
       form.setFieldsValue({
-        name: initialValues?.name ?? '',
+        ...initialValues,
         groupId: initialValues?.groupId
           ? formatToLink(initialValues.groupId)
           : '',
-        botToken: initialValues?.botToken ?? '',
       });
     } else {
       form.resetFields();
@@ -114,54 +118,97 @@ const GroupFormModal = ({
     <Modal
       open={open}
       onCancel={onCancel}
-      title={isEdit ? 'Chỉnh sửa Group' : 'Tạo Group mới'}
-      footer={null}
-      destroyOnHidden
-      width={520}>
-      <Form form={form} layout='vertical' onFinish={onFinish} className='mt-4'>
+      title={
+        <div className='flex items-center gap-2 py-1'>
+          <TeamOutlined className='text-blue-500' />
+          <span className='font-semibold text-gray-800 text-lg'>
+            {isEdit ? 'Chỉnh sửa Group' : 'Tạo Group mới'}
+          </span>
+        </div>
+      }
+      footer={
+        <div className='p-4 border-t bg-gray-50 rounded-b-xl flex gap-3'>
+          <Button
+            onClick={onCancel}
+            block
+            size='large'
+            className='h-11 rounded-lg hover:bg-white text-sm'>
+            Hủy
+          </Button>
+          <Button
+            type='primary'
+            form='group_form'
+            htmlType='submit'
+            block
+            size='large'
+            loading={loading}
+            className='h-11 font-normal bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-100 rounded-lg text-sm'>
+            {isEdit ? 'Cập nhật' : 'Tạo mới'}
+          </Button>
+        </div>
+      }
+      destroyOnClose
+      width={440}
+      styles={{
+        content: { padding: 0 },
+        header: {
+          padding: '12px 20px',
+          borderBottom: '1px solid #f0f0f0',
+          margin: 0,
+        },
+        body: { padding: '20px' },
+        footer: { margin: 0 },
+      }}>
+      <Form
+        form={form}
+        id='group_form'
+        layout='vertical'
+        onFinish={onFinish}
+        initialValues={{
+          ...initialValues,
+          groupId: initialValues?.groupId
+            ? formatToLink(initialValues.groupId)
+            : '',
+        }}>
         <Form.Item
           name='name'
-          label='Tên Group'
+          label={<span className='font-semibold text-gray-600'>Tên Group</span>}
           rules={[{ required: true, message: 'Vui lòng nhập tên group!' }]}>
-          <Input placeholder='Ví dụ: Gaming Việt Nam' className='h-10' />
+          <Input
+            placeholder='Ví dụ: Gaming Việt Nam'
+            className='h-10 rounded-lg'
+          />
         </Form.Item>
 
         <Form.Item
           name='groupId'
-          label='Link Telegram Group'
-          extra='Ví dụ: https://web.telegram.org/k/#-5079958874'
-          rules={[
-            { required: true, message: 'Vui lòng dán link Telegram Group!' },
-          ]}>
+          label={
+            <span className='font-semibold text-gray-600'>Link Telegram Group</span>
+          }>
           <Input
             placeholder='https://web.telegram.org/k/#-5079958874'
-            className='h-10'
+            className='h-10 rounded-lg'
           />
         </Form.Item>
 
         <Form.Item
           name='botToken'
-          label='Bot Token'
+          label={<span className='font-semibold text-gray-600'>Bot Token</span>}
+          extra={
+            <span className='text-[11px] text-gray-400 italic mt-1 block'>
+              Có thể điền sau (vd: 123456789:ABCdef...)
+            </span>
+          }
           rules={[
-            { required: true, message: 'Vui lòng nhập Bot Token!' },
             {
               pattern: /^[0-9]{8,11}:[a-zA-Z0-9_-]{35}$/,
-              message: 'Định dạng không đúng! (vd: 123456789:ABCdef...)',
+              message: 'Định dạng không đúng!',
             },
           ]}>
-          <Input.Password
-            placeholder='Nhập Bot Token từ BotFather'
-            className='h-10'
+          <Input
+            placeholder='123456789:ABCdef...'
+            className='h-10 rounded-lg'
           />
-        </Form.Item>
-
-        <Form.Item className='mb-0'>
-          <div className='flex gap-2 justify-end'>
-            <Button onClick={onCancel}>Huỷ</Button>
-            <Button type='primary' htmlType='submit' loading={loading}>
-              {isEdit ? 'Lưu thay đổi' : 'Tạo Group'}
-            </Button>
-          </div>
         </Form.Item>
       </Form>
     </Modal>
@@ -244,16 +291,23 @@ const GroupsPage = () => {
       dataIndex: 'groupId',
       key: 'groupId',
       width: 400,
-      render: (id: string) => (
-        <a
-          href={formatToLink(id)}
-          target='_blank'
-          rel='noopener noreferrer'
-          className='text-blue-500 hover:underline flex items-center gap-1'>
-          <LinkOutlined className='text-xs' />
-          {formatToLink(id)}
-        </a>
-      ),
+      render: (id: string) => {
+        if (!id)
+          return (
+            <span className='text-gray-400 italic text-xs'>Chưa cấu hình</span>
+          );
+        const link = formatToLink(id);
+        return (
+          <a
+            href={link}
+            target='_blank'
+            rel='noopener noreferrer'
+            className='text-blue-500 hover:underline flex items-center gap-1'>
+            <LinkOutlined className='text-xs' />
+            {link}
+          </a>
+        );
+      },
     },
     {
       title: 'Bot Token',
@@ -321,41 +375,40 @@ const GroupsPage = () => {
   ];
 
   return (
-    <div className='max-w-6xl mx-auto mt-10 mb-10 bg-white px-6 py-4 rounded-lg shadow-lg'>
-      {/* Header */}
-      <div className='flex justify-between items-center mb-6'>
-        <h2 className='text-center mb-0 text-2xl font-bold'>
-          Quản lý Groups{' '}
-          <span className='text-primary'>({groups.length} groups)</span>
-        </h2>
+    <div className='max-w-6xl mx-auto mt-10 mb-10 bg-white px-8 py-6 rounded-2xl shadow-xl shadow-blue-50/50 border border-blue-50'>
+      <div className='flex justify-between items-center mb-8'>
+        <div className='flex items-center gap-3'>
+          <div className='bg-blue-600 h-6 w-1 rounded-full'></div>
+          <h1 className='text-xl font-semibold text-gray-800 mb-0 flex items-center gap-2'>
+            Quản lý Nhóm
+            <Tag
+              color='blue'
+              className='ml-1 font-semibold bg-blue-50 border-blue-100 text-blue-600 rounded px-1.5 text-[11px] h-5 flex items-center'>
+              {groups.length} nhóm
+            </Tag>
+          </h1>
+        </div>
+
         <Button
           type='primary'
+          size='small'
           icon={<PlusOutlined />}
-          onClick={() => setGroupModal({ open: true, editing: null })}>
-          Tạo Group
+          onClick={() => setGroupModal({ open: true, editing: null })}
+          className='h-10 px-5 font-normal bg-blue-600 hover:bg-blue-700 border-none shadow-md shadow-blue-100 hover:scale-[1.01] transition-all rounded-lg flex items-center justify-center text-sm'>
+          Tạo Group mới
         </Button>
       </div>
 
-      {/* Table */}
       <Table
         columns={columns}
-        dataSource={groups}
-        rowKey='_id'
+        dataSource={groups.map((g) => ({ ...g, key: g._id }))}
         loading={groupsQuery.isLoading}
+        pagination={{ pageSize: 8, hideOnSinglePage: true }}
         bordered
-        scroll={{ y: 'calc(100vh - 320px)' }}
-        pagination={
-          groups.length > 10
-            ? {
-                pageSize: 10,
-                showSizeChanger: false,
-                showTotal: (total) => `${total} groups`,
-              }
-            : false
-        }
+        scroll={{ y: 'calc(100vh - 350px)' }}
+        className='premium-table'
       />
 
-      {/* Create/Edit modal */}
       <GroupFormModal
         open={groupModal.open}
         loading={createGroupMutation.isPending || updateGroupMutation.isPending}

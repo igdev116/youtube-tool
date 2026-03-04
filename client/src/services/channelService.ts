@@ -7,8 +7,11 @@ import type {
 } from '../types/channel';
 
 export const channelService = {
-  addChannels: (params: ChannelParam[]): Promise<BaseResponse<any>> =>
-    axiosInstance.post('/channel/bulk', params),
+  addChannels: (body: {
+    channels: ChannelParam[];
+    groupIds?: string[];
+    newGroupNames?: string[];
+  }): Promise<BaseResponse<any>> => axiosInstance.post('/channel/bulk', body),
   getChannels: (
     params: GetChannelParams,
   ): Promise<PagingResponse<ChannelListItem>> =>

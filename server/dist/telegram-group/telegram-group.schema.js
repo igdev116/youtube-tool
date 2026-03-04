@@ -25,11 +25,11 @@ __decorate([
     __metadata("design:type", String)
 ], TelegramGroup.prototype, "name", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ required: true }),
+    (0, mongoose_1.Prop)({ default: '' }),
     __metadata("design:type", String)
 ], TelegramGroup.prototype, "groupId", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ required: true }),
+    (0, mongoose_1.Prop)({ default: '' }),
     __metadata("design:type", String)
 ], TelegramGroup.prototype, "botToken", void 0);
 __decorate([

@@ -15,17 +15,30 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.YoutubeChannelController = void 0;
 const common_1 = require("@nestjs/common");
 const youtube_channel_service_1 = require("./youtube-channel.service");
+const telegram_group_service_1 = require("../../telegram-group/telegram-group.service");
 const get_channels_dto_1 = require("./dto/get-channels.dto");
 const jwt_auth_guard_1 = require("../../auth/jwt-auth.guard");
 let YoutubeChannelController = class YoutubeChannelController {
     channelService;
-    constructor(channelService) {
+    groupService;
+    constructor(channelService, groupService) {
         this.channelService = channelService;
+        this.groupService = groupService;
     }
-    addChannelsBulk(body, req) {
+    async addChannelsBulk(body, req) {
         const user = req.user;
         const userId = user.sub;
-        const result = this.channelService.addChannelsBulk(body, userId);
+        const channels = Array.isArray(body) ? body : (body.channels ?? []);
+        let groupIds = Array.isArray(body) ? [] : (body.groupIds ?? []);
+        const newGroupNames = Array.isArray(body)
+            ? []
+            : (body.newGroupNames ?? []);
+        if (newGroupNames.length > 0) {
+            const created = await Promise.all(newGroupNames.map((name) => this.groupService.createGroup(userId, { name })));
+            groupIds = [...groupIds, ...created.map((g) => String(g._id))];
+        }
+        console.log(channels);
+        const result = this.channelService.addChannelsBulk(channels, userId, groupIds);
         if (result.error) {
             return {
                 success: false,
@@ -159,8 +172,8 @@ __decorate([
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Array, Object]),
-    __metadata("design:returntype", Object)
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
 ], YoutubeChannelController.prototype, "addChannelsBulk", null);
 __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
@@ -227,6 +240,7 @@ __decorate([
 ], YoutubeChannelController.prototype, "removeChannelFromGroup", null);
 exports.YoutubeChannelController = YoutubeChannelController = __decorate([
     (0, common_1.Controller)('channel'),
-    __metadata("design:paramtypes", [youtube_channel_service_1.YoutubeChannelService])
+    __metadata("design:paramtypes", [youtube_channel_service_1.YoutubeChannelService,
+        telegram_group_service_1.TelegramGroupService])
 ], YoutubeChannelController);
 //# sourceMappingURL=youtube-channel.controller.js.map

@@ -16,6 +16,7 @@ const user_module_1 = require("../../user/user.module");
 const telegram_module_1 = require("../../telegram/telegram.module");
 const youtube_websub_module_1 = require("../websub/youtube-websub.module");
 const telegram_group_schema_1 = require("../../telegram-group/telegram-group.schema");
+const telegram_group_module_1 = require("../../telegram-group/telegram-group.module");
 let YoutubeChannelModule = class YoutubeChannelModule {
 };
 exports.YoutubeChannelModule = YoutubeChannelModule;
@@ -29,6 +30,7 @@ exports.YoutubeChannelModule = YoutubeChannelModule = __decorate([
             user_module_1.UserModule,
             telegram_module_1.TelegramModule,
             youtube_websub_module_1.YoutubeWebsubModule,
+            telegram_group_module_1.TelegramGroupModule,
         ],
         providers: [youtube_channel_service_1.YoutubeChannelService],
         exports: [youtube_channel_service_1.YoutubeChannelService],

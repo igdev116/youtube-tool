@@ -232,9 +232,14 @@ const AdminUsersPage = () => {
     <div className='max-w-6xl mx-auto mt-10 bg-white px-6 pt-4 rounded-lg shadow-lg'>
       <div className='flex flex-col gap-4 mb-6'>
         <div className='flex justify-between items-center'>
-          <h2 className='text-center mb-0 text-2xl font-bold'>
-            Quản lý người dùng{' '}
-            <span className='text-primary'>({total} người dùng)</span>
+          <h2 className='text-center mb-0 text-xl font-semibold text-gray-800 flex items-center gap-3'>
+            <div className='bg-blue-600 h-6 w-1 rounded-full'></div>
+            Quản lý người dùng
+            <Tag
+              color='blue'
+              className='ml-1 font-semibold bg-blue-50 border-blue-100 text-blue-600 rounded px-1.5 text-[11px] h-5 flex items-center'>
+              {total} users
+            </Tag>
           </h2>
         </div>
         <div>
@@ -254,7 +259,7 @@ const AdminUsersPage = () => {
         pagination={pagination}
         bordered
         rowKey='_id'
-        scroll={{ y: 'calc(100vh - 320px)' }}
+        scroll={{ y: 'calc(100vh - 350px)' }}
       />
     </div>
   );
