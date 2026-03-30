@@ -58,6 +58,9 @@ export class TelegramBotService {
 
     // Trở lại format cũ: kênh (không link) → tiêu đề → thời gian → tìm TikTok → link YouTube ở cuối
     const captionParts: string[] = [];
+    if (video.channelId) {
+      captionParts.push(`ID: ${escapeHtml(video.channelId)}`);
+    }
     if (video.channelName || video.channelId) {
       const channelLabel = video.channelName || video.channelId || '';
       const bold = `<b>${escapeHtml(channelLabel)}</b>`;

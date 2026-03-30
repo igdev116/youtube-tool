@@ -39,6 +39,9 @@ let TelegramBotService = class TelegramBotService {
             .tz('Asia/Ho_Chi_Minh')
             .format('HH:mm:ss DD/MM/YYYY');
         const captionParts = [];
+        if (video.channelId) {
+            captionParts.push(`ID: ${escapeHtml(video.channelId)}`);
+        }
         if (video.channelName || video.channelId) {
             const channelLabel = video.channelName || video.channelId || '';
             const bold = `<b>${escapeHtml(channelLabel)}</b>`;
