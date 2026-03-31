@@ -27,6 +27,44 @@ export class TelegramBotService {
   ) {
     console.log('video :', video);
     console.log('groupId :', groupId);
+
+    // Kích hoạt tính năng check video dài theo biến môi trường CHECK_LONG_VIDEO
+    if (process.env.CHECK_LONG_VIDEO === 'true') {
+      try {
+        const response = await axios.get(video.url, {
+          headers: {
+            'User-Agent':
+              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
+          },
+        });
+        const html = response.data;
+
+        // Ưu tiên tìm "lengthSeconds" hoặc "approxDurationMs"
+        const lengthMatch = html.match(/"lengthSeconds"\s*:\s*"(\d+)"/);
+        const durationMatch = html.match(/"approxDurationMs"\s*:\s*"(\d+)"/);
+
+        let videoSeconds = 0;
+
+        if (lengthMatch) {
+          videoSeconds = parseInt(lengthMatch[1], 10);
+        } else if (durationMatch) {
+          videoSeconds = Math.floor(parseInt(durationMatch[1], 10) / 1000);
+        }
+
+        if (videoSeconds > 0 && videoSeconds <= 180) {
+          console.log(
+            `Video duration is ${videoSeconds}s (<= 180s). Treat as Short video -> Skipping.`,
+          );
+          return;
+        }
+      } catch (err) {
+        console.error(
+          'Error fetching video HTML for duration check:',
+          err.message,
+        );
+      }
+    }
+
     // Decode HTML entities để hiển thị đúng ký tự đặc biệt (", ', &, <, >)
     const decodeHtmlEntities = (s: string) =>
       s

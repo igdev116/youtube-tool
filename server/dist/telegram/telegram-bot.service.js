@@ -19,6 +19,32 @@ let TelegramBotService = class TelegramBotService {
     async sendNewVideoToGroup(groupId, video, botToken) {
         console.log('video :', video);
         console.log('groupId :', groupId);
+        if (process.env.CHECK_LONG_VIDEO === 'true') {
+            try {
+                const response = await axios_1.default.get(video.url, {
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
+                    },
+                });
+                const html = response.data;
+                const lengthMatch = html.match(/"lengthSeconds"\s*:\s*"(\d+)"/);
+                const durationMatch = html.match(/"approxDurationMs"\s*:\s*"(\d+)"/);
+                let videoSeconds = 0;
+                if (lengthMatch) {
+                    videoSeconds = parseInt(lengthMatch[1], 10);
+                }
+                else if (durationMatch) {
+                    videoSeconds = Math.floor(parseInt(durationMatch[1], 10) / 1000);
+                }
+                if (videoSeconds > 0 && videoSeconds <= 180) {
+                    console.log(`Video duration is ${videoSeconds}s (<= 180s). Treat as Short video -> Skipping.`);
+                    return;
+                }
+            }
+            catch (err) {
+                console.error('Error fetching video HTML for duration check:', err.message);
+            }
+        }
         const decodeHtmlEntities = (s) => s
             .replace(/&quot;/g, '"')
             .replace(/&#39;/g, "'")
