@@ -28,6 +28,7 @@ let TelegramBotService = class TelegramBotService {
                     },
                 });
                 const html = response.data;
+                console.log('html -->', html);
                 const lengthMatch = html.match(/"lengthSeconds"\s*:\s*"(\d+)"/);
                 const durationMatch = html.match(/"approxDurationMs"\s*:\s*"(\d+)"/);
                 console.log({ lengthMatch, durationMatch });
