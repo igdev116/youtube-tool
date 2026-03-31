@@ -58,6 +58,8 @@ export class TelegramBotService {
           return;
         }
       } catch (err) {
+        console.log(err);
+
         console.error(
           'Error fetching video HTML for duration check:',
           err.message,

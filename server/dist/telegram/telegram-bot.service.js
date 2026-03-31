@@ -42,6 +42,7 @@ let TelegramBotService = class TelegramBotService {
                 }
             }
             catch (err) {
+                console.log(err);
                 console.error('Error fetching video HTML for duration check:', err.message);
             }
         }
