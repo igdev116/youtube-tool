@@ -28,6 +28,8 @@ export class TelegramBotService {
     console.log('video :', video);
     console.log('groupId :', groupId);
 
+    console.log(process.env.CHECK_LONG_VIDEO);
+
     // Kích hoạt tính năng check video dài theo biến môi trường CHECK_LONG_VIDEO
     if (process.env.CHECK_LONG_VIDEO === 'true') {
       try {
@@ -42,6 +44,8 @@ export class TelegramBotService {
         // Ưu tiên tìm "lengthSeconds" hoặc "approxDurationMs"
         const lengthMatch = html.match(/"lengthSeconds"\s*:\s*"(\d+)"/);
         const durationMatch = html.match(/"approxDurationMs"\s*:\s*"(\d+)"/);
+
+        console.log({ lengthMatch, durationMatch });
 
         let videoSeconds = 0;
 
