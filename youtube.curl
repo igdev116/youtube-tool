@@ -1,0 +1,29 @@
+curl 'https://www.youtube.com/watch?v=Lpu0QDhTF5E' \
+  -H 'accept: */*' \
+  -H 'accept-language: en,vi;q=0.9,es;q=0.8,en-US;q=0.7' \
+  -b 'VISITOR_INFO1_LIVE=WtdPG-ktm5Q; VISITOR_PRIVACY_METADATA=CgJWThIEGgAgVw%3D%3D; YSC=6bvgKc7BhTY; PREF=f4=4000000&tz=Asia.Saigon&f7=100&f6=40000000; HSID=A1vpBhdZKjxm5xP65; SSID=A8K0YRzrpC6OLchRu; APISID=UcCG-01ZZzf-Fi0P/A-sS4rq-a_CQJoGom; SAPISID=J6Ai2j-_8Go_2A5r/ASGwjIxj5Xjtnp5qZ; __Secure-1PAPISID=J6Ai2j-_8Go_2A5r/ASGwjIxj5Xjtnp5qZ; __Secure-3PAPISID=J6Ai2j-_8Go_2A5r/ASGwjIxj5Xjtnp5qZ; SID=g.a0008QhzjXgoJEReJn5hSKLomLSsijHg02PXcCjrf0XTH7tThqaAXCDAg6SYbDVvoU_nWI1NkAACgYKARUSARYSFQHGX2MiTrrwcwbypAhlBl6ilduEjhoVAUF8yKoSsREPJaPMDdLi2gEGZ18Q0076; __Secure-1PSID=g.a0008QhzjXgoJEReJn5hSKLomLSsijHg02PXcCjrf0XTH7tThqaAiuDSxBSMqP_CAw_dcWd6bwACgYKAcESARYSFQHGX2MiT1d77q8UsMNzkN4tZR06XhoVAUF8yKqKOOt1INny3bmW_fV4m1vs0076; __Secure-3PSID=g.a0008QhzjXgoJEReJn5hSKLomLSsijHg02PXcCjrf0XTH7tThqaARmHzDlyLtmCASMoE9OV-CgACgYKARASARYSFQHGX2MiXL1zX6pchMlQT5eyf1xauxoVAUF8yKqwQhBiBJtbeve-Ue2gG8i40076; __Secure-YNID=17.YT=hQ732NYo22ujiliOGvpkK8QAUAmxKoIiwsbufpZl0e6ENT1sCCCu_TMF9jLoV8SGcSMy6rQMY4t_y7L26ambVP03YepUhFqAUYUXaUSy-5YcHXd73UL4fcVmDsAmgMdyHNe23aztypRukPn-Mvz37S1rRzJ_6Iue2sIj43m-HDoEJfqkaIf53zA_Wl_YVTYx2qkDegFu-J_Pte-BAU2wCqGLX-BfWV6rnBTPHATq5F5KIzPBTfr_G2Opy3mrmhPH3oSXfMUqad2vMaSHmWjqfRsHV_KEXXrnBM7XXz0l6QJWpw9CFmFpGDphUIix7UkMo7xJW42lEmdYQSPlVW-kJw; __Secure-ROLLOUT_TOKEN=CLPQ0-2e7pHfhAEQp7r9zue0kgMYycqbn7XKkwM%3D; LOGIN_INFO=AFmmF2swRQIhANwy064o7OcdNdMtPeG1kt1ecmvbRAAQvL8s_StAgFl2AiBzcd3RI13kihygp1LyNXq_YIhsP4SKq5wWbqkOtIA5Jw:QUQ3MjNmeWMxOUJpbEZVa2o0QUFtYVRtakZVVjdPZFVJbjFXZVdndTlBMWhKcmQxNnpqTE93SnFrMTEtemxMZS1acEd2N1hZdnhVTG10SFVsTE5LaVR2UU1PbUlKSTBVY0VtbjIzVDcyT3RZLVoxRFdVYXVkZHEwZUYxUTJQX3h0UjRXdnhlSFpYaWlOQlJud3Etd1VZYnpwMEVWSzZSeWVB; __Secure-1PSIDTS=sidts-CjUBWhotCeUR7sjvI6YmIWr_kJZ-QK0FtDfNyeeCJ_kN315fYL2_vIBH34YwKC03IAinZ4zvbBAA; __Secure-3PSIDTS=sidts-CjUBWhotCeUR7sjvI6YmIWr_kJZ-QK0FtDfNyeeCJ_kN315fYL2_vIBH34YwKC03IAinZ4zvbBAA; ST-l3hjtt=session_logininfo=AFmmF2swRQIgWpHSYkN206xJtzvx9kW7XTBywDTJKQkD6U5MbYgvOwoCIQCGEaf0UVmiAx1-0tKUHDAXNJpa0VC_nFUWphXsINBrAA%3AQUQ3MjNmeUFfWkJPOWxoZjJUbDZzYVo1elEwZkxDSjI4a0EzT2JROEN4RUJZdXNEamlGaW10cldQVkI1OEV1U01ZQzVqQ0dmNFVyUDNOektvTXZ5MGp4dUFPR2F4N1liNVRIVlBvN1E1NGNEeFp5b1RCZS1YeWhuVS0zNDQwODZSNzJGUlcyUl9xb19OUVd0TWc2bDJMd2ZzdWxfenEwbE5n; SIDCC=AKEyXzUgLL2kxfW16hsxLFP-9GbHFs3wBt9i4Vh7eGcr-w7Dgu_LlIAuZj_x8PMR9YXQr7JbEg; __Secure-1PSIDCC=AKEyXzXjbNFcKjZVarPwKasU9-uiqGVwoPf0wHUk_kO0fbYoaTbQ2RLy4m7-d-y0l2Gsz_K92Q; __Secure-3PSIDCC=AKEyXzWcdqdYGuFfMJ-HPINcEK10YLlAvR-qriefgJUzJxnAGbv_j3EY-8D2ckCu3y5EP_Xv2g0' \
+  -H 'device-memory: 8' \
+  -H 'priority: u=1, i' \
+  -H 'referer: https://www.youtube.com/watch?v=Lpu0QDhTF5E' \
+  -H 'sec-ch-dpr: 2' \
+  -H 'sec-ch-ua: "Chromium";v="146", "Not-A.Brand";v="24", "Google Chrome";v="146"' \
+  -H 'sec-ch-ua-arch: "arm"' \
+  -H 'sec-ch-ua-bitness: "64"' \
+  -H 'sec-ch-ua-form-factors: "Desktop"' \
+  -H 'sec-ch-ua-full-version: "146.0.7680.165"' \
+  -H 'sec-ch-ua-full-version-list: "Chromium";v="146.0.7680.165", "Not-A.Brand";v="24.0.0.0", "Google Chrome";v="146.0.7680.165"' \
+  -H 'sec-ch-ua-mobile: ?0' \
+  -H 'sec-ch-ua-model: ""' \
+  -H 'sec-ch-ua-platform: "macOS"' \
+  -H 'sec-ch-ua-platform-version: "26.1.0"' \
+  -H 'sec-ch-ua-wow64: ?0' \
+  -H 'sec-ch-viewport-width: 1440' \
+  -H 'sec-fetch-dest: empty' \
+  -H 'sec-fetch-mode: cors' \
+  -H 'sec-fetch-site: same-origin' \
+  -H 'user-agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36' \
+  -H 'x-browser-channel: stable' \
+  -H 'x-browser-copyright: Copyright 2026 Google LLC. All Rights reserved.' \
+  -H 'x-browser-validation: SgDQo8mvrGRdD61Pwo8wyWVgYgs=' \
+  -H 'x-browser-year: 2026' \
+  -H 'x-client-data: CKK1yQEIkbbJAQiitskBCKmdygEI3O7KAQiUocsBCIagzQEIu67PAQjYu88BCJS8zwEYzK3PAQ=='
