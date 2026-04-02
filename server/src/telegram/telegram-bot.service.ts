@@ -81,6 +81,7 @@ export class TelegramBotService {
         const lengthMatch = html.match(/"lengthSeconds"\s*:\s*"(\d+)"/);
 
         const durationMatch = html.match(/"approxDurationMs"\s*:\s*"(\d+)"/);
+        console.log({ lengthMatch, durationMatch });
 
         let videoSeconds = 0;
 
