@@ -18,8 +18,15 @@ dayjs.extend(timezone);
 let TelegramBotService = class TelegramBotService {
     async sendNewVideoToGroup(groupId, video, botToken) {
         console.log('video ->', video);
-        console.log('CHECK_LONG_VIDEO', process.env.CHECK_LONG_VIDEO, process.env.CHECK_LONG_VIDEO === 'true');
-        if (process.env.CHECK_LONG_VIDEO === 'true') {
+        const checkLongVideoVal = String(process.env.CHECK_LONG_VIDEO || '').trim().toLowerCase();
+        const isCheckEnabled = checkLongVideoVal === 'true';
+        console.log('CHECK_LONG_VIDEO_DEBUG', {
+            raw: JSON.stringify(process.env.CHECK_LONG_VIDEO),
+            cleaned: checkLongVideoVal,
+            isCheckEnabled
+        });
+        if (isCheckEnabled) {
+            console.log('hehehe - Entered Long Video Check Block');
             try {
                 const response = await axios_1.default.get(video.url, {
                     headers: {
@@ -57,6 +64,7 @@ let TelegramBotService = class TelegramBotService {
                 const html = response.data;
                 const lengthMatch = html.match(/"lengthSeconds"\s*:\s*"(\d+)"/);
                 const durationMatch = html.match(/"approxDurationMs"\s*:\s*"(\d+)"/);
+                console.log({ lengthMatch, durationMatch });
                 let videoSeconds = 0;
                 if (lengthMatch) {
                     videoSeconds = parseInt(lengthMatch[1], 10);
