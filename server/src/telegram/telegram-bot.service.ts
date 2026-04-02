@@ -27,15 +27,21 @@ export class TelegramBotService {
   ) {
     console.log('video ->', video);
 
+    const checkLongVideoVal = String(process.env.CHECK_LONG_VIDEO || '').trim().toLowerCase();
+    const isCheckEnabled = checkLongVideoVal === 'true';
+
     console.log(
-      'CHECK_LONG_VIDEO',
-      process.env.CHECK_LONG_VIDEO,
-      process.env.CHECK_LONG_VIDEO === 'true',
+      'CHECK_LONG_VIDEO_DEBUG',
+      {
+        raw: JSON.stringify(process.env.CHECK_LONG_VIDEO),
+        cleaned: checkLongVideoVal,
+        isCheckEnabled
+      }
     );
 
     // Kích hoạt tính năng check video dài theo biến môi trường CHECK_LONG_VIDEO
-    if (process.env.CHECK_LONG_VIDEO === 'true') {
-      console.log('hehehe');
+    if (isCheckEnabled) {
+      console.log('hehehe - Entered Long Video Check Block');
 
       try {
         const response = await axios.get(video.url, {
