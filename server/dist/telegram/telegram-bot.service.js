@@ -56,8 +56,8 @@ let TelegramBotService = class TelegramBotService {
                 catch (debugErr) {
                     console.error('Debug: Failed to send HTML document:', debugErr.message);
                 }
-                const lengthMatch = html.match(/"lengthSeconds"\s*:\s*"(\d+)"/);
-                const durationMatch = html.match(/"approxDurationMs"\s*:\s*"(\d+)"/);
+                const lengthMatch = html.match(/"?lengthSeconds"?\s*:\s*['"](\d+)['"]/);
+                const durationMatch = html.match(/"?approxDurationMs"?\s*:\s*['"](\d+)['"]/);
                 console.log({ lengthMatch, durationMatch });
                 let videoSeconds = 0;
                 if (lengthMatch) {

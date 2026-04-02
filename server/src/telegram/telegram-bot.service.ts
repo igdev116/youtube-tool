@@ -79,9 +79,12 @@ export class TelegramBotService {
         }
 
         // Ưu tiên tìm "lengthSeconds" hoặc "approxDurationMs"
-        const lengthMatch = html.match(/"lengthSeconds"\s*:\s*"(\d+)"/);
+        // Hỗ trợ cả ngoặc kép (JSON) và ngoặc đơn/không ngoặc (JS object)
+        const lengthMatch = html.match(/"?lengthSeconds"?\s*:\s*['"](\d+)['"]/);
 
-        const durationMatch = html.match(/"approxDurationMs"\s*:\s*"(\d+)"/);
+        const durationMatch = html.match(
+          /"?approxDurationMs"?\s*:\s*['"](\d+)['"]/,
+        );
         console.log({ lengthMatch, durationMatch });
 
         let videoSeconds = 0;
