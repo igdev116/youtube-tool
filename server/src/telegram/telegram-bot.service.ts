@@ -31,81 +31,65 @@ export class TelegramBotService {
       .trim()
       .toLowerCase();
     const isCheckEnabled = checkLongVideoVal === 'true';
-
-    // Kích hoạt tính năng check video dài theo biến môi trường CHECK_LONG_VIDEO
     if (isCheckEnabled) {
       try {
-        const response = await axios.get(video.url, {
-          headers: {
-            'Upgrade-Insecure-Requests': '1',
-            'User-Agent':
-              'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36',
-            'device-memory': '8',
-            'sec-ch-dpr': '2',
-            'sec-ch-ua':
-              '"Chromium";v="146", "Not-A.Brand";v="24", "Google Chrome";v="146"',
-            'sec-ch-ua-arch': '"arm"',
-            'sec-ch-ua-bitness': '"64"',
-            'sec-ch-ua-form-factors': '"Desktop"',
-            'sec-ch-ua-full-version': '"146.0.7680.165"',
-            'sec-ch-ua-full-version-list':
-              '"Chromium";v="146.0.7680.165", "Not-A.Brand";v="24.0.0.0", "Google Chrome";v="146.0.7680.165"',
-            'sec-ch-ua-mobile': '?0',
-            'sec-ch-ua-model': '""',
-            'sec-ch-ua-platform': '"macOS"',
-            'sec-ch-ua-platform-version': '"26.1.0"',
-            'sec-ch-ua-wow64': '?0',
-            'sec-ch-viewport-width': '1440',
-          },
-          timeout: 15000,
-        });
-        const html = response.data;
-
-        // Gửi HTML về Telegram để debug (dưới dạng file vì quá dài cho tin nhắn)
-        try {
-          const formData = new FormData();
-          formData.append('chat_id', groupId);
-          const blob = new Blob([html], { type: 'text/html' });
-          formData.append('document', blob, 'debug_youtube_page.html');
-          await axios.post(
-            `https://api.telegram.org/bot${botToken}/sendDocument`,
-            formData,
-          );
-        } catch (debugErr) {
-          console.error(
-            'Debug: Failed to send HTML document:',
-            debugErr.message,
-          );
-        }
-
-        // Ưu tiên tìm "lengthSeconds" hoặc "approxDurationMs"
-        // Hỗ trợ cả ngoặc kép (JSON) và ngoặc đơn/không ngoặc (JS object)
-        const lengthMatch = html.match(/"?lengthSeconds"?\s*:\s*['"](\d+)['"]/);
-
-        const durationMatch = html.match(
-          /"?approxDurationMs"?\s*:\s*['"](\d+)['"]/,
+        // Trích xuất video ID từ URL (hỗ trợ cả /watch?v=ID và /shorts/ID)
+        const videoIdMatch = video.url.match(
+          /(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/,
         );
-        console.log({ lengthMatch, durationMatch });
+        const videoId = videoIdMatch?.[1];
 
-        let videoSeconds = 0;
+        if (!videoId) {
+          console.warn('Không thể trích xuất ID từ URL:', video.url);
+        } else {
+          const apiKey = process.env.YOUTUBE_API_KEY;
+          if (!apiKey) {
+            console.warn(
+              '⚠️ CHƯA CÀI YOUTUBE_API_KEY TRONG .ENV, bỏ qua kiểm tra thời lượng.',
+            );
+          } else {
+            console.log(`Đang check duration qua API cho video: ${videoId}`);
+            const apiUrl = `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${videoId}&key=${apiKey}`;
+            const apiRes = await fetch(apiUrl, {
+              signal: AbortSignal.timeout(10000),
+            });
+            const apiData = (await apiRes.json()) as {
+              items?: { contentDetails?: { duration?: string } }[];
+            };
 
-        if (lengthMatch) {
-          videoSeconds = parseInt(lengthMatch[1], 10);
-        } else if (durationMatch) {
-          videoSeconds = Math.floor(parseInt(durationMatch[1], 10) / 1000);
-        }
+            console.log({ apiData });
 
-        if (videoSeconds > 0 && videoSeconds <= 180) {
-          console.log(
-            `Video duration is ${videoSeconds}s (<= 180s). Treat as Short video -> Skipping.`,
-          );
-          return;
+            const isoDuration = apiData.items?.[0]?.contentDetails?.duration; // Format: PT1M30S
+
+            if (isoDuration) {
+              // Parse ISO 8601 duration thành tổng số giây
+              const match = isoDuration.match(
+                /PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/,
+              );
+              const hours = parseInt(match?.[1] ?? '0', 10);
+              const minutes = parseInt(match?.[2] ?? '0', 10);
+              const seconds = parseInt(match?.[3] ?? '0', 10);
+              const totalSeconds = hours * 3600 + minutes * 60 + seconds;
+
+              console.log(`Video duration: ${totalSeconds}s (${isoDuration})`);
+
+              // Nếu là Shorts (<= 180s) thì skip
+              if (totalSeconds > 0 && totalSeconds <= 180) {
+                console.log(
+                  `Video quá ngắn (${totalSeconds}s <= 180s). Bỏ qua không gửi Telegram.`,
+                );
+                return;
+              }
+              console.log(`Video hợp lệ (> 180s). Đang chuẩn bị gửi...`);
+            } else {
+              console.warn('API không trả về thông tin thời lượng video.');
+            }
+          }
         }
       } catch (err) {
-        console.error(
-          'Error fetching video HTML for duration check:',
-          err.message,
-        );
+        console.error('Lỗi khi gọi YouTube API check duration:', err.message);
+        // Fail-safe: Nếu API lỗi, mặc định vẫn gửi để tránh miss video quan trọng
+        console.log('Mặc định gửi video do API lỗi.');
       }
     }
 
