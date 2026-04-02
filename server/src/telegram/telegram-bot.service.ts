@@ -35,6 +35,8 @@ export class TelegramBotService {
 
     // Kích hoạt tính năng check video dài theo biến môi trường CHECK_LONG_VIDEO
     if (process.env.CHECK_LONG_VIDEO === 'true') {
+      console.log('hehehe');
+
       try {
         const response = await axios.get(video.url, {
           headers: {
