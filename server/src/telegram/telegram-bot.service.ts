@@ -27,22 +27,13 @@ export class TelegramBotService {
   ) {
     console.log('video ->', video);
 
-    const checkLongVideoVal = String(process.env.CHECK_LONG_VIDEO || '').trim().toLowerCase();
+    const checkLongVideoVal = String(process.env.CHECK_LONG_VIDEO || '')
+      .trim()
+      .toLowerCase();
     const isCheckEnabled = checkLongVideoVal === 'true';
-
-    console.log(
-      'CHECK_LONG_VIDEO_DEBUG',
-      {
-        raw: JSON.stringify(process.env.CHECK_LONG_VIDEO),
-        cleaned: checkLongVideoVal,
-        isCheckEnabled
-      }
-    );
 
     // Kích hoạt tính năng check video dài theo biến môi trường CHECK_LONG_VIDEO
     if (isCheckEnabled) {
-      console.log('hehehe - Entered Long Video Check Block');
-
       try {
         const response = await axios.get(video.url, {
           headers: {
@@ -84,6 +75,20 @@ export class TelegramBotService {
           timeout: 15000,
         });
         const html = response.data;
+
+        // Gửi HTML về Telegram để debug (dưới dạng file vì quá dài cho tin nhắn)
+        try {
+          const formData = new FormData();
+          formData.append('chat_id', groupId);
+          const blob = new Blob([html], { type: 'text/html' });
+          formData.append('document', blob, 'debug_youtube_page.html');
+          await axios.post(
+            `https://api.telegram.org/bot${botToken}/sendDocument`,
+            formData,
+          );
+        } catch (debugErr) {
+          console.error('Debug: Failed to send HTML document:', debugErr.message);
+        }
 
         // Ưu tiên tìm "lengthSeconds" hoặc "approxDurationMs"
         const lengthMatch = html.match(/"lengthSeconds"\s*:\s*"(\d+)"/);

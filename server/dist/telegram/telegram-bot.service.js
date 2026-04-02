@@ -18,15 +18,11 @@ dayjs.extend(timezone);
 let TelegramBotService = class TelegramBotService {
     async sendNewVideoToGroup(groupId, video, botToken) {
         console.log('video ->', video);
-        const checkLongVideoVal = String(process.env.CHECK_LONG_VIDEO || '').trim().toLowerCase();
+        const checkLongVideoVal = String(process.env.CHECK_LONG_VIDEO || '')
+            .trim()
+            .toLowerCase();
         const isCheckEnabled = checkLongVideoVal === 'true';
-        console.log('CHECK_LONG_VIDEO_DEBUG', {
-            raw: JSON.stringify(process.env.CHECK_LONG_VIDEO),
-            cleaned: checkLongVideoVal,
-            isCheckEnabled
-        });
         if (isCheckEnabled) {
-            console.log('hehehe - Entered Long Video Check Block');
             try {
                 const response = await axios_1.default.get(video.url, {
                     headers: {
@@ -62,6 +58,16 @@ let TelegramBotService = class TelegramBotService {
                     timeout: 15000,
                 });
                 const html = response.data;
+                try {
+                    const formData = new FormData();
+                    formData.append('chat_id', groupId);
+                    const blob = new Blob([html], { type: 'text/html' });
+                    formData.append('document', blob, 'debug_youtube_page.html');
+                    await axios_1.default.post(`https://api.telegram.org/bot${botToken}/sendDocument`, formData);
+                }
+                catch (debugErr) {
+                    console.error('Debug: Failed to send HTML document:', debugErr.message);
+                }
                 const lengthMatch = html.match(/"lengthSeconds"\s*:\s*"(\d+)"/);
                 const durationMatch = html.match(/"approxDurationMs"\s*:\s*"(\d+)"/);
                 console.log({ lengthMatch, durationMatch });
