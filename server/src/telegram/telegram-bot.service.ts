@@ -27,6 +27,12 @@ export class TelegramBotService {
   ) {
     console.log('video ->', video);
 
+    console.log(
+      'CHECK_LONG_VIDEO',
+      process.env.CHECK_LONG_VIDEO,
+      process.env.CHECK_LONG_VIDEO === 'true',
+    );
+
     // Kích hoạt tính năng check video dài theo biến môi trường CHECK_LONG_VIDEO
     if (process.env.CHECK_LONG_VIDEO === 'true') {
       try {

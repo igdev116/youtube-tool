@@ -18,6 +18,7 @@ dayjs.extend(timezone);
 let TelegramBotService = class TelegramBotService {
     async sendNewVideoToGroup(groupId, video, botToken) {
         console.log('video ->', video);
+        console.log('CHECK_LONG_VIDEO', process.env.CHECK_LONG_VIDEO, process.env.CHECK_LONG_VIDEO === 'true');
         if (process.env.CHECK_LONG_VIDEO === 'true') {
             try {
                 const response = await axios_1.default.get(video.url, {
