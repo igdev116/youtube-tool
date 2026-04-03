@@ -18,10 +18,10 @@ dayjs.extend(timezone);
 let TelegramBotService = class TelegramBotService {
     async sendNewVideoToGroup(groupId, video, botToken) {
         console.log('video ->', video);
-        const checkLongVideoVal = String(process.env.CHECK_LONG_VIDEO || '')
+        const isNewServerVal = String(process.env.IS_NEW_SERVER || '')
             .trim()
             .toLowerCase();
-        const isCheckEnabled = checkLongVideoVal === 'true';
+        const isCheckEnabled = isNewServerVal === 'true';
         if (isCheckEnabled) {
             try {
                 const videoIdMatch = video.url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
@@ -87,7 +87,7 @@ let TelegramBotService = class TelegramBotService {
             .tz('Asia/Ho_Chi_Minh')
             .format('HH:mm:ss DD/MM/YYYY');
         const captionParts = [];
-        if (video.channelId) {
+        if (isCheckEnabled && video.channelId) {
             captionParts.push(`ID: ${escapeHtml(video.channelId)}`);
         }
         if (video.channelName || video.channelId) {

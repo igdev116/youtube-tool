@@ -27,10 +27,10 @@ export class TelegramBotService {
   ) {
     console.log('video ->', video);
 
-    const checkLongVideoVal = String(process.env.CHECK_LONG_VIDEO || '')
+    const isNewServerVal = String(process.env.IS_NEW_SERVER || '')
       .trim()
       .toLowerCase();
-    const isCheckEnabled = checkLongVideoVal === 'true';
+    const isCheckEnabled = isNewServerVal === 'true';
     if (isCheckEnabled) {
       try {
         // Trích xuất video ID từ URL (hỗ trợ cả /watch?v=ID và /shorts/ID)
@@ -124,7 +124,7 @@ export class TelegramBotService {
 
     // Trở lại format cũ: kênh (không link) → tiêu đề → thời gian → tìm TikTok → link YouTube ở cuối
     const captionParts: string[] = [];
-    if (video.channelId) {
+    if (isCheckEnabled && video.channelId) {
       captionParts.push(`ID: ${escapeHtml(video.channelId)}`);
     }
     if (video.channelName || video.channelId) {
