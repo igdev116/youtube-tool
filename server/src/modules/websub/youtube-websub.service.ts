@@ -212,17 +212,19 @@ export class YoutubeWebsubService {
       // Lấy các channel có lastSubscribeAt cũ hơn now - (lease - threshold)
       const needRenew = await this.channelModel
         .find({
-          lastSubscribeAt: { $exists: true },
+          // lastSubscribeAt: { $exists: true },
         })
         .lean()
         .exec();
 
-      const candidates = (needRenew || []).filter((c) => {
-        const last = c.lastSubscribeAt
-          ? new Date(c.lastSubscribeAt).getTime()
-          : 0;
-        return last > 0 && now - last >= leaseMs - thresholdMs;
-      });
+      // const candidates = (needRenew || []).filter((c) => {
+      //   const last = c.lastSubscribeAt
+      //     ? new Date(c.lastSubscribeAt).getTime()
+      //     : 0;
+      //   return last > 0 && now - last >= leaseMs - thresholdMs;
+      // });
+
+      const candidates = needRenew;
 
       if (candidates.length === 0) return;
 
