@@ -163,10 +163,17 @@ let YoutubeWebsubService = YoutubeWebsubService_1 = class YoutubeWebsubService {
             const thresholdMs = constants_2.WEB_SUB_RENEW_BEFORE_SECONDS * 1000;
             const leaseMs = constants_2.HUB_LEASE_SECONDS * 1000;
             const needRenew = await this.channelModel
-                .find({})
+                .find({
+                lastSubscribeAt: { $exists: true },
+            })
                 .lean()
                 .exec();
-            const candidates = needRenew;
+            const candidates = (needRenew || []).filter((c) => {
+                const last = c.lastSubscribeAt
+                    ? new Date(c.lastSubscribeAt).getTime()
+                    : 0;
+                return last > 0 && now - last >= leaseMs - thresholdMs;
+            });
             if (candidates.length === 0)
                 return;
             await Promise.all(candidates.map(async (c) => {
