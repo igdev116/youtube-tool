@@ -251,4 +251,33 @@ export class YoutubeWebsubService {
       this.logger.error(`Renew cron failed: ${(err as Error).message}`);
     }
   }
+
+  async unsubscribeAllChannels() {
+    try {
+      const channels = await this.channelModel.find().lean().exec();
+      const results: any[] = [];
+
+      await Promise.all(
+        channels.map(async (c: any) => {
+          try {
+            if (!c.xmlChannelId) return;
+            const topicUrl = `${FEED_BASE}?channel_id=${c.xmlChannelId}`;
+            const callbackUrl = `${process.env.API_URL}/websub/youtube/callback`;
+            const status = await this.unsubscribeCallback(topicUrl, callbackUrl);
+            results.push({ channelId: c.channelId, success: status >= 200 && status < 300, status });
+          } catch (err) {
+            this.logger.error(
+              `Unsubscribe failed for ${c.channelId}: ${(err as Error).message}`,
+            );
+            results.push({ channelId: c.channelId, success: false, error: (err as Error).message });
+          }
+        }),
+      );
+
+      return results;
+    } catch (err) {
+      this.logger.error(`unsubscribeAllChannels failed: ${(err as Error).message}`);
+      throw err;
+    }
+  }
 }

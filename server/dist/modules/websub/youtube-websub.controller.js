@@ -46,6 +46,10 @@ let YoutubeWebsubController = YoutubeWebsubController_1 = class YoutubeWebsubCon
         await this.service.renewExpiringSubscriptions();
         return { message: 'Renew process started' };
     }
+    async unsubscribeAll() {
+        const results = await this.service.unsubscribeAllChannels();
+        return { success: true, results };
+    }
 };
 exports.YoutubeWebsubController = YoutubeWebsubController;
 __decorate([
@@ -82,6 +86,12 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], YoutubeWebsubController.prototype, "renew", null);
+__decorate([
+    (0, common_1.Post)('unsubscribe-all'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], YoutubeWebsubController.prototype, "unsubscribeAll", null);
 exports.YoutubeWebsubController = YoutubeWebsubController = YoutubeWebsubController_1 = __decorate([
     (0, common_1.Controller)('websub/youtube'),
     __metadata("design:paramtypes", [youtube_websub_service_1.YoutubeWebsubService])

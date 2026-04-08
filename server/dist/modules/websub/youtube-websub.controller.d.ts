@@ -22,4 +22,8 @@ export declare class YoutubeWebsubController {
     renew(): Promise<{
         message: string;
     }>;
+    unsubscribeAll(): Promise<{
+        success: boolean;
+        results: any[];
+    }>;
 }

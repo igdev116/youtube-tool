@@ -13,4 +13,5 @@ export declare class YoutubeWebsubService {
     subscribeCallback(topicUrl: string, callbackUrl: string, leaseSeconds?: number): Promise<number>;
     unsubscribeCallback(topicUrl: string, callbackUrl: string): Promise<number>;
     renewExpiringSubscriptions(): Promise<void>;
+    unsubscribeAllChannels(): Promise<any[]>;
 }

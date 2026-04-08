@@ -52,4 +52,10 @@ export class YoutubeWebsubController {
     await this.service.renewExpiringSubscriptions();
     return { message: 'Renew process started' };
   }
+
+  @Post('unsubscribe-all')
+  async unsubscribeAll() {
+    const results = await this.service.unsubscribeAllChannels();
+    return { success: true, results };
+  }
 }
