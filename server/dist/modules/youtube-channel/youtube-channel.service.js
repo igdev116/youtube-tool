@@ -106,6 +106,7 @@ let YoutubeChannelService = YoutubeChannelService_1 = class YoutubeChannelServic
                 try {
                     await this.websubService.subscribeCallback(topicUrl, callbackUrl, constants_1.HUB_LEASE_SECONDS);
                     await this.channelModel.updateOne({ _id: created._id }, { $set: { lastSubscribeAt: new Date() } });
+                    console.log('Đã subscribe channel mới ', created.channelId);
                 }
                 catch (err) {
                     const status = err?.response?.status;

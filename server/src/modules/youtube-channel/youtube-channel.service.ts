@@ -132,6 +132,7 @@ export class YoutubeChannelService {
               { _id: created._id },
               { $set: { lastSubscribeAt: new Date() } },
             );
+            console.log('Đã subscribe channel mới ', created.channelId);
           } catch (err) {
             // Nếu 409 (already subscribed), vẫn cập nhật lastSubscribeAt để bắt đầu chu kỳ gia hạn
             const status = err?.response?.status;
