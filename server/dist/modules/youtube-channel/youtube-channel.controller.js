@@ -37,7 +37,6 @@ let YoutubeChannelController = class YoutubeChannelController {
             const created = await Promise.all(newGroupNames.map((name) => this.groupService.createGroup(userId, { name })));
             groupIds = [...groupIds, ...created.map((g) => String(g._id))];
         }
-        console.log(channels);
         const result = this.channelService.addChannelsBulk(channels, userId, groupIds);
         if (result.error) {
             return {

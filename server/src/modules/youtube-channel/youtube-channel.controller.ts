@@ -60,7 +60,6 @@ export class YoutubeChannelController {
       groupIds = [...groupIds, ...created.map((g) => String(g._id))];
     }
 
-    console.log(channels);
     const result = this.channelService.addChannelsBulk(
       channels,
       userId,

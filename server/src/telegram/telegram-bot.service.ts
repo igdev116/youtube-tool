@@ -132,7 +132,7 @@ export class TelegramBotService {
       const bold = `<b>${escapeHtml(channelLabel)}</b>`;
       captionParts.push(`📺 ${bold}`);
     }
-    captionParts.push(`🎬 ${escapeHtml(displayTitle)}`);
+    captionParts.push(`${escapeHtml(displayTitle)}`);
     captionParts.push(`🕒 ${escapeHtml(publishedText)}`);
 
     if (hasTitle) {
