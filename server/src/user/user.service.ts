@@ -11,6 +11,10 @@ export class UserService {
     return this.userModel.findOne({ username });
   }
 
+  async findById(userId: string) {
+    return this.userModel.findById(userId).select('-password');
+  }
+
   async createUser(username: string, password: string) {
     const user = new this.userModel({ username, password });
     return user.save();

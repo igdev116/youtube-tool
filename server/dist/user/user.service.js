@@ -25,6 +25,9 @@ let UserService = class UserService {
     async findByUsername(username) {
         return this.userModel.findOne({ username });
     }
+    async findById(userId) {
+        return this.userModel.findById(userId).select('-password');
+    }
     async createUser(username, password) {
         const user = new this.userModel({ username, password });
         return user.save();

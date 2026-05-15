@@ -13,6 +13,8 @@ const youtube_channel_schema_1 = require("../youtube-channel/youtube-channel.sch
 const user_schema_1 = require("../../user/user.schema");
 const admin_service_1 = require("./admin.service");
 const admin_controller_1 = require("./admin.controller");
+const user_module_1 = require("../../user/user.module");
+const admin_guard_1 = require("../../auth/admin.guard");
 let AdminModule = class AdminModule {
 };
 exports.AdminModule = AdminModule;
@@ -23,8 +25,9 @@ exports.AdminModule = AdminModule = __decorate([
                 { name: youtube_channel_schema_1.YoutubeChannel.name, schema: youtube_channel_schema_1.YoutubeChannelSchema },
                 { name: user_schema_1.User.name, schema: user_schema_1.UserSchema },
             ]),
+            user_module_1.UserModule,
         ],
-        providers: [admin_service_1.AdminService],
+        providers: [admin_service_1.AdminService, admin_guard_1.AdminGuard],
         controllers: [admin_controller_1.AdminController],
         exports: [admin_service_1.AdminService],
     })

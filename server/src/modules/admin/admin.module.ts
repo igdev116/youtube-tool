@@ -7,6 +7,8 @@ import {
 import { User, UserSchema } from '../../user/user.schema';
 import { AdminService } from './admin.service';
 import { AdminController } from './admin.controller';
+import { UserModule } from '../../user/user.module';
+import { AdminGuard } from '../../auth/admin.guard';
 
 @Module({
   imports: [
@@ -14,8 +16,9 @@ import { AdminController } from './admin.controller';
       { name: YoutubeChannel.name, schema: YoutubeChannelSchema },
       { name: User.name, schema: UserSchema },
     ]),
+    UserModule,
   ],
-  providers: [AdminService],
+  providers: [AdminService, AdminGuard],
   controllers: [AdminController],
   exports: [AdminService],
 })

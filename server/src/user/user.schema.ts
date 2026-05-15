@@ -19,6 +19,9 @@ export class User {
 
   @Prop({ type: [String], default: [] })
   favoriteChannelIds: string[];
+
+  @Prop({ default: false })
+  isAdmin: boolean;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

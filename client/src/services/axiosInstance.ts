@@ -32,7 +32,7 @@ axiosInstance.interceptors.response.use(
       if (typeof window !== 'undefined') {
         localStorage.setItem(
           LS_KEYS.ACCESS_TOKEN,
-          response.data.result.accessToken
+          response.data.result.accessToken,
         );
       }
     }
@@ -47,7 +47,7 @@ axiosInstance.interceptors.response.use(
       }
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 export default axiosInstance;

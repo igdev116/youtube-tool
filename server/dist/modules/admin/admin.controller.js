@@ -17,6 +17,8 @@ const common_1 = require("@nestjs/common");
 const admin_service_1 = require("./admin.service");
 const get_users_dto_1 = require("./dto/get-users.dto");
 const get_user_channels_dto_1 = require("./dto/get-user-channels.dto");
+const jwt_auth_guard_1 = require("../../auth/jwt-auth.guard");
+const admin_guard_1 = require("../../auth/admin.guard");
 let AdminController = class AdminController {
     adminService;
     constructor(adminService) {
@@ -181,6 +183,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AdminController.prototype, "migrateUserField", null);
 exports.AdminController = AdminController = __decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, admin_guard_1.AdminGuard),
     (0, common_1.Controller)('admin'),
     __metadata("design:paramtypes", [admin_service_1.AdminService])
 ], AdminController);

@@ -6,13 +6,17 @@ import {
   Param,
   Delete,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { BaseResponse, PagingResponseV2 } from '../../types/common.type';
 import { GetUsersDto } from './dto/get-users.dto';
 import { UserAdminResponseDto } from './dto/user-admin-response.dto';
 import { GetUserChannelsDto } from './dto/get-user-channels.dto';
+import { JwtAuthGuard } from '~/auth/jwt-auth.guard';
+import { AdminGuard } from '~/auth/admin.guard';
 
+@UseGuards(JwtAuthGuard, AdminGuard)
 @Controller('admin')
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
